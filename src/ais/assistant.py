@@ -1,0 +1,198 @@
+import asyncio
+import backoff
+from time import sleep
+from openai import NotFoundError
+from pathlib import Path
+
+
+from src.ais.msg import get_text_content, user_msg
+from src.utils.database import write_to_memory
+
+
+async def create(client, config):
+    assistant = client.beta.assistants.create(
+        name = config["name"],
+        model = config["model"],
+        tools = config["tools"],
+    )
+
+    return assistant
+
+async def load_or_create_assistant(client, config, recreate: bool = False):
+    asst_obj = await first_by_name(client, config["name"])
+
+    asst_id = asst_obj.id if asst_obj is not None else None
+
+    if recreate and asst_id is not None:
+        await delete(client, config, asst_id)
+        asst_id = None 
+        print(f"Assistant '{config['name']}' deleted")
+
+    if asst_id is not None:
+        print(f"Assistant '{config['name']}' loaded")
+        return asst_id
+    
+    else:
+        asst_obj = await create(client, config)
+        print(f"Assistant '{config['name']}' created")
+        return asst_obj.id
+
+async def first_by_name(client, name: str):
+    assts = client.beta.assistants
+    assistants = assts.list().data
+    asst_obj =  next((asst for asst in assistants if asst.name == name), None)
+    return asst_obj
+
+@backoff.on_exception(backoff.expo,
+                    NotFoundError,
+                    max_tries=5,
+                    giveup=lambda e: "No assistant found" not in str(e))
+async def upload_instruction(client, config, asst_id: str, instructions: str):
+    assts = client.beta.assistants
+    try: 
+        assts.update(
+            assistant_id= asst_id,
+            instructions = instructions
+        )
+        print(f"Instructions uploaded to assistant '{config['name']}'")
+
+    except Exception as e:
+        print(f"Failed to upload instruction: {e}")
+        raise  
+
+async def delete(client, config, asst_id: str):
+    assts = client.beta.assistants 
+    assistant_files = client.files
+
+    file_hashmap = await get_file_hashmap(client, asst_id)
+
+    for file_id in file_hashmap.values():
+        del_res = assistant_files.delete(file_id)
+
+        if del_res.deleted:
+            print(f"File '{file_id}' deleted")
+        
+    assts.delete(assistant_id=asst_id)
+    print(f"Assistant '{config['name']}' deleted")
+
+async def get_file_hashmap(client, asst_id: str):
+    assts = client.beta.assistants
+    assistant_files = assts.files.list(assistant_id=asst_id).data
+    asst_file_ids = {file.id for file in assistant_files}
+
+    org_files = client.files.list().data
+    file_id_by_name = {org_file.filename: org_file.id for org_file in org_files if org_file.id in asst_file_ids}
+    
+    return file_id_by_name
+
+async def create_thread(client):
+    threads = client.beta.threads
+    res = threads.create()
+    return res.id
+
+async def get_thread(client, thread_id: str):
+    threads = client.beta.threads
+    res = threads.retrieve(thread_id)
+    return res
+
+async def run_thread_message(client, asst_id: str, thread_id: str, message: str):
+
+    msg = user_msg(message)
+
+    threads = client.beta.threads
+    _message_obj = threads.messages.create(
+        thread_id=thread_id,
+        content=message,
+        role="user",
+    )
+
+    run = threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=asst_id,
+    )
+
+    write_to_memory(r"agent\.agent\persistance\memory.db", "User", message)
+
+    while True:
+            print("-", end="", flush=True)
+            run = threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
+
+            if run.status in ["Completed", "completed"]:
+                print("\n")  # Move to the next line
+                return await get_thread_message(client, thread_id)
+            elif run.status in ["Queued", "InProgress", "run_in_progress", "in_progress", "queued"]:
+                pass  
+            else:
+                print("\n")  # Move to the next line
+                # Raising an exception for unexpected status
+                raise Exception(f"Unexpected run status: {run.status}")
+
+            sleep(0.5)
+
+async def get_thread_message(client, thread_id: str):
+    threads = client.beta.threads
+    
+    try:
+        messages = threads.messages.list(
+            thread_id=thread_id,
+            order="desc",
+            extra_query={"limit": "1"},
+        ).data
+
+        msg = next(iter(messages), None)
+        if msg is None:
+            raise ValueError("No message found in thread")
+        txt = get_text_content(msg)
+
+        write_to_memory(r"agent\.agent\persistance\memory.db", "Assistant", txt)
+
+        return txt
+    
+    except Exception as e:
+        raise ValueError(f"An error occurred: {str(e)}")
+
+async def upload_file_by_name(client, asst_id: str, filename: str, force: bool = False):
+    assts = client.beta.assistants
+    assistant_files = assts.files
+    
+    file_id_by_name = await get_file_hashmap(client, asst_id)
+
+    file_id = file_id_by_name.pop(filename.name, None)
+
+    if not force:
+        if file_id is not None:
+            print(f"File '{filename}' already uploaded")
+            return file_id, False
+    
+    if file_id:
+        try:
+            assistant_files.delete(file_id)
+
+        except Exception as e:
+            print(f"Failed to delete file '{filename}': {e}")
+            raise
+
+        try:
+            assts.files.delete(
+                assistant_id=asst_id,
+                file_id=file_id,
+            )
+        
+        except Exception as e:
+            print(f"Couldn't remove assistant file '{filename}': {e}")
+            raise
+
+    with open(filename, "rb") as file:
+        uploaded_file = client.files.create(
+            file=file,
+            purpose="assistants",
+        )
+
+    assistant_files.create(
+        assistant_id=asst_id,
+        file_id=uploaded_file.id,
+    )
+
+    print(f"File '{filename}' uploaded")
+    return uploaded_file.id, True
+

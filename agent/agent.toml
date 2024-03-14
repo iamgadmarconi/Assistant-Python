@@ -1,0 +1,27 @@
+name = "Assistant"
+model = "gpt-3.5-turbo-1106"
+instructions_file = "instructions.md"
+
+[[tools]]
+type = "code_interpreter"
+
+[[tools]]
+type = "retrieval"
+
+[[file_bundles]]
+bundle_name = "source-code"
+src_dir = "../src"
+src_globs = ["**/*.py"]
+dst_ext = "py"
+
+[[file_bundles]]
+bundle_name = "knowledge"
+src_dir = "files"
+src_globs = ["*.md"]
+dst_ext = "md"
+
+[[file_bundles]]
+bundle_name = "memory"
+src_dir = "../src"
+src_globs = ["**/*.json"]
+dst_ext = "json" 
