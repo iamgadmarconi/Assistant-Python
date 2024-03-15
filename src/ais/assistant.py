@@ -3,10 +3,15 @@ import backoff
 from time import sleep
 from openai import NotFoundError
 from pathlib import Path
+import json
+import os
+import glob
 
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
+from src.ais.functions import getWeather
+from src.utils.files import find
 
 
 async def create(client, config):
@@ -24,7 +29,7 @@ async def load_or_create_assistant(client, config, recreate: bool = False):
     asst_id = asst_obj.id if asst_obj is not None else None
 
     if recreate and asst_id is not None:
-        await delete(client, config, asst_id)
+        await delete(client, asst_id)
         asst_id = None 
         print(f"Assistant '{config['name']}' deleted")
 
@@ -60,7 +65,7 @@ async def upload_instruction(client, config, asst_id: str, instructions: str):
         print(f"Failed to upload instruction: {e}")
         raise  
 
-async def delete(client, config, asst_id: str):
+async def delete(client, asst_id: str):
     assts = client.beta.assistants 
     assistant_files = client.files
 
@@ -71,9 +76,26 @@ async def delete(client, config, asst_id: str):
 
         if del_res.deleted:
             print(f"File '{file_id}' deleted")
-        
+
+    for key in file_hashmap.keys():
+        path = find(key, "agent")
+        if os.path.exists(path):
+            os.remove(path)
+
+    try:
+        if os.path.exists(find("memory.json", "agent")):
+            os.remove(find("memory.json", "agent"))
+    except:
+        pass
+    
+    try:
+        if os.path.exists(find("memory.db", "agent")):
+            os.remove(find("memory.db", "agent"))
+    except:
+        pass
+
     assts.delete(assistant_id=asst_id)
-    print(f"Assistant '{config['name']}' deleted")
+    print(f"Assistant deleted")
 
 async def get_file_hashmap(client, asst_id: str):
     assts = client.beta.assistants
@@ -111,7 +133,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
         assistant_id=asst_id,
     )
 
-    write_to_memory(r"agent\.agent\persistance\memory.db", "User", message)
+    write_to_memory("User", message)
 
     while True:
             print("-", end="", flush=True)
@@ -122,12 +144,44 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
                 return await get_thread_message(client, thread_id)
             elif run.status in ["Queued", "InProgress", "run_in_progress", "in_progress", "queued"]:
                 pass  
+
+            elif run.status in ['pending', 'Pending']:
+                pass
+            elif run.status in ['requires_input', 'RequiresInput', 'requires_action', 'RequiresAction']:
+                await call_required_function(client, thread_id, run.id, run.required_action)
             else:
                 print("\n")  # Move to the next line
                 # Raising an exception for unexpected status
+                await delete(client, asst_id)
                 raise Exception(f"Unexpected run status: {run.status}")
 
             sleep(0.5)
+
+async def call_required_function(client, thread_id: str, run_id: str, required_action):
+    tool_outputs = []
+
+    for action in required_action:
+        if not isinstance(action[1], str):
+            
+            func_name = action[1].tool_calls[0].function.name
+            args = json.loads(action[1].tool_calls[0].function.arguments)
+            if func_name == "getWeather":
+                outputs = getWeather(msg = args.get("msg", None))
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            else:
+                raise ValueError(f"Function '{func_name}' not found")
+
+    client.beta.threads.runs.submit_tool_outputs(
+        thread_id=thread_id,
+        run_id=run_id,
+        tool_outputs=tool_outputs,
+    )
 
 async def get_thread_message(client, thread_id: str):
     threads = client.beta.threads
@@ -144,7 +198,7 @@ async def get_thread_message(client, thread_id: str):
             raise ValueError("No message found in thread")
         txt = get_text_content(msg)
 
-        write_to_memory(r"agent\.agent\persistance\memory.db", "Assistant", txt)
+        write_to_memory("Assistant", txt)
 
         return txt
     

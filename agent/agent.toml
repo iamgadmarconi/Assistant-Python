@@ -1,5 +1,5 @@
 name = "Assistant"
-model = "gpt-3.5-turbo-1106"
+model = "gpt-4-turbo-preview"
 instructions_file = "instructions.md"
 
 [[tools]]
@@ -7,6 +7,18 @@ type = "code_interpreter"
 
 [[tools]]
 type = "retrieval"
+
+[[tools]]
+type = "function"
+[tools.function]
+name = "getWeather"
+description = "Get the weather for a given time period and location. Return the weather naturally, as if in a conversation"
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.msg]
+type = "string"
+description = "The user input message, e.g. 'What is the weather in London?' do not alter the input when passing it to the function."
+
 
 [[file_bundles]]
 bundle_name = "source-code"

@@ -1,22 +1,3 @@
-# def pretty_print(messages):
-#     print(messages)
-#     for m in messages:
-#         print(f"{m.role}: {m.content[0].text.value}")
-#     print("\n")
-
-# def pretty_print(messages):
-#     m = messages
-#     # print(f"{m.role}: {m.content[0].text.value}")
-#     # print("\n")
-#     print(m)
-
-# def get_text_content(messages):
-#     msg_content = [m.content[0].text.value for m in messages]
-    
-#     if not msg_content:
-#         return "No messages found"
-
-#     return msg_content
 
 class CreateMessageRequest:
     def __init__(self, role, content, **kwargs):

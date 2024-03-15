@@ -20,7 +20,10 @@ class Assistant:
         self.name = self.config["name"]
 
         db_to_json()
-        await upload_file_by_name(self.oac, self.asst_id, Path(r"agent\.agent\persistance\memory.json"), recreate)
+        try:
+            await upload_file_by_name(self.oac, self.asst_id, Path(r"agent\.agent\persistance\memory.json"), True)
+        except:
+            print("No previous memory")
 
         await self.upload_instructions()
         await self.upload_files(recreate)
@@ -99,7 +102,7 @@ class Assistant:
     
     def data_dir(self) -> Path:
         """Returns the path to the data directory, ensuring its existence."""
-        data_dir = Path(self.dir + "\.agent")
+        data_dir = Path(self.dir + r"\.agent")
         ensure_dir(data_dir)
         return data_dir
 

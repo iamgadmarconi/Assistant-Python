@@ -23,7 +23,10 @@ class Assistant:
         self.name = self.config["name"]
 
         db_to_json()
-        await upload_file_by_name(self.oac, self.asst_id, Path(r"agent\.agent\persistance\memory.json"), recreate)
+        try:
+            await upload_file_by_name(self.oac, self.asst_id, Path(r"agent\.agent\persistance\memory.json"), True)
+        except:
+            print("No previous memory")
 
         await self.upload_instructions()
         await self.upload_files(recreate)
@@ -102,7 +105,7 @@ class Assistant:
     
     def data_dir(self) -> Path:
         """Returns the path to the data directory, ensuring its existence."""
-        data_dir = Path(self.dir + "\.agent")
+        data_dir = Path(self.dir + r"\.agent")
         ensure_dir(data_dir)
         return data_dir
 
@@ -125,10 +128,15 @@ import backoff
 from time import sleep
 from openai import NotFoundError
 from pathlib import Path
+import json
+import os
+import glob
 
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
+from src.ais.functions import getWeather
+from src.utils.files import find
 
 
 async def create(client, config):
@@ -146,7 +154,7 @@ async def load_or_create_assistant(client, config, recreate: bool = False):
     asst_id = asst_obj.id if asst_obj is not None else None
 
     if recreate and asst_id is not None:
-        await delete(client, config, asst_id)
+        await delete(client, asst_id)
         asst_id = None 
         print(f"Assistant '{config['name']}' deleted")
 
@@ -182,7 +190,7 @@ async def upload_instruction(client, config, asst_id: str, instructions: str):
         print(f"Failed to upload instruction: {e}")
         raise  
 
-async def delete(client, config, asst_id: str):
+async def delete(client, asst_id: str):
     assts = client.beta.assistants 
     assistant_files = client.files
 
@@ -193,9 +201,26 @@ async def delete(client, config, asst_id: str):
 
         if del_res.deleted:
             print(f"File '{file_id}' deleted")
-        
+
+    for key in file_hashmap.keys():
+        path = find(key, "agent")
+        if os.path.exists(path):
+            os.remove(path)
+
+    try:
+        if os.path.exists(find("memory.json", "agent")):
+            os.remove(find("memory.json", "agent"))
+    except:
+        pass
+    
+    try:
+        if os.path.exists(find("memory.db", "agent")):
+            os.remove(find("memory.db", "agent"))
+    except:
+        pass
+
     assts.delete(assistant_id=asst_id)
-    print(f"Assistant '{config['name']}' deleted")
+    print(f"Assistant deleted")
 
 async def get_file_hashmap(client, asst_id: str):
     assts = client.beta.assistants
@@ -233,7 +258,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
         assistant_id=asst_id,
     )
 
-    write_to_memory(r"agent\.agent\persistance\memory.db", "User", message)
+    write_to_memory("User", message)
 
     while True:
             print("-", end="", flush=True)
@@ -244,12 +269,44 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
                 return await get_thread_message(client, thread_id)
             elif run.status in ["Queued", "InProgress", "run_in_progress", "in_progress", "queued"]:
                 pass  
+
+            elif run.status in ['pending', 'Pending']:
+                pass
+            elif run.status in ['requires_input', 'RequiresInput', 'requires_action', 'RequiresAction']:
+                await call_required_function(client, thread_id, run.id, run.required_action)
             else:
                 print("\n")  # Move to the next line
                 # Raising an exception for unexpected status
+                await delete(client, asst_id)
                 raise Exception(f"Unexpected run status: {run.status}")
 
             sleep(0.5)
+
+async def call_required_function(client, thread_id: str, run_id: str, required_action):
+    tool_outputs = []
+
+    for action in required_action:
+        if not isinstance(action[1], str):
+            
+            func_name = action[1].tool_calls[0].function.name
+            args = json.loads(action[1].tool_calls[0].function.arguments)
+            if func_name == "getWeather":
+                outputs = getWeather(msg = args.get("msg", None))
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            else:
+                raise ValueError(f"Function '{func_name}' not found")
+
+    client.beta.threads.runs.submit_tool_outputs(
+        thread_id=thread_id,
+        run_id=run_id,
+        tool_outputs=tool_outputs,
+    )
 
 async def get_thread_message(client, thread_id: str):
     threads = client.beta.threads
@@ -266,7 +323,7 @@ async def get_thread_message(client, thread_id: str):
             raise ValueError("No message found in thread")
         txt = get_text_content(msg)
 
-        write_to_memory(r"agent\.agent\persistance\memory.db", "Assistant", txt)
+        write_to_memory("Assistant", txt)
 
         return txt
     
@@ -323,30 +380,85 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
 
  # ==== file path: agent\..\src\ais\functions.py ==== 
 
+import requests
+import os
+import geocoder
+from geopy.geocoders import Nominatim
+from typing import Optional
+from datetime import datetime
+import datefinder
+from geotext import GeoText
+import spacy
+import dateparser
 
+
+def getLocation():
+    g = geocoder.ip('me').city
+    geolocator = Nominatim(user_agent="User")
+    location = geolocator.geocode(g)
+    return location
+
+
+def getWeather(msg: str):
+    api_key = os.environ.get("OPENWEATHER_API_KEY")
+
+    nlp = spacy.load("en_core_web_sm")
+
+    doc = nlp(msg)
+
+    times = [ent.text for ent in doc.ents if ent.label_ in ["TIME", "DATE"]]
+    locations = [ent.text for ent in doc.ents if ent.label_ == "GPE"]
+
+    time = " ".join(times)
+    location = " ".join(locations)
+
+    if location == "":
+        location = getLocation()
+        lat, lon = location.latitude, location.longitude
+
+    else:
+        location = GeoText(location).cities
+
+        geolocator = Nominatim(user_agent="User")
+        location = geolocator.geocode(location[0])
+        lat = location.latitude
+        lon = location.longitude
+
+    try:
+        time = dateparser.parse(time).timestamp()
+
+    except:
+        print("\nThe date range is outside the range of the API\n")
+        time = datetime.now().timestamp()
+        
+    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
+
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        # Successful API call
+        data = response.json()
+
+        match = min(data['list'], key=lambda x: abs(x['dt'] - int(time)))
+        main = match['main']
+
+        temperature = main['temp']
+        humidity = main['humidity']
+        weather_description = match['weather'][0]['description']
+        
+        weather_report = (f"Location: {location}\n"
+                          f"Time: {datetime.fromtimestamp(time)}\n"
+                          f"Temperature: {temperature - 273.15}°C\n"
+                          f"Humidity: {humidity}%\n"
+                          f"Description: {weather_description.capitalize()}")
+        return weather_report
+    else:
+        # API call failed this usually happens if the API key is invalid or not provided
+        return f"Failed to retrieve weather data: {response.status_code}"
 
 
  # ==== file path: agent\..\src\ais\msg.py ==== 
 
-# def pretty_print(messages):
-#     print(messages)
-#     for m in messages:
-#         print(f"{m.role}: {m.content[0].text.value}")
-#     print("\n")
-
-# def pretty_print(messages):
-#     m = messages
-#     # print(f"{m.role}: {m.content[0].text.value}")
-#     # print("\n")
-#     print(m)
-
-# def get_text_content(messages):
-#     msg_content = [m.content[0].text.value for m in messages]
-    
-#     if not msg_content:
-#         return "No messages found"
-
-#     return msg_content
 
 class CreateMessageRequest:
     def __init__(self, role, content, **kwargs):
@@ -408,9 +520,9 @@ def create_or_load_db() -> sqlite3.Connection:
     
     return sqlite3.connect(r"agent\.agent\persistance\memory.db")
 
-def write_to_memory(file, role, val):
+def write_to_memory(role, val):
 
-    con = create_or_load_db(file)
+    con = create_or_load_db()
     cur = con.cursor()
     cur.execute("INSERT INTO memory (role, time, message) VALUES (?, ?, ?)", (role, datetime.datetime.now(), val))
     con.commit()
@@ -551,6 +663,12 @@ def db_to_json():
 
     with open(r"agent\.agent\persistance\memory.json", "w") as f:
         json.dump(data, f, indent=4)
+
+def find(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            return os.path.join(root, name)
+
 
 
  # ==== file path: agent\..\src\utils\__init__.py ==== 

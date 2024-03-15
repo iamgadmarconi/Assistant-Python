@@ -11,9 +11,9 @@ def create_or_load_db() -> sqlite3.Connection:
     
     return sqlite3.connect(r"agent\.agent\persistance\memory.db")
 
-def write_to_memory(file, role, val):
+def write_to_memory(role, val):
 
-    con = create_or_load_db(file)
+    con = create_or_load_db()
     cur = con.cursor()
     cur.execute("INSERT INTO memory (role, time, message) VALUES (?, ?, ?)", (role, datetime.datetime.now(), val))
     con.commit()
