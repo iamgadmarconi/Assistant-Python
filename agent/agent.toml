@@ -19,6 +19,16 @@ type = "object"
 type = "string"
 description = "The user input message, e.g. 'What is the weather in London?' do not alter the input when passing it to the function."
 
+[[tools]]
+type = "function"
+[tools.function]
+name = "getCalendar"
+description = "Get the the users calendar events"
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.upto]
+type = "string"
+description = "The time range for which to get calendar events. For example, if the User message is: 'Whats my schedule like this week', upto would be '7 days'"
 
 [[file_bundles]]
 bundle_name = "source-code"

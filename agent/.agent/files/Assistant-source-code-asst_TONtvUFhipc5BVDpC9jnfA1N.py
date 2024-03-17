@@ -24,7 +24,7 @@ class Assistant:
 
         db_to_json()
         try:
-            await upload_file_by_name(self.oac, self.asst_id, Path(r"agent\.agent\persistance\memory.json"), True)
+            await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=recreate)
         except:
             print("No previous memory")
 
@@ -135,7 +135,7 @@ import glob
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
-from src.ais.functions import getWeather
+from src.ais.functions import getWeather, getCalendar
 from src.utils.files import find
 
 
@@ -298,6 +298,14 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                         "output": outputs
                     }
                 )
+            elif func_name == "getCalendar":
+                outputs = getCalendar(upto = args.get("upto", None))
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
 
             else:
                 raise ValueError(f"Function '{func_name}' not found")
@@ -385,11 +393,13 @@ import os
 import geocoder
 from geopy.geocoders import Nominatim
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import datefinder
 from geotext import GeoText
 import spacy
 import dateparser
+
+from O365 import Account, MSGraphProtocol
 
 
 def getLocation():
@@ -397,7 +407,6 @@ def getLocation():
     geolocator = Nominatim(user_agent="User")
     location = geolocator.geocode(g)
     return location
-
 
 def getWeather(msg: str):
     api_key = os.environ.get("OPENWEATHER_API_KEY")
@@ -428,7 +437,7 @@ def getWeather(msg: str):
         time = dateparser.parse(time).timestamp()
 
     except:
-        print("\nThe date range is outside the range of the API\n")
+        
         time = datetime.now().timestamp()
         
     url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
@@ -455,6 +464,62 @@ def getWeather(msg: str):
     else:
         # API call failed this usually happens if the API key is invalid or not provided
         return f"Failed to retrieve weather data: {response.status_code}"
+    
+def sendEmail():
+    pass
+
+def readEmail():
+    pass
+    
+def getCalendar(upto: Optional[str] = None):
+
+    if upto is None:
+        upto = datetime.now() + timedelta(days=7)
+    else:
+        nlp = spacy.load("en_core_web_sm")
+        doc = nlp(upto)
+        times = [ent.text for ent in doc.ents if ent.label_ in ["TIME", "DATE"]]
+        time = " ".join(times)
+
+        settings = {"PREFER_DATES_FROM": "future"}
+        print(time)
+        diff = dateparser.parse(time, settings=settings)
+        print(diff)
+        if diff is not None:
+            upto = diff
+        else:
+            upto = datetime.now() + timedelta(days=7)  # Default to 7 days from now if parsing fails
+
+
+    protocol = MSGraphProtocol()
+    credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
+    scopes_graph = protocol.get_scopes_for(['calendar_all', 'basic'])
+
+    account = Account(credentials, protocol=protocol)
+
+    if not account.is_authenticated:
+        account.authenticate(scopes=scopes_graph)
+
+    schedule = account.schedule()
+    calendar = schedule.get_default_calendar()
+
+    q = calendar.new_query('start').greater_equal(datetime.now())
+    q.chain('and').on_attribute('end').less_equal(upto)
+
+    events = calendar.get_events(query=q, include_recurring=True)
+
+    for event in events:
+
+        cal_report = (f"Event: {event.subject}\n"
+                      f"Start: {event.start}\n"
+                      f"End: {event.end}\n"
+                      f"Location: {event.location}\n"
+                      f"Description: {event.body}")
+
+    return cal_report
+
+def addCalendarEvent():
+    pass
 
 
  # ==== file path: agent\..\src\ais\msg.py ==== 

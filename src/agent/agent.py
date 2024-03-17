@@ -21,7 +21,7 @@ class Assistant:
 
         db_to_json()
         try:
-            await upload_file_by_name(self.oac, self.asst_id, Path(r"agent\.agent\persistance\memory.json"), True)
+            await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=recreate)
         except:
             print("No previous memory")
 

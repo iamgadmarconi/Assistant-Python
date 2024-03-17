@@ -10,7 +10,7 @@ import glob
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
-from src.ais.functions import getWeather
+from src.ais.functions import getWeather, getCalendar
 from src.utils.files import find
 
 
@@ -167,6 +167,14 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
             args = json.loads(action[1].tool_calls[0].function.arguments)
             if func_name == "getWeather":
                 outputs = getWeather(msg = args.get("msg", None))
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            elif func_name == "getCalendar":
+                outputs = getCalendar(upto = args.get("upto", None))
                 tool_outputs.append(
                     {
                         "tool_call_id": action[1].tool_calls[0].id,
