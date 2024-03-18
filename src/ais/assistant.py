@@ -2,11 +2,8 @@ import asyncio
 import backoff
 from time import sleep
 from openai import NotFoundError
-from pathlib import Path
 import json
 import os
-import glob
-
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory

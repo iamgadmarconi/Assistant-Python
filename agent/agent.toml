@@ -17,7 +17,7 @@ description = "Get the weather for a given time period and location. Return the 
 type = "object"
 [tools.function.parameters.properties.msg]
 type = "string"
-description = "The user input message, e.g. 'What is the weather in London?' do not alter the input when passing it to the function."
+description = "A string containing location and time. For example, if user message is: 'What is the weather in London tomorrow noon?', the parameter would be 'London tomorrow noon', or PREFERABLY 'London 12:00 tomorrow'"
 
 [[tools]]
 type = "function"
@@ -28,7 +28,9 @@ description = "Get the the users calendar events"
 type = "object"
 [tools.function.parameters.properties.upto]
 type = "string"
-description = "The time range for which to get calendar events. For example, if the User message is: 'Whats my schedule like this week', upto would be '7 days'"
+description = "The time range for which to get calendar events. For example, if the User message is: 'Whats my schedule like this week', upto would be '7 days'. If no time range is specified, Do not provide an input, the function defaults 'upto' to 7 days"
+
+[[tools]]
 
 [[file_bundles]]
 bundle_name = "source-code"

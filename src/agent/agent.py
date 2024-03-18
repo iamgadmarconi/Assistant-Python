@@ -4,7 +4,8 @@ import json
 from aiofiles import open as aio_open
 from pathlib import Path
 from openai import OpenAI
-from src.utils.files import load_from_toml, read_to_string, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json
+
+from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json
 from src.ais.assistant import load_or_create_assistant, upload_instruction, upload_file_by_name, get_thread, create_thread, run_thread_message
 
 

@@ -1,35 +1,21 @@
 import requests
 import os
-import geocoder
-from geopy.geocoders import Nominatim
-from typing import Optional
-from datetime import datetime, timedelta
-import datefinder
-from geotext import GeoText
 import spacy
 import dateparser
 
-from O365 import Account, MSGraphProtocol
+from geopy.geocoders import Nominatim
+from typing import Optional
+from datetime import datetime, timedelta
+from geotext import GeoText
 
+from src.utils.tools import getLocation, O365Auth, getContext
 
-def getLocation():
-    g = geocoder.ip('me').city
-    geolocator = Nominatim(user_agent="User")
-    location = geolocator.geocode(g)
-    return location
 
 def getWeather(msg: str):
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
-    nlp = spacy.load("en_core_web_sm")
-
-    doc = nlp(msg)
-
-    times = [ent.text for ent in doc.ents if ent.label_ in ["TIME", "DATE"]]
-    locations = [ent.text for ent in doc.ents if ent.label_ == "GPE"]
-
-    time = " ".join(times)
-    location = " ".join(locations)
+    time = getContext(msg, ["TIME", "DATE"])
+    location = getContext(msg, ["GPE"])
 
     if location == "":
         location = getLocation()
@@ -74,7 +60,7 @@ def getWeather(msg: str):
     else:
         # API call failed this usually happens if the API key is invalid or not provided
         return f"Failed to retrieve weather data: {response.status_code}"
-    
+
 def sendEmail():
     pass
 
@@ -83,30 +69,21 @@ def readEmail():
     
 def getCalendar(upto: Optional[str] = None):
 
+    account = O365Auth()
+
     if upto is None:
         upto = datetime.now() + timedelta(days=7)
+        
     else:
-        nlp = spacy.load("en_core_web_sm")
-        doc = nlp(upto)
-        times = [ent.text for ent in doc.ents if ent.label_ in ["TIME", "DATE"]]
-        time = " ".join(times)
-
+        time = getContext(upto, ["TIME", "DATE"])
         settings = {"PREFER_DATES_FROM": "future"}
         diff = dateparser.parse(time, settings=settings)
+
         if diff is not None:
             upto = diff
+
         else:
             upto = datetime.now() + timedelta(days=7)  # Default to 7 days from now if parsing fails
-
-
-    protocol = MSGraphProtocol()
-    credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
-    scopes_graph = protocol.get_scopes_for(['calendar_all', 'basic'])
-
-    account = Account(credentials, protocol=protocol)
-
-    if not account.is_authenticated:
-        account.authenticate(scopes=scopes_graph)
 
     schedule = account.schedule()
     calendar = schedule.get_default_calendar()
