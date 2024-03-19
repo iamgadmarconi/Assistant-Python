@@ -1,6 +1,5 @@
 import requests
 import os
-import spacy
 import dateparser
 
 from geopy.geocoders import Nominatim
@@ -33,7 +32,6 @@ def getWeather(msg: str):
         time = dateparser.parse(time).timestamp()
 
     except:
-        
         time = datetime.now().timestamp()
         
     url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
@@ -65,7 +63,21 @@ def sendEmail():
     pass
 
 def readEmail():
-    pass
+    
+    account = O365Auth()
+
+    mailbox = account.mailbox()
+    inbox = mailbox.inbox_folder()
+
+    messages = inbox.get_messages(limit=5)
+
+    for message in messages:
+        email_report = (f"From: {message.sender}\n"
+                        f"Subject: {message.subject}\n"
+                        f"Received: {message.received}\n"
+                        f"Body: {message.body}")
+        
+    return email_report
     
 def getCalendar(upto: Optional[str] = None):
 
@@ -91,7 +103,11 @@ def getCalendar(upto: Optional[str] = None):
     q = calendar.new_query('start').greater_equal(datetime.now())
     q.chain('and').on_attribute('end').less_equal(upto)
 
-    events = calendar.get_events(query=q, include_recurring=True)
+    try:
+        events = calendar.get_events(query=q, include_recurring=True)
+
+    except:
+        events = calendar.get_events(query=q, include_recurring=False)
 
     for event in events:
 
@@ -104,4 +120,7 @@ def getCalendar(upto: Optional[str] = None):
     return cal_report
 
 def addCalendarEvent():
+    pass
+
+def query():
     pass

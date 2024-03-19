@@ -7,7 +7,8 @@ import json
 from aiofiles import open as aio_open
 from pathlib import Path
 from openai import OpenAI
-from src.utils.files import load_from_toml, read_to_string, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json
+
+from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json
 from src.ais.assistant import load_or_create_assistant, upload_instruction, upload_file_by_name, get_thread, create_thread, run_thread_message
 
 
@@ -127,11 +128,9 @@ import asyncio
 import backoff
 from time import sleep
 from openai import NotFoundError
-from pathlib import Path
 import json
 import os
-import glob
-
+import re
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
@@ -247,17 +246,33 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
     msg = user_msg(message)
 
     threads = client.beta.threads
+
+    pattern = r"run_[a-zA-Z0-9]+"
+
     _message_obj = threads.messages.create(
         thread_id=thread_id,
         content=message,
         role="user",
     )
 
-    run = threads.runs.create(
-        thread_id=thread_id,
-        assistant_id=asst_id,
-    )
+    try:
 
+        run = threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=asst_id,
+        )
+
+    except Exception as e:
+        match = re.search(pattern, str(e.message))
+
+        if match:
+            run_id = match.group()
+            run = threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
+
+        else:
+            
+            raise e
+        
     write_to_memory("User", message)
 
     while True:
@@ -390,36 +405,21 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
 
 import requests
 import os
-import geocoder
+import dateparser
+
 from geopy.geocoders import Nominatim
 from typing import Optional
 from datetime import datetime, timedelta
-import datefinder
 from geotext import GeoText
-import spacy
-import dateparser
 
-from O365 import Account, MSGraphProtocol
+from src.utils.tools import getLocation, O365Auth, getContext
 
-
-def getLocation():
-    g = geocoder.ip('me').city
-    geolocator = Nominatim(user_agent="User")
-    location = geolocator.geocode(g)
-    return location
 
 def getWeather(msg: str):
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
-    nlp = spacy.load("en_core_web_sm")
-
-    doc = nlp(msg)
-
-    times = [ent.text for ent in doc.ents if ent.label_ in ["TIME", "DATE"]]
-    locations = [ent.text for ent in doc.ents if ent.label_ == "GPE"]
-
-    time = " ".join(times)
-    location = " ".join(locations)
+    time = getContext(msg, ["TIME", "DATE"])
+    location = getContext(msg, ["GPE"])
 
     if location == "":
         location = getLocation()
@@ -437,7 +437,6 @@ def getWeather(msg: str):
         time = dateparser.parse(time).timestamp()
 
     except:
-        
         time = datetime.now().timestamp()
         
     url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
@@ -464,7 +463,7 @@ def getWeather(msg: str):
     else:
         # API call failed this usually happens if the API key is invalid or not provided
         return f"Failed to retrieve weather data: {response.status_code}"
-    
+
 def sendEmail():
     pass
 
@@ -473,32 +472,21 @@ def readEmail():
     
 def getCalendar(upto: Optional[str] = None):
 
+    account = O365Auth()
+
     if upto is None:
         upto = datetime.now() + timedelta(days=7)
+        
     else:
-        nlp = spacy.load("en_core_web_sm")
-        doc = nlp(upto)
-        times = [ent.text for ent in doc.ents if ent.label_ in ["TIME", "DATE"]]
-        time = " ".join(times)
-
+        time = getContext(upto, ["TIME", "DATE"])
         settings = {"PREFER_DATES_FROM": "future"}
-        print(time)
         diff = dateparser.parse(time, settings=settings)
-        print(diff)
+
         if diff is not None:
             upto = diff
+
         else:
             upto = datetime.now() + timedelta(days=7)  # Default to 7 days from now if parsing fails
-
-
-    protocol = MSGraphProtocol()
-    credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
-    scopes_graph = protocol.get_scopes_for(['calendar_all', 'basic'])
-
-    account = Account(credentials, protocol=protocol)
-
-    if not account.is_authenticated:
-        account.authenticate(scopes=scopes_graph)
 
     schedule = account.schedule()
     calendar = schedule.get_default_calendar()
@@ -506,7 +494,11 @@ def getCalendar(upto: Optional[str] = None):
     q = calendar.new_query('start').greater_equal(datetime.now())
     q.chain('and').on_attribute('end').less_equal(upto)
 
-    events = calendar.get_events(query=q, include_recurring=True)
+    try:
+        events = calendar.get_events(query=q, include_recurring=True)
+
+    except:
+        events = calendar.get_events(query=q, include_recurring=False)
 
     for event in events:
 
@@ -603,7 +595,7 @@ import os
 import json
 import fnmatch
 from pathlib import Path
-from typing import TypeVar, Generic, List, Optional
+from typing import TypeVar, List, Optional
 from src.utils.database import create_or_load_db
 
 T = TypeVar('T')
@@ -733,6 +725,57 @@ def find(name, path):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
+
+
+
+ # ==== file path: agent\..\src\utils\tools.py ==== 
+
+import os
+import geocoder
+import spacy
+
+from O365 import Account, MSGraphProtocol
+from geopy.geocoders import Nominatim
+
+
+def getLocation():
+    g = geocoder.ip('me').city
+    geolocator = Nominatim(user_agent="User")
+    location = geolocator.geocode(g)
+    return location
+
+def O365Auth(scopes_helper: list[str] = ['calendar_all', 'basic']):
+    protocol = MSGraphProtocol()
+    credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
+    scopes_graph = protocol.get_scopes_for(scopes_helper)
+
+    try:
+        account = Account(credentials, protocol=protocol)
+
+        if not account.is_authenticated:
+            account.authenticate(scopes=scopes_graph)
+
+        
+        return account
+    
+    except:
+        raise Exception("Failed to authenticate with O365")
+
+
+def getContext(string: str, tokens: list[str]):
+    if not set(tokens).issubset({"TIME", "DATE", "GPE"}):
+        raise ValueError("Invalid token; must be one of 'TIME', 'DATE', or 'GPE'")
+
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(string)
+
+    res = [ent.text for ent in doc.ents if ent.label_ in tokens]
+
+    result = " ".join(res)
+
+    return result
+
+
 
 
 

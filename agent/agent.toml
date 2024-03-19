@@ -30,8 +30,6 @@ type = "object"
 type = "string"
 description = "The time range for which to get calendar events. For example, if the User message is: 'Whats my schedule like this week', upto would be '7 days'. If no time range is specified, Do not provide an input, the function defaults 'upto' to 7 days"
 
-[[tools]]
-
 [[file_bundles]]
 bundle_name = "source-code"
 src_dir = "../src"

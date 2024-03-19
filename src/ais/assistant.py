@@ -4,6 +4,7 @@ from time import sleep
 from openai import NotFoundError
 import json
 import os
+import re
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
@@ -119,17 +120,33 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
     msg = user_msg(message)
 
     threads = client.beta.threads
+
+    pattern = r"run_[a-zA-Z0-9]+"
+
     _message_obj = threads.messages.create(
         thread_id=thread_id,
         content=message,
         role="user",
     )
 
-    run = threads.runs.create(
-        thread_id=thread_id,
-        assistant_id=asst_id,
-    )
+    try:
 
+        run = threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=asst_id,
+        )
+
+    except Exception as e:
+        match = re.search(pattern, str(e.message))
+
+        if match:
+            run_id = match.group()
+            run = threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
+
+        else:
+            
+            raise e
+        
     write_to_memory("User", message)
 
     while True:
