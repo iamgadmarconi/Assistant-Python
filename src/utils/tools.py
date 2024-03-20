@@ -2,10 +2,15 @@ import os
 import asyncio
 import geocoder
 import spacy
+import datetime
 
-from O365 import Account, MSGraphProtocol
+from O365 import Account, MSGraphProtocol, Message
 from geopy.geocoders import Nominatim
+from typing import Optional
+from src.utils.files import find
 
+def getDate():
+    return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
 def getLocation():
     g = geocoder.ip('me').city
@@ -24,7 +29,6 @@ def O365Auth(scopes_helper: list[str] = ['basic']):
         if not account.is_authenticated:
             account.authenticate(scopes=scopes_graph)
 
-        
         return account
     
     except:
@@ -44,5 +48,18 @@ def getContext(string: str, tokens: list[str]):
 
     return result
 
-async def confirm_event():
-    pass
+def writeEmail(recipients: list[str], subject: str, body: str, attachments: Optional[list[str]] = None):
+    account = O365Auth(["message_all", "basic"])
+    m = Message(account=account)
+    m.to.add(recipients)
+    m.subject = subject
+    m.body = body
+    m.body_type = "HTML"
+
+    if attachments:
+
+        for attachment_path in attachments:
+            path = find(attachment_path, r'files/mail')
+            m.attachments.add(path)
+
+    return m

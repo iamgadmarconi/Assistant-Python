@@ -7,11 +7,8 @@ from typing import Optional
 from datetime import datetime, timedelta
 from geotext import GeoText
 
-from src.utils.tools import getLocation, O365Auth, getContext
+from src.utils.tools import getLocation, O365Auth, getContext, writeEmail
 
-
-def getDate():
-    return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
 def getWeather(msg: Optional[str]):
     api_key = os.environ.get("OPENWEATHER_API_KEY")
@@ -62,8 +59,12 @@ def getWeather(msg: Optional[str]):
         # API call failed this usually happens if the API key is invalid or not provided
         return f"Failed to retrieve weather data: {response.status_code}"
 
-def sendEmail():
-    pass
+def sendEmail(message):
+    try:
+        message.send()
+        return "Email sent successfully"
+    except:
+        return "Failed to send email"
 
 def readEmail():
     

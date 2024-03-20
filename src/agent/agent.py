@@ -21,8 +21,9 @@ class Assistant:
         self.name = self.config["name"]
 
         db_to_json()
+
         try:
-            await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=recreate)
+            await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=True)
         except:
             print("No previous memory")
 
@@ -36,7 +37,7 @@ class Assistant:
         if os.path.exists(file_path):
             async with aio_open(file_path, 'r') as file:
                 inst_content = await file.read()
-            await upload_instruction(self.oac, self.config, self.asst_id, inst_content)  # Assuming an async upload_instruction function
+            await upload_instruction(self.oac, self.config, self.asst_id, inst_content)  
             return True
         else:
             return False

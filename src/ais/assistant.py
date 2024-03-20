@@ -154,7 +154,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             run = threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
 
             if run.status in ["Completed", "completed"]:
-                print("\n")  # Move to the next line
+                print("\n")
                 return await get_thread_message(client, thread_id)
             elif run.status in ["Queued", "InProgress", "run_in_progress", "in_progress", "queued"]:
                 pass  
@@ -164,8 +164,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             elif run.status in ['requires_input', 'RequiresInput', 'requires_action', 'RequiresAction']:
                 await call_required_function(client, thread_id, run.id, run.required_action)
             else:
-                print("\n")  # Move to the next line
-                # Raising an exception for unexpected status
+                print("\n") 
                 await delete(client, asst_id)
                 raise Exception(f"Unexpected run status: {run.status}")
 
