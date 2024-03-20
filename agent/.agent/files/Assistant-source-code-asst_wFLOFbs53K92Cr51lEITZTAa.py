@@ -24,8 +24,9 @@ class Assistant:
         self.name = self.config["name"]
 
         db_to_json()
+
         try:
-            await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=recreate)
+            await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=True)
         except:
             print("No previous memory")
 
@@ -39,7 +40,7 @@ class Assistant:
         if os.path.exists(file_path):
             async with aio_open(file_path, 'r') as file:
                 inst_content = await file.read()
-            await upload_instruction(self.oac, self.config, self.asst_id, inst_content)  # Assuming an async upload_instruction function
+            await upload_instruction(self.oac, self.config, self.asst_id, inst_content)  
             return True
         else:
             return False
@@ -134,8 +135,10 @@ import re
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
-from src.ais.functions import getWeather, getCalendar
 from src.utils.files import find
+
+from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail
+from src.ais.functions.misc import getWeather
 
 
 async def create(client, config):
@@ -249,14 +252,13 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
 
     pattern = r"run_[a-zA-Z0-9]+"
 
-    _message_obj = threads.messages.create(
-        thread_id=thread_id,
-        content=message,
-        role="user",
-    )
-
     try:
-
+        _message_obj = threads.messages.create(
+            thread_id=thread_id,
+            content=message,
+            role="user",
+        )
+        
         run = threads.runs.create(
             thread_id=thread_id,
             assistant_id=asst_id,
@@ -280,7 +282,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             run = threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
 
             if run.status in ["Completed", "completed"]:
-                print("\n")  # Move to the next line
+                print("\n")
                 return await get_thread_message(client, thread_id)
             elif run.status in ["Queued", "InProgress", "run_in_progress", "in_progress", "queued"]:
                 pass  
@@ -290,8 +292,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             elif run.status in ['requires_input', 'RequiresInput', 'requires_action', 'RequiresAction']:
                 await call_required_function(client, thread_id, run.id, run.required_action)
             else:
-                print("\n")  # Move to the next line
-                # Raising an exception for unexpected status
+                print("\n") 
                 await delete(client, asst_id)
                 raise Exception(f"Unexpected run status: {run.status}")
 
@@ -305,8 +306,11 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
             
             func_name = action[1].tool_calls[0].function.name
             args = json.loads(action[1].tool_calls[0].function.arguments)
+            
             if func_name == "getWeather":
-                outputs = getWeather(msg = args.get("msg", None))
+                outputs = getWeather(
+                    msg = args.get("msg", None)
+                )
                 tool_outputs.append(
                     {
                         "tool_call_id": action[1].tool_calls[0].id,
@@ -314,7 +318,45 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                     }
                 )
             elif func_name == "getCalendar":
-                outputs = getCalendar(upto = args.get("upto", None))
+                outputs = getCalendar(
+                    upto = args.get("upto", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "readEmail":
+                outputs = readEmail(
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "writeEmail":
+                outputs = writeEmail(
+                    recipients=args.get("recipients", None),
+                    subject = args.get("subject", None),
+                    body = args.get("body", None),
+                    attachments = args.get("attachments", None)
+                )
+                
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "sendEmail":
+                outputs = sendEmail(
+                    message = args.get("message", None)
+                )
                 tool_outputs.append(
                     {
                         "tool_call_id": action[1].tool_calls[0].id,
@@ -401,119 +443,6 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
 
 
 
- # ==== file path: agent\..\src\ais\functions.py ==== 
-
-import requests
-import os
-import dateparser
-
-from geopy.geocoders import Nominatim
-from typing import Optional
-from datetime import datetime, timedelta
-from geotext import GeoText
-
-from src.utils.tools import getLocation, O365Auth, getContext
-
-
-def getWeather(msg: str):
-    api_key = os.environ.get("OPENWEATHER_API_KEY")
-
-    time = getContext(msg, ["TIME", "DATE"])
-    location = getContext(msg, ["GPE"])
-
-    if location == "":
-        location = getLocation()
-        lat, lon = location.latitude, location.longitude
-
-    else:
-        location = GeoText(location).cities
-
-        geolocator = Nominatim(user_agent="User")
-        location = geolocator.geocode(location[0])
-        lat = location.latitude
-        lon = location.longitude
-
-    try:
-        time = dateparser.parse(time).timestamp()
-
-    except:
-        time = datetime.now().timestamp()
-        
-    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
-
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        # Successful API call
-        data = response.json()
-
-        match = min(data['list'], key=lambda x: abs(x['dt'] - int(time)))
-        main = match['main']
-
-        temperature = main['temp']
-        humidity = main['humidity']
-        weather_description = match['weather'][0]['description']
-        
-        weather_report = (f"Location: {location}\n"
-                          f"Time: {datetime.fromtimestamp(time)}\n"
-                          f"Temperature: {temperature - 273.15}°C\n"
-                          f"Humidity: {humidity}%\n"
-                          f"Description: {weather_description.capitalize()}")
-        return weather_report
-    else:
-        # API call failed this usually happens if the API key is invalid or not provided
-        return f"Failed to retrieve weather data: {response.status_code}"
-
-def sendEmail():
-    pass
-
-def readEmail():
-    pass
-    
-def getCalendar(upto: Optional[str] = None):
-
-    account = O365Auth()
-
-    if upto is None:
-        upto = datetime.now() + timedelta(days=7)
-        
-    else:
-        time = getContext(upto, ["TIME", "DATE"])
-        settings = {"PREFER_DATES_FROM": "future"}
-        diff = dateparser.parse(time, settings=settings)
-
-        if diff is not None:
-            upto = diff
-
-        else:
-            upto = datetime.now() + timedelta(days=7)  # Default to 7 days from now if parsing fails
-
-    schedule = account.schedule()
-    calendar = schedule.get_default_calendar()
-
-    q = calendar.new_query('start').greater_equal(datetime.now())
-    q.chain('and').on_attribute('end').less_equal(upto)
-
-    try:
-        events = calendar.get_events(query=q, include_recurring=True)
-
-    except:
-        events = calendar.get_events(query=q, include_recurring=False)
-
-    for event in events:
-
-        cal_report = (f"Event: {event.subject}\n"
-                      f"Start: {event.start}\n"
-                      f"End: {event.end}\n"
-                      f"Location: {event.location}\n"
-                      f"Description: {event.body}")
-
-    return cal_report
-
-def addCalendarEvent():
-    pass
-
-
  # ==== file path: agent\..\src\ais\msg.py ==== 
 
 
@@ -559,6 +488,220 @@ def get_text_content(msg):
 
  # ==== file path: agent\..\src\ais\__init__.py ==== 
 
+
+
+
+ # ==== file path: agent\..\src\ais\functions\azure.py ==== 
+
+import os
+import dateparser
+
+from typing import Optional
+from datetime import datetime, timedelta
+from O365 import Account, MSGraphProtocol, Message
+
+from src.utils.files import find
+from src.utils.tools import get_context
+
+SCOPES = ["basic", "message_all", "calendar_all", "address_book_all", "tasks_all"]
+
+
+def O365Auth(scopes_helper: list[str] = SCOPES):
+    protocol = MSGraphProtocol()
+    credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
+    scopes_graph = protocol.get_scopes_for(scopes_helper)
+
+    try:
+        account = Account(credentials, protocol=protocol)
+
+        if not account.is_authenticated:
+            account.authenticate(scopes=scopes_graph)
+
+        return account
+    
+    except:
+        raise Exception("Failed to authenticate with O365")
+
+def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
+    account = O365Auth(SCOPES)
+    m = account.new_message()
+    m.to.add(recipients)
+    m.subject = subject
+    m.body = body
+    m.body_type = "HTML"
+
+    if attachments:
+
+        for attachment_path in attachments:
+            path = find(attachment_path, r'files/mail')
+            m.attachments.add(path)
+    
+    email_report = (
+        f"From: {m.sender}\n"
+        f"To: {m.to}\n"
+        f"Subject: {m.subject}\n"
+        f"Body: {m.body}"
+        f"Attachments: {m.attachments}"
+    )
+
+    return m, email_report
+
+
+def sendEmail(message):
+    try:
+        message.send()
+        return "Email sent successfully"
+    except:
+        return "Failed to send email"
+
+def readEmail():
+    
+    account = O365Auth(SCOPES)
+
+    mailbox = account.mailbox()
+    inbox = mailbox.inbox_folder()
+
+    messages = inbox.get_messages(limit=5)
+
+    email_reports = []
+
+    for message in messages:
+        email_report = (f"From: {message.sender}\n"
+                        f"Subject: {message.subject}\n"
+                        f"Received: {message.received}\n"
+                        f"Body: {message.body}")
+        
+        email_reports.append(email_report)
+        
+    email_reports = "\n".join(email_reports)
+
+    return email_reports
+    
+def getCalendar(upto: Optional[str] = None):
+
+    account = O365Auth(SCOPES)
+
+    if upto is None:
+        upto = datetime.now() + timedelta(days=7)
+        
+    else:
+        time = get_context(upto, ["TIME", "DATE"])
+        settings = {"PREFER_DATES_FROM": "future"}
+        diff = dateparser.parse(time, settings=settings)
+
+        if diff is not None:
+            upto = diff
+
+        else:
+            upto = datetime.now() + timedelta(days=7)  # Default to 7 days from now if parsing fails
+
+    schedule = account.schedule()
+    calendar = schedule.get_default_calendar()
+
+    q = calendar.new_query('start').greater_equal(datetime.now())
+    q.chain('and').on_attribute('end').less_equal(upto)
+
+    try:
+        events = calendar.get_events(query=q, include_recurring=True)
+
+    except:
+        events = calendar.get_events(query=q, include_recurring=False)
+
+    cal_reports = []
+
+    for event in events:
+
+        cal_report = (f"Event: {event.subject}\n"
+                      f"Start: {event.start}\n"
+                      f"End: {event.end}\n"
+                      f"Location: {event.location}\n"
+                      f"Description: {event.body}")
+        
+        cal_reports.append(cal_report)
+
+    cal_reports = "\n".join(cal_reports)
+
+    return cal_reports
+
+def addCalendarEvent():
+    pass
+
+def query():
+    pass
+
+
+ # ==== file path: agent\..\src\ais\functions\misc.py ==== 
+
+import requests
+import os
+import dateparser
+import geocoder
+
+from geopy.geocoders import Nominatim
+from typing import Optional
+from datetime import datetime
+from geotext import GeoText
+
+from src.utils.tools import get_context
+
+
+def getDate():
+    return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+
+def getLocation():
+    g = geocoder.ip('me').city
+    geolocator = Nominatim(user_agent="User")
+    location = geolocator.geocode(g)
+    return location
+
+def getWeather(msg: Optional[str]):
+    api_key = os.environ.get("OPENWEATHER_API_KEY")
+
+    time = get_context(msg, ["TIME", "DATE"])
+    location = get_context(msg, ["GPE"])
+
+    if location == "":
+        location = getLocation()
+        lat, lon = location.latitude, location.longitude
+
+    else:
+        location = GeoText(location).cities
+
+        geolocator = Nominatim(user_agent="User")
+        location = geolocator.geocode(location[0])
+        lat = location.latitude
+        lon = location.longitude
+
+    try:
+        time = dateparser.parse(time).timestamp()
+
+    except:
+        time = datetime.now().timestamp()
+        
+    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
+
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        # Successful API call
+        data = response.json()
+
+        match = min(data['list'], key=lambda x: abs(x['dt'] - int(time)))
+        main = match['main']
+
+        temperature = main['temp']
+        humidity = main['humidity']
+        weather_description = match['weather'][0]['description']
+        
+        weather_report = (f"Location: {location}\n"
+                          f"Time: {datetime.fromtimestamp(time)}\n"
+                          f"Temperature: {temperature - 273.15}°C\n"
+                          f"Humidity: {humidity}%\n"
+                          f"Description: {weather_description.capitalize()}")
+        return weather_report
+    else:
+        # API call failed this usually happens if the API key is invalid or not provided
+        return f"Failed to retrieve weather data: {response.status_code}"
 
 
 
@@ -730,39 +873,10 @@ def find(name, path):
 
  # ==== file path: agent\..\src\utils\tools.py ==== 
 
-import os
-import geocoder
 import spacy
 
-from O365 import Account, MSGraphProtocol
-from geopy.geocoders import Nominatim
 
-
-def getLocation():
-    g = geocoder.ip('me').city
-    geolocator = Nominatim(user_agent="User")
-    location = geolocator.geocode(g)
-    return location
-
-def O365Auth(scopes_helper: list[str] = ['calendar_all', 'basic']):
-    protocol = MSGraphProtocol()
-    credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
-    scopes_graph = protocol.get_scopes_for(scopes_helper)
-
-    try:
-        account = Account(credentials, protocol=protocol)
-
-        if not account.is_authenticated:
-            account.authenticate(scopes=scopes_graph)
-
-        
-        return account
-    
-    except:
-        raise Exception("Failed to authenticate with O365")
-
-
-def getContext(string: str, tokens: list[str]):
+def get_context(string: str, tokens: list[str]):
     if not set(tokens).issubset({"TIME", "DATE", "GPE"}):
         raise ValueError("Invalid token; must be one of 'TIME', 'DATE', or 'GPE'")
 
@@ -774,7 +888,6 @@ def getContext(string: str, tokens: list[str]):
     result = " ".join(res)
 
     return result
-
 
 
 

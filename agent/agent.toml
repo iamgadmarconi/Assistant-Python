@@ -268,9 +268,9 @@ THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this
 
     :Returns:
 
-        (m: O365.Message, email_reports: list[str])
+        email_reports: list[str]
 
-            A tuple containing the email object and a confirmation message. Deliver the confirmation message in Natural language.
+            A string containing the email recipient, subject, body, and attachment paths. Deliver the confirmation message in Natural language, EXACTLY IN THE WAY YOU WILL PASS THESE ATTRIBUTES TO the sendEmail function.
             Keep the mail object in memory for future reference.
 
                 Example:
@@ -290,7 +290,7 @@ THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this
 
                                 Hey John, I need to know if you have any updates on the project. I have attached the project plan.
 
-                            -> message: O365.Message, email_report: list[str]
+                            -> email_report: str
 
                                 * Your response should look something like this:
                                     -> Your email to John.Doe@outlook.com has been composed:
@@ -300,7 +300,7 @@ THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this
                                     
                                     Would you like to send it now?
 
-                                    **IF THE USER AGREES TO SEND THE EMAIL, REFER TO THE sendEmail FUNCTION WITH THE MESSAGE OBJECT AS THE PARAMETER.**
+                                    **IF THE USER AGREES TO SEND THE EMAIL, REFER TO THE sendEmail FUNCTION WITH THE EXACT SAME PARAMETERS AS DISPLAYED TO THE USERS.**
 """
 [tools.function.parameters]
 type = "object"
@@ -316,9 +316,11 @@ description = """
 
                 User: 'Send an email to John.Doe@outlook.com'
 
-                -> writeEmail([Jhon.Doe@outlook.com], 'Subject', 'Body')
+                -> writeEmail([John.Doe@outlook.com], 'Subject', 'Body')
 
 """
+[tools.function.parameters.properties.recipients.items]
+type = "string"
 [tools.function.parameters.properties.subject]
 type = "string"
 description = """
@@ -366,8 +368,8 @@ description = """
                 -> writeEmail('John Doe', 'Subject', 'Body', ['project_plan.pdf'])
 
 """
-[tools.function.parameters.required]
-required = ["recipient", "subject", "body"]
+[tools.function.parameters.properties.attachments.items]
+type = "string"
 
 
 [[tools]]
@@ -378,55 +380,84 @@ description = """
 
 Send an email to the recipient. This function should be called after the writeEmail function AND USER CONFIRMATION.
 
+THIS IS A FOLLOWUP FUNCTION FOR THE writeEmail FUNCTION. You should call this function after calling the writeEmail function.
+
     :Params:
 
-        message: O365.Message
+        recipients: list[str]
 
-            When calling this function, you should pass the message object returned by the writeEmail function.
+            The recipients diplayed in writeEmail
+
+        subject: str
+
+            The subject diplayed in writeEmail
+
+        body: str
+
+            The body displayed in writeEmail
+
+        attachments: Optional[list[str]]
+
+            The attachments displayed in writeEmail
+
+    :Returns:
+
+        email_reports: str
+
+            A string containing the status of the sent email.
 
                 Example:
 
-                    User: 'Looks good, send the email'
+                        User: 'looks good, send it'
 
-                    -> sendEmail(message: O365.Message)
-    
-    :Returns:
-    
-            email_reports: list[str]
-    
-                A confirmation message. Deliver the confirmation message in Natural language.
-    
-                    Example:
-    
-                        User: 'Send the email'
-    
-                        -> sendEmail(message)
-    
-                            * Your response should look something like this:
-                                -> 'Your email has been sent to RECIPIENT
-                                    Subject: SUBJECT
-                                    Body: BODY
-                                    Attachments: ATTACHMENTS'
+                        -> sendEmail([John.Doe@outlook.com], 'Action Plan for Project', **Body**, [project_plan.pdf])
+
+                            * The body parameter of the email should be composed in a way that is polite and professional unless otherwise specified by the user. Do not be overly verbose.
+
+                            'Email sent successfully!'
 """
 [tools.function.parameters]
 type = "object"
-[tools.function.parameters.properties.message]
-type = "object"
+[tools.function.parameters.properties.recipients]
+type = "array"
 description = """
 
-    message: O365.Message
+    recipient: str
 
-        When calling this function, you should pass the message object returned by the writeEmail function.
-
-            Example:
-
-                User: 'Looks good, send the email'
-
-                -> sendEmail(message: O365.Message)
+        The recipients displayed in writeEmail
 
 """
-[tools.function.parameters.required]
-required = ["message"]
+[tools.function.parameters.properties.recipients.items]
+type = "string"
+[tools.function.parameters.properties.subject]
+type = "string"
+description = """
+
+    subject: str
+
+        The subject diplayed in writeEmail
+
+"""
+[tools.function.parameters.properties.body]
+type = "string"
+description = """
+
+    body: str
+
+        The body displayed in writeEmail
+
+"""
+[tools.function.parameters.properties.attachments]
+type = "array"
+description = """
+
+    attachments: Optional[list[str]]
+
+        The attachment list displayed writeEmail
+
+"""
+[tools.function.parameters.properties.attachments.items]
+type = "string"
 
 [[file_bundles]]
 bundle_name = "source-code"

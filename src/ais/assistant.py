@@ -10,8 +10,8 @@ from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
 from src.utils.files import find
 
-from ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail
-from ais.functions.misc import getWeather
+from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail
+from src.ais.functions.misc import getWeather
 
 
 async def create(client, config):
@@ -125,14 +125,13 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
 
     pattern = r"run_[a-zA-Z0-9]+"
 
-    _message_obj = threads.messages.create(
-        thread_id=thread_id,
-        content=message,
-        role="user",
-    )
-
     try:
-
+        _message_obj = threads.messages.create(
+            thread_id=thread_id,
+            content=message,
+            role="user",
+        )
+        
         run = threads.runs.create(
             thread_id=thread_id,
             assistant_id=asst_id,
@@ -215,8 +214,8 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
             elif func_name == "writeEmail":
                 outputs = writeEmail(
                     recipients=args.get("recipients", None),
-                    message = args.get("message", None),
                     subject = args.get("subject", None),
+                    body = args.get("body", None),
                     attachments = args.get("attachments", None)
                 )
                 

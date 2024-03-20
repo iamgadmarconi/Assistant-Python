@@ -8,8 +8,10 @@ from O365 import Account, MSGraphProtocol, Message
 from src.utils.files import find
 from src.utils.tools import get_context
 
+SCOPES = ["basic", "message_all", "calendar_all", "address_book_all", "tasks_all"]
 
-def O365Auth(scopes_helper: list[str] = ['basic']):
+
+def O365Auth(scopes_helper: list[str] = SCOPES):
     protocol = MSGraphProtocol()
     credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
     scopes_graph = protocol.get_scopes_for(scopes_helper)
@@ -25,41 +27,43 @@ def O365Auth(scopes_helper: list[str] = ['basic']):
     except:
         raise Exception("Failed to authenticate with O365")
 
-def writeEmail(recipients: list[str], subject: str, body: str, attachments: Optional[list[str]] = None):
-    account = O365Auth(["message_all", "basic"])
-    m = Message(account=account)
-    m.to.add(recipients)
-    m.subject = subject
-    m.body = body
-    m.body_type = "HTML"
-
-    if attachments:
-
-        for attachment_path in attachments:
-            path = find(attachment_path, r'files/mail')
-            m.attachments.add(path)
+def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
     
     email_report = (
-        f"From: {m.sender}\n"
-        f"To: {m.to}\n"
-        f"Subject: {m.subject}\n"
-        f"Body: {m.body}"
-        f"Attachments: {m.attachments}"
+        f"To: {", ".join([recipient for recipient in recipients])}\n"
+        f"Subject: {subject}\n"
+        f"Body: {body}\n"
+        f"Attachments: {', '.join([attachment for attachment in attachments]) if attachments else "None"}"
     )
 
-    return m, email_report
+    return email_report
 
 
-def sendEmail(message):
+def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
     try:
-        message.send()
+        account = O365Auth(SCOPES)
+        m = account.new_message()
+        m.to.add(recipients)
+        m.subject = subject
+        m.body = body
+        m.body_type = "HTML"
+
+        if attachments:
+
+            for attachment_path in attachments:
+                path = find(attachment_path, r'files/mail')
+                m.attachments.add(path)
+        
+        m.send()
+        
         return "Email sent successfully"
+    
     except:
         return "Failed to send email"
 
 def readEmail():
     
-    account = O365Auth(["message_all", "basic"])
+    account = O365Auth(SCOPES)
 
     mailbox = account.mailbox()
     inbox = mailbox.inbox_folder()
@@ -76,11 +80,13 @@ def readEmail():
         
         email_reports.append(email_report)
         
+    email_reports = "\n".join(email_reports)
+
     return email_reports
     
 def getCalendar(upto: Optional[str] = None):
 
-    account = O365Auth(["calendar_all", "basic"])
+    account = O365Auth(SCOPES)
 
     if upto is None:
         upto = datetime.now() + timedelta(days=7)
@@ -119,6 +125,8 @@ def getCalendar(upto: Optional[str] = None):
                       f"Description: {event.body}")
         
         cal_reports.append(cal_report)
+
+    cal_reports = "\n".join(cal_reports)
 
     return cal_reports
 
