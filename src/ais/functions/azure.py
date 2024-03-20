@@ -1,63 +1,54 @@
-import requests
 import os
 import dateparser
 
-from geopy.geocoders import Nominatim
 from typing import Optional
 from datetime import datetime, timedelta
-from geotext import GeoText
+from O365 import Account, MSGraphProtocol, Message
 
-from src.utils.tools import getLocation, O365Auth, getContext, writeEmail
+from src.utils.files import find
+from src.utils.tools import get_context
 
 
-def getWeather(msg: Optional[str]):
-    api_key = os.environ.get("OPENWEATHER_API_KEY")
-
-    time = getContext(msg, ["TIME", "DATE"])
-    location = getContext(msg, ["GPE"])
-
-    if location == "":
-        location = getLocation()
-        lat, lon = location.latitude, location.longitude
-
-    else:
-        location = GeoText(location).cities
-
-        geolocator = Nominatim(user_agent="User")
-        location = geolocator.geocode(location[0])
-        lat = location.latitude
-        lon = location.longitude
+def O365Auth(scopes_helper: list[str] = ['basic']):
+    protocol = MSGraphProtocol()
+    credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
+    scopes_graph = protocol.get_scopes_for(scopes_helper)
 
     try:
-        time = dateparser.parse(time).timestamp()
+        account = Account(credentials, protocol=protocol)
 
+        if not account.is_authenticated:
+            account.authenticate(scopes=scopes_graph)
+
+        return account
+    
     except:
-        time = datetime.now().timestamp()
-        
-    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
+        raise Exception("Failed to authenticate with O365")
 
-    response = requests.get(url)
+def writeEmail(recipients: list[str], subject: str, body: str, attachments: Optional[list[str]] = None):
+    account = O365Auth(["message_all", "basic"])
+    m = Message(account=account)
+    m.to.add(recipients)
+    m.subject = subject
+    m.body = body
+    m.body_type = "HTML"
 
-    if response.status_code == 200:
-        # Successful API call
-        data = response.json()
+    if attachments:
 
-        match = min(data['list'], key=lambda x: abs(x['dt'] - int(time)))
-        main = match['main']
+        for attachment_path in attachments:
+            path = find(attachment_path, r'files/mail')
+            m.attachments.add(path)
+    
+    email_report = (
+        f"From: {m.sender}\n"
+        f"To: {m.to}\n"
+        f"Subject: {m.subject}\n"
+        f"Body: {m.body}"
+        f"Attachments: {m.attachments}"
+    )
 
-        temperature = main['temp']
-        humidity = main['humidity']
-        weather_description = match['weather'][0]['description']
-        
-        weather_report = (f"Location: {location}\n"
-                          f"Time: {datetime.fromtimestamp(time)}\n"
-                          f"Temperature: {temperature - 273.15}°C\n"
-                          f"Humidity: {humidity}%\n"
-                          f"Description: {weather_description.capitalize()}")
-        return weather_report
-    else:
-        # API call failed this usually happens if the API key is invalid or not provided
-        return f"Failed to retrieve weather data: {response.status_code}"
+    return m, email_report
+
 
 def sendEmail(message):
     try:
@@ -95,7 +86,7 @@ def getCalendar(upto: Optional[str] = None):
         upto = datetime.now() + timedelta(days=7)
         
     else:
-        time = getContext(upto, ["TIME", "DATE"])
+        time = get_context(upto, ["TIME", "DATE"])
         settings = {"PREFER_DATES_FROM": "future"}
         diff = dateparser.parse(time, settings=settings)
 

@@ -8,8 +8,10 @@ import re
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
-from src.ais.functions import getWeather, getCalendar, readEmail, sendEmail
 from src.utils.files import find
+
+from ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail
+from ais.functions.misc import getWeather
 
 
 async def create(client, config):
@@ -180,7 +182,9 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
             args = json.loads(action[1].tool_calls[0].function.arguments)
             
             if func_name == "getWeather":
-                outputs = getWeather(msg = args.get("msg", None))
+                outputs = getWeather(
+                    msg = args.get("msg", None)
+                )
                 tool_outputs.append(
                     {
                         "tool_call_id": action[1].tool_calls[0].id,
@@ -188,7 +192,9 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                     }
                 )
             elif func_name == "getCalendar":
-                outputs = getCalendar(upto = args.get("upto", None))
+                outputs = getCalendar(
+                    upto = args.get("upto", None)
+                )
                 tool_outputs.append(
                     {
                         "tool_call_id": action[1].tool_calls[0].id,
@@ -197,7 +203,8 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                 )
             
             elif func_name == "readEmail":
-                outputs = readEmail()
+                outputs = readEmail(
+                )
                 tool_outputs.append(
                     {
                         "tool_call_id": action[1].tool_calls[0].id,
@@ -205,8 +212,31 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                     }
                 )
 
+            elif func_name == "writeEmail":
+                outputs = writeEmail(
+                    recipients=args.get("recipients", None),
+                    message = args.get("message", None),
+                    subject = args.get("subject", None),
+                    attachments = args.get("attachments", None)
+                )
+                
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
             elif func_name == "sendEmail":
-                pass
+                outputs = sendEmail(
+                    message = args.get("message", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
 
             else:
                 raise ValueError(f"Function '{func_name}' not found")
