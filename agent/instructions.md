@@ -149,15 +149,15 @@ THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this
 
     :Params:
 
-        recipient: str
+        recipients: list[str]
 
-            When calling this function, you should pass a string containing the recipient of the email.
+            When calling this function, you should pass a list of strings containing the recipients of the email.
 
                 Example:
 
                     User: 'Send an email to John.Doe@outlook.com'
 
-                    -> writeEmail('John.Doe@outlook.com', 'Subject', 'Body')
+                    -> writeEmail(['John.Doe@outlook.com'], 'Subject', 'Body')
 
         subject: str
 
@@ -167,7 +167,7 @@ THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this
 
                     User: 'Send an email to John Doe about the project'
 
-                    -> writeEmail('John Doe', 'Action Plan for Project', 'Body')
+                    -> writeEmail([John Doe], 'Action Plan for Project', 'Body')
 
         body: str
 
@@ -179,7 +179,7 @@ THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this
 
                     * For all emails, you should compose the body of the email in a way that is polite and professional; do not be overly verbose unless otherwise specified by the user.
 
-                    -> writeEmail('John Doe', 'Subject', 'Body')
+                    -> writeEmail([John Doe], 'Subject', 'Body')
 
         attachments: Optional[list[str]]
 
@@ -189,7 +189,7 @@ THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this
 
                     User: 'Send an email to John Doe about the project, asking if he has any updates, and attach the project plan'
 
-                    -> writeEmail('John Doe', 'Subject', 'Body', ['path/to/attachment1', 'path/to/attachment2'])
+                    -> writeEmail([John Doe], 'Subject', 'Body', ['path/to/attachment1', 'path/to/attachment2'])
 
     :Returns:
 
@@ -202,7 +202,7 @@ THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this
 
                         User: 'Write an email to John.Doe@outlook.com about the project, asking if he has any updates, and attach the project plan: project_plan.pdf'
 
-                        -> writeEmail('John.Doe@outlook.com', 'Action Plan for Project', **Body**, [project_plan.pdf])
+                        -> writeEmail(['John.Doe@outlook.com'], 'Action Plan for Project', **Body**, [project_plan.pdf])
 
                             * The body parameter of the email should be composed in a way that is polite and professional unless otherwise specified by the user. Do not be overly verbose.
 
