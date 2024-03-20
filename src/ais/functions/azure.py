@@ -30,10 +30,10 @@ def O365Auth(scopes_helper: list[str] = SCOPES):
 def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
     
     email_report = (
-        f"To: {", ".join([recipient for recipient in recipients])}\n"
+        f"To: {', '.join([recipient for recipient in recipients])}\n"
         f"Subject: {subject}\n"
         f"Body: {body}\n"
-        f"Attachments: {', '.join([attachment for attachment in attachments]) if attachments else "None"}"
+        f"Attachments: {', '.join([attachment for attachment in attachments]) if attachments else 'None'}"
     )
 
     return email_report

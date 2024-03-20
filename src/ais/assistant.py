@@ -65,7 +65,7 @@ async def upload_instruction(client, config, asst_id: str, instructions: str):
         print(f"Failed to upload instruction: {e}")
         raise  
 
-async def delete(client, asst_id: str):
+async def delete(client, asst_id: str, wipe=False):
     assts = client.beta.assistants 
     assistant_files = client.files
 
@@ -89,8 +89,9 @@ async def delete(client, asst_id: str):
         pass
     
     try:
-        if os.path.exists(find("memory.db", "agent")):
-            os.remove(find("memory.db", "agent"))
+        if wipe:
+            if os.path.exists(find("memory.db", "agent")):
+                os.remove(find("memory.db", "agent"))
     except:
         pass
 
@@ -131,7 +132,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             content=message,
             role="user",
         )
-        
+
         run = threads.runs.create(
             thread_id=thread_id,
             assistant_id=asst_id,
@@ -228,7 +229,10 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
             
             elif func_name == "sendEmail":
                 outputs = sendEmail(
-                    message = args.get("message", None)
+                    recipients=args.get("recipients", None),
+                    subject = args.get("subject", None),
+                    body = args.get("body", None),
+                    attachments = args.get("attachments", None)
                 )
                 tool_outputs.append(
                     {

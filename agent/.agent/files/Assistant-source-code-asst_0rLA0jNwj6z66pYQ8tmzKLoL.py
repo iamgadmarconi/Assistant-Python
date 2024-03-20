@@ -192,7 +192,7 @@ async def upload_instruction(client, config, asst_id: str, instructions: str):
         print(f"Failed to upload instruction: {e}")
         raise  
 
-async def delete(client, asst_id: str):
+async def delete(client, asst_id: str, wipe=False):
     assts = client.beta.assistants 
     assistant_files = client.files
 
@@ -216,8 +216,9 @@ async def delete(client, asst_id: str):
         pass
     
     try:
-        if os.path.exists(find("memory.db", "agent")):
-            os.remove(find("memory.db", "agent"))
+        if wipe:
+            if os.path.exists(find("memory.db", "agent")):
+                os.remove(find("memory.db", "agent"))
     except:
         pass
 
@@ -258,7 +259,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             content=message,
             role="user",
         )
-        
+
         run = threads.runs.create(
             thread_id=thread_id,
             assistant_id=asst_id,
@@ -355,7 +356,10 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
             
             elif func_name == "sendEmail":
                 outputs = sendEmail(
-                    message = args.get("message", None)
+                    recipients=args.get("recipients", None),
+                    subject = args.get("subject", None),
+                    body = args.get("body", None),
+                    attachments = args.get("attachments", None)
                 )
                 tool_outputs.append(
                     {
@@ -523,34 +527,36 @@ def O365Auth(scopes_helper: list[str] = SCOPES):
         raise Exception("Failed to authenticate with O365")
 
 def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
-    account = O365Auth(SCOPES)
-    m = account.new_message()
-    m.to.add(recipients)
-    m.subject = subject
-    m.body = body
-    m.body_type = "HTML"
-
-    if attachments:
-
-        for attachment_path in attachments:
-            path = find(attachment_path, r'files/mail')
-            m.attachments.add(path)
     
     email_report = (
-        f"From: {m.sender}\n"
-        f"To: {m.to}\n"
-        f"Subject: {m.subject}\n"
-        f"Body: {m.body}"
-        f"Attachments: {m.attachments}"
+        f"To: {', '.join([recipient for recipient in recipients])}\n"
+        f"Subject: {subject}\n"
+        f"Body: {body}\n"
+        f"Attachments: {', '.join([attachment for attachment in attachments]) if attachments else 'None'}"
     )
 
-    return m, email_report
+    return email_report
 
 
-def sendEmail(message):
+def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
     try:
-        message.send()
+        account = O365Auth(SCOPES)
+        m = account.new_message()
+        m.to.add(recipients)
+        m.subject = subject
+        m.body = body
+        m.body_type = "HTML"
+
+        if attachments:
+
+            for attachment_path in attachments:
+                path = find(attachment_path, r'files/mail')
+                m.attachments.add(path)
+        
+        m.send()
+        
         return "Email sent successfully"
+    
     except:
         return "Failed to send email"
 

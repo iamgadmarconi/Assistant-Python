@@ -147,6 +147,7 @@ Notably, the function file includes additional tools you are capable of using. W
 If any parameter is unclear, ask for clarification.
 
 THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this function before calling the sendEmail function.
+IF A USER ASKS FOR CHANGES TO THE EMAIL, CALL THIS FUNCTION AGAIN WITH UPDATED PARAMETERS.
 
     :Params:
 
