@@ -10,7 +10,10 @@ from geotext import GeoText
 from src.utils.tools import getLocation, O365Auth, getContext
 
 
-def getWeather(msg: str):
+def getDate():
+    return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+
+def getWeather(msg: Optional[str]):
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
     time = getContext(msg, ["TIME", "DATE"])
@@ -64,12 +67,14 @@ def sendEmail():
 
 def readEmail():
     
-    account = O365Auth()
+    account = O365Auth(["message_all", "basic"])
 
     mailbox = account.mailbox()
     inbox = mailbox.inbox_folder()
 
     messages = inbox.get_messages(limit=5)
+
+    email_reports = []
 
     for message in messages:
         email_report = (f"From: {message.sender}\n"
@@ -77,11 +82,13 @@ def readEmail():
                         f"Received: {message.received}\n"
                         f"Body: {message.body}")
         
-    return email_report
+        email_reports.append(email_report)
+        
+    return email_reports
     
 def getCalendar(upto: Optional[str] = None):
 
-    account = O365Auth()
+    account = O365Auth(["calendar_all", "basic"])
 
     if upto is None:
         upto = datetime.now() + timedelta(days=7)
@@ -109,6 +116,8 @@ def getCalendar(upto: Optional[str] = None):
     except:
         events = calendar.get_events(query=q, include_recurring=False)
 
+    cal_reports = []
+
     for event in events:
 
         cal_report = (f"Event: {event.subject}\n"
@@ -116,8 +125,10 @@ def getCalendar(upto: Optional[str] = None):
                       f"End: {event.end}\n"
                       f"Location: {event.location}\n"
                       f"Description: {event.body}")
+        
+        cal_reports.append(cal_report)
 
-    return cal_report
+    return cal_reports
 
 def addCalendarEvent():
     pass

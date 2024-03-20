@@ -1,4 +1,5 @@
 import os
+import asyncio
 import geocoder
 import spacy
 
@@ -12,7 +13,7 @@ def getLocation():
     location = geolocator.geocode(g)
     return location
 
-def O365Auth(scopes_helper: list[str] = ['calendar_all', 'basic']):
+def O365Auth(scopes_helper: list[str] = ['basic']):
     protocol = MSGraphProtocol()
     credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
     scopes_graph = protocol.get_scopes_for(scopes_helper)
@@ -43,4 +44,5 @@ def getContext(string: str, tokens: list[str]):
 
     return result
 
-
+async def confirm_event():
+    pass

@@ -142,5 +142,9 @@ Makefile
 *.cmake
 *.txt
 *.xml
-*.json
-*.md
+
+# Private
+api_keys.txt
+conv.json
+memory.json
+memory.db
