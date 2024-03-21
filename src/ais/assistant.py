@@ -10,8 +10,8 @@ from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
 from src.utils.files import find
 
-from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail
-from src.ais.functions.misc import getWeather
+from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent
+from src.ais.functions.misc import getWeather, getLocation, getDate
 
 
 async def create(client, config):
@@ -233,6 +233,56 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                     subject = args.get("subject", None),
                     body = args.get("body", None),
                     attachments = args.get("attachments", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "getLocation":
+                outputs = getLocation()
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "getDate":
+                outputs = getDate()
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "writeCalendarEvent":
+                outputs = writeCalendarEvent(
+                    subject = args.get("subject", None),
+                    start = args.get("start", None),
+                    end = args.get("end", None),
+                    location = args.get("location", None),
+                    body = args.get("body", None),
+                    recurrence = args.get("recurrence", False)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "createCalendarEvent":
+                outputs = createCalendarEvent(
+                    subject = args.get("subject", None),
+                    start = args.get("start", None),
+                    end = args.get("end", None),
+                    location = args.get("location", None),
+                    body = args.get("body", None),
+                    recurrence = args.get("recurrence", False)
                 )
                 tool_outputs.append(
                     {

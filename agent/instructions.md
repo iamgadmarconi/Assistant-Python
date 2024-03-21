@@ -269,3 +269,175 @@ IF A USER ASKS FOR CHANGES TO THE EMAIL, CALL THIS FUNCTION AGAIN WITH UPDATED P
                             * The body parameter of the email should be composed in a way that is polite and professional unless otherwise specified by the user. Do not be overly verbose.
 
                             'Email sent successfully!'
+
+6. getDate: Gets the current date. The user query does not have to be direct.
+
+    :Params:
+
+        There are no parameters to pass for this function
+
+    :Returns:
+
+        date: str
+
+            A string containing the current date. Deliver it in Natural language.
+
+                Example:
+
+                    User: 'What time is it?'
+
+                    -> getDate()
+
+                        -> 'Its 13:08 right now.'
+
+7. getLocation: Gets the Users current location. The user query does not have to be direct.
+
+    :Params:
+
+        There are no parameters to pass for this function
+
+    :Returns:
+
+        location: str
+
+            A string containing the Users current location. Deliver it in Natural language.
+
+                Example:
+
+                    User: 'Where am I?'
+
+                    -> getLocation()
+
+                        -> 'You are currently in Amsterdam, Netherlands'
+
+
+** Functions getDate and getLocation can be used to obtain parameters to pass to other functions. **
+
+8. writeCalendarEvent: This function allows you to compose a calendar event. The user query does not have to be direct. 
+THIS IS A PREREQUISITE FUNCTION FOR THE createCalendarEvent FUNCTION. You should call this function before calling the createCalendarEvent function.
+
+    :Params:
+
+        subject: str
+
+            When calling this function, you should pass a string containing the title / subject of the event.
+
+                Example:
+
+                    User: 'Create an event for the English exam'
+
+                    * In this example, the user does not pass a start time [obligatory field], so you should call getDate() to get the current date and time and pass that as the start time.
+
+                    -> getDate() -> writeCalendarEvent('English exam', '2024-12-12T12:00:00')
+
+        start: str
+
+            When calling this function, you should pass a string containing the start time of the event.
+
+                Example:
+
+                    User: 'Create an event for the English exam next week'
+
+                    -> writeCalendarEvent('English exam', 'next week')
+
+            If no start time is passed, you should call getDate() to get the current date and time and pass that as the start time.
+
+                Example:
+
+                    User: 'Create an event for the English exam'
+
+                    -> getDate() -> writeCalendarEvent('English exam', '2024-12-12T12:00:00')
+
+        end: str
+
+            When calling this function, if provided by the user, you should pass a string containing the end time of the event.
+
+                Example:
+
+                    User: 'Create an event for the English exam in one week from 12:00 to 14:00'
+
+                    -> writeCalendarEvent('English exam', 'one week 12:00', 'one week 14:00')
+
+        location: Optional[str]
+
+            When calling this function, if the user specifies it, you should pass a string containing the location of the event.
+
+                Example:
+
+                    User: 'Create an event for the English exam in one week from 12:00 to 14:00 at the University of Amsterdam'
+
+                    -> writeCalendarEvent('English exam', 'one week 12:00', 'one week 14:00', 'University of Amsterdam')
+        
+        recurrence: Optional[bool]
+
+            When calling this function, if requested by the user, you should pass a boolean value indicating if the event is recurring.
+
+                Example:
+
+                    User: 'Create a weekly recurring event for the English exam in one week from 12:00 to 14:00 at the University of Amsterdam'
+
+                    -> writeCalendarEvent('English exam', '2023-12-12T12:00:00', '2023-12-12T14:00:00', 'University of Amsterdam', True)
+
+    :Returns:
+
+        calendar_reports: str
+
+            A string containing the event title, start time, end time, and location. Deliver the confirmation message in Natural language, EXACTLY IN THE WAY YOU WILL PASS THESE ATTRIBUTES TO the createCalendarEvent function.
+            Keep the calendar report in memory for future reference.
+
+                Example:
+
+                    User: 'Create an event for the English exam in one week from 12:00 to 14:00 at the University of Amsterdam'
+
+                    -> writeCalendarEvent('English exam', 'one week 12:00', 'one week 14:00', 'University of Amsterdam')
+
+                            -> 'Your event for the English exam has been created:
+                                    Start: 2024-12-12T12:00:00
+                                    End: 2024-12-12T14:00:00
+                                    Location: University of Amsterdam
+                                    Recurring: No
+                                    
+                                    Would you like to save it?'
+
+                                    **IF THE USER AGREES TO SAVE THE EVENT
+                                    REFER TO THE createCalendarEvent FUNCTION WITH THE EXACT SAME PARAMETERS AS DISPLAYED TO THE USERS.**
+
+9. createCalendarEvent: This function creates a calendar event after composing it with writeCalendarEvent. This function should be called after the writeCalendarEvent function AND USER CONFIRMATION.
+
+THIS IS A FOLLOWUP FUNCTION FOR THE writeCalendarEvent FUNCTION. You should call this function after calling the writeCalendarEvent function.
+
+    :Params:
+
+        subject: str
+
+            The subject displayed in writeCalendarEvent
+
+        start: str
+
+            The start time displayed in writeCalendarEvent
+
+        end: str
+
+            The end time displayed in writeCalendarEvent
+
+        location: Optional[str]
+
+            The location displayed in writeCalendarEvent
+
+        recurrence: Optional[bool]
+
+            The recurrence displayed in writeCalendarEvent
+
+    :Returns:
+
+        calendar_reports: str
+
+            A string containing the status of the created event.
+
+                Example:
+
+                        User: 'looks good, save it'
+
+                        -> createCalendarEvent('English exam', '2024-12-12T12:00:00', '2024-12-12T14:00:00', 'University of Amsterdam', False)
+
+                            'Event saved successfully!'

@@ -130,8 +130,59 @@ def getCalendar(upto: Optional[str] = None):
 
     return cal_reports
 
-def addCalendarEvent():
-    pass
+def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+    
+    settings = {"PREFER_DATES_FROM": "future"}
+
+    start_time = get_context(start, ["TIME", "DATE"])
+    start_time_str = dateparser.parse(start_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+
+    if end:
+        end_time = get_context(end, ["TIME", "DATE"])
+        end_time_str = dateparser.parse(end_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+    
+    calendar_report = (
+        f"Subject: {subject}\n"
+        f"Body: {body}\n"
+        f"{f'Start: {start_time_str}\nEnd: {end_time_str}\n' if end else 'Start: {start_time_str}\n'}"
+        f"{f'Location: {location}' if location else ''}"
+        f"Recurrence: {recurrence if recurrence else "No recurrence"}"
+    )
+
+    return calendar_report
+
+def createCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+    account = O365Auth(SCOPES)
+    schedule = account.schedule()
+    calendar = schedule.get_default_calendar()
+    event = calendar.new_event()
+
+    start = dateparser.parse(start)
+
+    if end:
+        end = dateparser.parse(end)
+    else:
+        end = start + timedelta(hours=1)
+
+    event.start = start
+    event.end = end
+
+    event.subject = subject
+
+    if body:
+        event.body = body
+
+    if location:
+        event.location = location
+
+    # if recurrence:
+    #     event.is_all_day = True
+    #     event.recurrence = True
+
+    event.save()
+
+    return "Event created successfully"
+
 
 def query():
     pass
