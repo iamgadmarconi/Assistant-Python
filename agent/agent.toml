@@ -691,7 +691,7 @@ description = """
 
 """
 [tools.function.parameters.properties.recurrence]
-type = "bool"
+type = "boolean"
 description = """
 
     recurrence: Optional[bool]
@@ -791,7 +791,7 @@ description = """
 
 """
 [tools.function.parameters.properties.recurrence]
-type = "bool"
+type = "boolean"
 description = """
 
     recurrence: Optional[bool]
@@ -817,3 +817,9 @@ bundle_name = "memory"
 src_dir = "../src"
 src_globs = ["**/*.json"]
 dst_ext = "json" 
+
+[[file_bundles]]
+bundle_name = "images"
+src_dir = "../src/files/img"
+src_globs = ["*.png", "*.jpg", "*.jpeg"]
+dst_ext = "img"

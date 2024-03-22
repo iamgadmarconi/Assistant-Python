@@ -148,3 +148,4 @@ api_keys.txt
 conv.json
 memory.json
 memory.db
+*.db
