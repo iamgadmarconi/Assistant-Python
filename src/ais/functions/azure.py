@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from O365 import Account, MSGraphProtocol
 
 from src.utils.files import find
-from src.utils.tools import get_context
+from src.utils.tools import get_context, html_to_text
 
 SCOPES = ["basic", "message_all", "calendar_all", "address_book_all", "tasks_all"]
 
@@ -69,17 +69,21 @@ def readEmail():
     inbox = mailbox.inbox_folder()
 
     messages = inbox.get_messages(limit=5)
+    
 
     email_reports = []
 
     for message in messages:
+        
+        message_body = html_to_text(message.body)
+
         email_report = (f"From: {message.sender}\n"
                         f"Subject: {message.subject}\n"
                         f"Received: {message.received}\n"
-                        f"Body: {message.body}")
+                        f"Body: {message_body}\n")
         
         email_reports.append(email_report)
-        
+
     email_reports = "\n".join(email_reports)
 
     return email_reports

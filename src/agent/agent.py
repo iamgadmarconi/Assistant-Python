@@ -6,6 +6,7 @@ from pathlib import Path
 from openai import OpenAI
 
 from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json
+from src.utils.cli import green_text, red_text, yellow_text
 from src.ais.assistant import load_or_create_assistant, upload_instruction, upload_file_by_name, get_thread, create_thread, run_thread_message
 
 
@@ -25,7 +26,8 @@ class Assistant:
         try:
             await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=True)
         except:
-            print("No previous memory")
+            # print("No previous memory")
+            yellow_text("No previous memory")
 
         await self.upload_instructions()
         await self.upload_files(recreate)
@@ -88,11 +90,13 @@ class Assistant:
         try:
             conv = load_from_json(conv_file)
             await get_thread(self.oac, conv['thread_id'])
-            print(f"Conversation loaded")  
+            # print(f"Conversation loaded")  
+            green_text(f"Conversation loaded")
 
         except (FileNotFoundError, json.JSONDecodeError):
             thread_id = await create_thread(self.oac)
-            print(f"Conversation created")  
+            # print(f"Conversation created")  
+            green_text(f"Conversation created")
             conv = {'thread_id': thread_id}
             load_to_json(conv_file, conv)
 

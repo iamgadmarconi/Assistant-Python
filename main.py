@@ -1,5 +1,6 @@
 import asyncio
 from src.agent.agent import Assistant
+from src.utils.cli import asst_msg
 from typing import Union
 
 
@@ -50,7 +51,8 @@ async def main():
         elif cmd.startswith(Cmd.Chat):
             msg = cmd.split(": ", 1)[1]  
             res = await asst.chat(conv, msg)
-            print(f"{res}")
+            #print(f"{asst_msg(res)}")
+            asst_msg(res)
 
         elif cmd == Cmd.RefreshAll:
             asst = Assistant(DEFAULT_DIR)

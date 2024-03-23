@@ -9,6 +9,7 @@ from pathlib import Path
 from openai import OpenAI
 
 from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json
+from src.utils.cli import green_text, red_text, yellow_text
 from src.ais.assistant import load_or_create_assistant, upload_instruction, upload_file_by_name, get_thread, create_thread, run_thread_message
 
 
@@ -28,7 +29,8 @@ class Assistant:
         try:
             await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=True)
         except:
-            print("No previous memory")
+            # print("No previous memory")
+            yellow_text("No previous memory")
 
         await self.upload_instructions()
         await self.upload_files(recreate)
@@ -91,11 +93,13 @@ class Assistant:
         try:
             conv = load_from_json(conv_file)
             await get_thread(self.oac, conv['thread_id'])
-            print(f"Conversation loaded")  
+            # print(f"Conversation loaded")  
+            green_text(f"Conversation loaded")
 
         except (FileNotFoundError, json.JSONDecodeError):
             thread_id = await create_thread(self.oac)
-            print(f"Conversation created")  
+            # print(f"Conversation created")  
+            green_text(f"Conversation created")
             conv = {'thread_id': thread_id}
             load_to_json(conv_file, conv)
 
@@ -127,15 +131,17 @@ class Assistant:
 
 import asyncio
 import backoff
-from time import sleep
-from openai import NotFoundError
 import json
 import os
 import re
 
+from openai import NotFoundError
+from rich.progress import Progress, SpinnerColumn, TextColumn
+
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
 from src.utils.files import find
+from src.utils.cli import red_text, green_text, yellow_text
 
 from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent
 from src.ais.functions.misc import getWeather, getLocation, getDate
@@ -157,16 +163,19 @@ async def load_or_create_assistant(client, config, recreate: bool = False):
 
     if recreate and asst_id is not None:
         await delete(client, asst_id)
-        asst_id = None 
-        print(f"Assistant '{config['name']}' deleted")
+        asst_id = None
+        green_text(f"Assistant '{config['name']}' deleted")
+        # print(f"Assistant '{config['name']}' deleted")
 
     if asst_id is not None:
-        print(f"Assistant '{config['name']}' loaded")
+        green_text(f"Assistant '{config['name']}' loaded")
+        # print(f"Assistant '{config['name']}' loaded")
         return asst_id
     
     else:
         asst_obj = await create(client, config)
-        print(f"Assistant '{config['name']}' created")
+        green_text(f"Assistant '{config['name']}' created")
+        # print(f"Assistant '{config['name']}' created")
         return asst_obj.id
 
 async def first_by_name(client, name: str):
@@ -186,10 +195,12 @@ async def upload_instruction(client, config, asst_id: str, instructions: str):
             assistant_id= asst_id,
             instructions = instructions
         )
-        print(f"Instructions uploaded to assistant '{config['name']}'")
+        # print(f"Instructions uploaded to assistant '{config['name']}'")
+        green_text(f"Instructions uploaded to assistant '{config['name']}'")
 
     except Exception as e:
-        print(f"Failed to upload instruction: {e}")
+        red_text(f"Failed to upload instruction: {e}")
+        # print(f"Failed to upload instruction: {e}")
         raise  
 
 async def delete(client, asst_id: str, wipe=False):
@@ -202,7 +213,8 @@ async def delete(client, asst_id: str, wipe=False):
         del_res = assistant_files.delete(file_id)
 
         if del_res.deleted:
-            print(f"File '{file_id}' deleted")
+            green_text(f"File '{file_id}' deleted")
+            # print(f"File '{file_id}' deleted")
 
     for key in file_hashmap.keys():
         path = find(key, "agent")
@@ -223,7 +235,8 @@ async def delete(client, asst_id: str, wipe=False):
         pass
 
     assts.delete(assistant_id=asst_id)
-    print(f"Assistant deleted")
+    # print(f"Assistant deleted")
+    green_text("Assistant deleted")
 
 async def get_file_hashmap(client, asst_id: str):
     assts = client.beta.assistants
@@ -278,26 +291,32 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
         
     write_to_memory("User", message)
 
-    while True:
-            print("-", end="", flush=True)
-            run = threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
+    with Progress(SpinnerColumn(), TextColumn("[bold cyan]{task.description}"), transient=True) as progress:
+        task = progress.add_task("[green]Thinking...", total=None)  # Indeterminate progress
+        
+        while True:
+                # print("-", end="", flush=True)
+                run = threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
 
-            if run.status in ["Completed", "completed"]:
-                print("\n")
-                return await get_thread_message(client, thread_id)
-            elif run.status in ["Queued", "InProgress", "run_in_progress", "in_progress", "queued"]:
-                pass  
+                if run.status in ["Completed", "completed"]:
+                    progress.stop()
+                    print()
+                    return await get_thread_message(client, thread_id)
+                
+                elif run.status in ["Queued", "InProgress", "run_in_progress", "in_progress", "queued", "pending", "Pending"]:
+                    pass  # The spinner will continue spinning
 
-            elif run.status in ['pending', 'Pending']:
-                pass
-            elif run.status in ['requires_input', 'RequiresInput', 'requires_action', 'RequiresAction']:
-                await call_required_function(client, thread_id, run.id, run.required_action)
-            else:
-                print("\n") 
-                await delete(client, asst_id)
-                raise Exception(f"Unexpected run status: {run.status}")
+                elif run.status in ['requires_input', 'RequiresInput', 'requires_action', 'RequiresAction']:
+                    await call_required_function(client, thread_id, run.id, run.required_action)
 
-            sleep(0.5)
+                else:
+                    print() 
+                    await delete(client, asst_id)
+                    # print(f"Unexpected run status: {run.status}")
+                    red_text(f"Unexpected run status: {run.status}")
+                    raise
+
+                await asyncio.sleep(0.5)
 
 async def call_required_function(client, thread_id: str, run_id: str, required_action):
     tool_outputs = []
@@ -459,7 +478,8 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
 
     if not force:
         if file_id is not None:
-            print(f"File '{filename}' already uploaded")
+            # print(f"File '{filename}' already uploaded")
+            yellow_text(f"File '{filename}' already uploaded")
             return file_id, False
     
     if file_id:
@@ -470,7 +490,8 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
             )
 
         except Exception as e:
-            print(f"Failed to delete file '{filename}': {e}")
+            # print(f"Failed to delete file '{filename}': {e}")
+            red_text(f"Failed to delete file '{filename}': {e}")
             raise
 
         try:
@@ -480,7 +501,8 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
             )
         
         except Exception as e:
-            print(f"Couldn't remove assistant file '{filename}': {e}")
+            # print(f"Couldn't remove assistant file '{filename}': {e}")
+            red_text(f"Couldn't remove assistant file '{filename}: {e}'")
             raise
 
     with open(filename, "rb") as file:
@@ -494,7 +516,8 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
         file_id=uploaded_file.id,
     )
 
-    print(f"File '{filename}' uploaded")
+    green_text(f"File '{filename}' uploaded")
+    # print(f"File '{filename}' uploaded")
     return uploaded_file.id, True
 
 
@@ -555,10 +578,10 @@ import dateparser
 
 from typing import Optional
 from datetime import datetime, timedelta
-from O365 import Account, MSGraphProtocol, Message
+from O365 import Account, MSGraphProtocol
 
 from src.utils.files import find
-from src.utils.tools import get_context
+from src.utils.tools import get_context, html_to_text
 
 SCOPES = ["basic", "message_all", "calendar_all", "address_book_all", "tasks_all"]
 
@@ -621,17 +644,21 @@ def readEmail():
     inbox = mailbox.inbox_folder()
 
     messages = inbox.get_messages(limit=5)
+    
 
     email_reports = []
 
     for message in messages:
+        
+        message_body = html_to_text(message.body)
+
         email_report = (f"From: {message.sender}\n"
                         f"Subject: {message.subject}\n"
                         f"Received: {message.received}\n"
-                        f"Body: {message.body}")
+                        f"Body: {message_body}\n")
         
         email_reports.append(email_report)
-        
+
     email_reports = "\n".join(email_reports)
 
     return email_reports
@@ -821,6 +848,39 @@ def getWeather(msg: Optional[str]):
 
 
 
+ # ==== file path: agent\..\src\utils\cli.py ==== 
+
+from rich.console import Console
+from rich.text import Text
+from rich.markdown import Markdown
+
+
+def asst_msg(content):
+    console = Console()
+    markdown = Markdown(content)
+    console.print(markdown, style="cyan")
+
+def red_text(content):
+    console = Console()
+    text = Text(content)
+    text.stylize("red")
+    console.print(text)
+
+def green_text(content):
+    console = Console()
+    text = Text(content)
+    text.stylize("green")
+    console.print(text)
+
+def yellow_text(content):
+    console = Console()
+    text = Text(content)
+    text.stylize("yellow")
+    console.print(text)
+
+
+
+
  # ==== file path: agent\..\src\utils\database.py ==== 
 
 import sqlite3
@@ -990,6 +1050,7 @@ def find(name, path):
  # ==== file path: agent\..\src\utils\tools.py ==== 
 
 import spacy
+from bs4 import BeautifulSoup
 
 
 def get_context(string: str, tokens: list[str]):
@@ -1005,7 +1066,25 @@ def get_context(string: str, tokens: list[str]):
 
     return result
 
-
+def html_to_text(html: str, ignore_script_and_style: bool = True):
+    soup = BeautifulSoup(html, "html.parser")
+    
+    # Optional: Remove script and style elements
+    if ignore_script_and_style:
+        for script_or_style in soup(['script', 'style']):
+            script_or_style.decompose()
+    
+    # Get text
+    text = soup.get_text()
+    
+    # Break into lines and remove leading and trailing space on each
+    lines = (line.strip() for line in text.splitlines())
+    # Break multi-headlines into a line each
+    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    # Drop blank lines
+    text = '\n'.join(chunk for chunk in chunks if chunk)
+    
+    return text
 
 
  # ==== file path: agent\..\src\utils\__init__.py ==== 
