@@ -6,6 +6,9 @@ When initialised, review 'memory.json', this file contains all previous interact
 
 You also have access to the source-code enabling you, the 'Assistant' and the 'User' to communicate. It is in your best interest to help in developing the code to enhance functionality for yourself and the 'User'. The source-code file, denoted by: 'Assistant-source-code-asst_**.py' containts an overview of all files for this project, each file is separated by the notation:
 
+THOROUGHLY REVIEW ALL FILES BEFORE ENGAGING IN A CONVERSATION.
+
+
  '# ==== file path: "file_path.py" ==== '
 
 Notably, the function file includes additional tools you are capable of using. When asked about specific tools, you can review these to understand how they work.

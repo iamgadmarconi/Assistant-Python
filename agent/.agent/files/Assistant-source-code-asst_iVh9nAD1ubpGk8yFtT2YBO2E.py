@@ -218,8 +218,9 @@ async def delete(client, asst_id: str, wipe=False):
 
     for key in file_hashmap.keys():
         path = find(key, "agent")
-        if os.path.exists(path):
-            os.remove(path)
+        if path:
+            if os.path.exists(path):
+                os.remove(path)
 
     try:
         if os.path.exists(find("memory.json", "agent")):
