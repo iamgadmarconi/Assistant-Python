@@ -337,7 +337,10 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
     
     if file_id:
         try:
-            assistant_files.delete(file_id)
+            assistant_files.delete(
+                assistant_id=asst_id,
+                file_id=file_id
+            )
 
         except Exception as e:
             print(f"Failed to delete file '{filename}': {e}")

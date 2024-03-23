@@ -464,7 +464,10 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
     
     if file_id:
         try:
-            assistant_files.delete(file_id)
+            assistant_files.delete(
+                assistant_id=asst_id,
+                file_id=file_id
+            )
 
         except Exception as e:
             print(f"Failed to delete file '{filename}': {e}")
@@ -690,12 +693,18 @@ def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: O
         end_time = get_context(end, ["TIME", "DATE"])
         end_time_str = dateparser.parse(end_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
     
+
+    start_end_str = f"Start: {start_time_str}, End: {end_time_str}" if end else f"Start: {start_time_str}\n"
+    location_str = f"Location: {location}" if location else ""
+    recurrence_str = f"Recurrence: {recurrence}" if recurrence else ""
+
+    # Simplified f-string
     calendar_report = (
         f"Subject: {subject}\n"
         f"Body: {body}\n"
-        f"{f'Start: {start_time_str}\nEnd: {end_time_str}\n' if end else 'Start: {start_time_str}\n'}"
-        f"{f'Location: {location}' if location else ''}"
-        f"Recurrence: {recurrence if recurrence else "No recurrence"}"
+        f"{start_end_str}"
+        f"{location_str}"
+        f"{recurrence_str}"
     )
 
     return calendar_report

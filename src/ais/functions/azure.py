@@ -3,7 +3,7 @@ import dateparser
 
 from typing import Optional
 from datetime import datetime, timedelta
-from O365 import Account, MSGraphProtocol, Message
+from O365 import Account, MSGraphProtocol
 
 from src.utils.files import find
 from src.utils.tools import get_context
@@ -141,12 +141,18 @@ def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: O
         end_time = get_context(end, ["TIME", "DATE"])
         end_time_str = dateparser.parse(end_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
     
+
+    start_end_str = f"Start: {start_time_str}, End: {end_time_str}" if end else f"Start: {start_time_str}\n"
+    location_str = f"Location: {location}" if location else ""
+    recurrence_str = f"Recurrence: {recurrence}" if recurrence else ""
+
+    # Simplified f-string
     calendar_report = (
         f"Subject: {subject}\n"
         f"Body: {body}\n"
-        f"{f'Start: {start_time_str}\nEnd: {end_time_str}\n' if end else 'Start: {start_time_str}\n'}"
-        f"{f'Location: {location}' if location else ''}"
-        f"Recurrence: {recurrence if recurrence else "No recurrence"}"
+        f"{start_end_str}"
+        f"{location_str}"
+        f"{recurrence_str}"
     )
 
     return calendar_report
