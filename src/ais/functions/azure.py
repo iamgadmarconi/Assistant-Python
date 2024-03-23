@@ -97,6 +97,9 @@ def getCalendar(upto: Optional[str] = None):
         
     else:
         time = get_context(upto, ["TIME", "DATE"])
+        if time == "":
+            time = "7 days"
+            
         settings = {"PREFER_DATES_FROM": "future"}
         diff = dateparser.parse(time, settings=settings)
 
@@ -139,12 +142,17 @@ def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: O
     settings = {"PREFER_DATES_FROM": "future"}
 
     start_time = get_context(start, ["TIME", "DATE"])
-    start_time_str = dateparser.parse(start_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+    if start_time != "":
+        start_time_str = dateparser.parse(start_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+    else:
+        start_time_str = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
     if end:
         end_time = get_context(end, ["TIME", "DATE"])
-        end_time_str = dateparser.parse(end_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
-    
+        if end_time != "":
+            end_time_str = dateparser.parse(end_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+        else:
+            end_time_str = (datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y, %H:%M:%S")
 
     start_end_str = f"Start: {start_time_str}, End: {end_time_str}" if end else f"Start: {start_time_str}\n"
     location_str = f"Location: {location}" if location else ""

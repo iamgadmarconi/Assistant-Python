@@ -7,13 +7,18 @@ def get_context(string: str, tokens: list[str]):
         raise ValueError("Invalid token; must be one of 'TIME', 'DATE', or 'GPE'")
 
     nlp = spacy.load("en_core_web_sm")
-    doc = nlp(string)
 
-    res = [ent.text for ent in doc.ents if ent.label_ in tokens]
+    try:
+        doc = nlp(string)
 
-    result = " ".join(res)
+        res = [ent.text for ent in doc.ents if ent.label_ in tokens]
 
-    return result
+        result = " ".join(res)
+
+        return result
+    
+    except:
+        return ""
 
 def html_to_text(html: str, ignore_script_and_style: bool = True):
     soup = BeautifulSoup(html, "html.parser")

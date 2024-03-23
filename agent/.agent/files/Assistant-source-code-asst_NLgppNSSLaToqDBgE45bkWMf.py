@@ -672,6 +672,9 @@ def getCalendar(upto: Optional[str] = None):
         
     else:
         time = get_context(upto, ["TIME", "DATE"])
+        if time == "":
+            time = "7 days"
+            
         settings = {"PREFER_DATES_FROM": "future"}
         diff = dateparser.parse(time, settings=settings)
 
@@ -714,12 +717,17 @@ def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: O
     settings = {"PREFER_DATES_FROM": "future"}
 
     start_time = get_context(start, ["TIME", "DATE"])
-    start_time_str = dateparser.parse(start_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+    if start_time != "":
+        start_time_str = dateparser.parse(start_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+    else:
+        start_time_str = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
     if end:
         end_time = get_context(end, ["TIME", "DATE"])
-        end_time_str = dateparser.parse(end_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
-    
+        if end_time != "":
+            end_time_str = dateparser.parse(end_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+        else:
+            end_time_str = (datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y, %H:%M:%S")
 
     start_end_str = f"Start: {start_time_str}, End: {end_time_str}" if end else f"Start: {start_time_str}\n"
     location_str = f"Location: {location}" if location else ""
@@ -845,6 +853,211 @@ def getWeather(msg: Optional[str]):
     else:
         # API call failed this usually happens if the API key is invalid or not provided
         return f"Failed to retrieve weather data: {response.status_code}"
+
+
+
+ # ==== file path: agent\..\src\gui\app.py ==== 
+
+import asyncio
+
+
+from textual.app import App, ComposeResult
+from textual.binding import Binding
+from textual.containers import Container, Horizontal
+from textual.widget import Widget
+from textual.widgets import Button, Footer, Header, Input, Static
+
+from src.agent.agent import Assistant
+
+
+DEFAULT_DIR = "agent"
+
+
+class FocusableContainer(Container, can_focus=True):  
+    """Focusable container widget."""
+
+
+class MessageBox(Widget, can_focus=True):  
+    """Box widget for the message."""
+
+    def __init__(self, text: str, role: str) -> None:
+        self.text = text
+        self.role = role
+        super().__init__()
+
+    def compose(self) -> ComposeResult:
+        """Yield message component."""
+        yield Static(self.text, classes=f"message {self.role}")
+
+
+class ChatApp(App):
+    """Chat app."""
+
+    TITLE = "chatui"
+    SUB_TITLE = "ChatGPT directly in your terminal"
+    CSS_PATH = r"app.tcss"
+
+    BINDINGS = [
+        Binding("q", "quit", "Quit", key_display="Q / CTRL+C"),
+        ("ctrl+x", "clear", "Clear"),
+    ]
+
+    def compose(self) -> ComposeResult:
+        """Yield components."""
+        yield Header()
+        with FocusableContainer(id="conversation_box"):
+            yield MessageBox(
+                "Welcome to chatui!\n"
+                "Type your question, click enter or 'send' button "
+                "and wait for the response.\n"
+                "At the bottom you can find few more helpful commands.",
+                role="info",
+            )
+        with Horizontal(id="input_box"):
+            yield Input(placeholder="Enter your message", id="message_input")
+            yield Button(label="Send", variant="success", id="send_button")
+        yield Footer()
+
+    async def on_mount(self) -> None:
+        """Start the conversation and focus input widget."""
+        assistant = Assistant(DEFAULT_DIR)
+        self.asst = await assistant.init_from_dir(False)
+        self.conv = await assistant.load_or_create_conv(False)
+        self.query_one(Input).focus()
+
+    def action_clear(self) -> None:
+        """Clear the conversation and reset widgets."""
+        # self.conversation.clear()
+        conversation_box = self.query_one("#conversation_box")
+        conversation_box.remove()
+        self.mount(FocusableContainer(id="conversation_box"))
+
+    async def on_button_pressed(self) -> None:
+        """Process when send was pressed."""
+        await self.process_conversation()
+
+    async def on_input_submitted(self) -> None:
+        """Process when input was submitted."""
+        await self.process_conversation()
+
+    async def process_conversation(self) -> None:
+        """Process a single question/answer in conversation."""
+        message_input = self.query_one("#message_input", Input)
+        # Don't do anything if input is empty
+        if message_input.value == "":
+            return
+        button = self.query_one("#send_button")
+        conversation_box = self.query_one("#conversation_box")
+
+        self.toggle_widgets(message_input, button)
+
+        # Create question message, add it to the conversation and scroll down
+        message_box = MessageBox(message_input.value, "question")
+        conversation_box.mount(message_box)
+        conversation_box.scroll_end(animate=False)
+
+        # Clean up the input without triggering events
+        with message_input.prevent(Input.Changed):
+            message_input.value = ""
+
+        # Take answer from the chat and add it to the conversation
+        res = await self.asst.chat(self.conv, message_box.text)
+        # self.conversation.pick_response(choices[0])
+        conversation_box.mount(
+            MessageBox(
+                res,
+                "answer",
+            )
+        )
+
+        self.toggle_widgets(message_input, button)
+        # For some reason single scroll doesn't work
+        conversation_box.scroll_end(animate=False)
+        conversation_box.scroll_end(animate=False)
+
+    def toggle_widgets(self, *widgets: Widget) -> None:
+        """Toggle a list of widgets."""
+        for w in widgets:
+            w.disabled = not w.disabled
+
+
+
+ # ==== file path: agent\..\src\gui\cli.py ==== 
+
+import asyncio
+
+from typing import Union
+
+from src.agent.agent import Assistant
+from src.utils.cli import asst_msg
+
+
+DEFAULT_DIR = "agent"
+
+class Cmd:
+
+    Quit = "Quit"
+    RefreshAll = "RefreshAll"
+    RefreshConv = "RefreshConv"
+    RefreshInst = "RefreshInst"
+    RefreshFiles = "RefreshFiles"
+    Chat = "Chat"
+
+    def __init__(self) -> None:
+        pass
+
+    @classmethod
+    def from_input(cls, input: Union[str, object]) -> str:
+        input_str = str(input)
+
+        if input_str == "/q":
+            return cls.Quit
+        elif input_str in ["/r", "/ra"]:
+            return cls.RefreshAll
+        elif input_str == "/rc":
+            return cls.RefreshConv
+        elif input_str == "/ri":
+            return cls.RefreshInst
+        elif input_str == "/rf":
+            return cls.RefreshFiles
+        else:
+            return f"{cls.Chat}: {input_str}"
+
+async def cli():
+    assistant = Assistant(DEFAULT_DIR)
+    asst = await assistant.init_from_dir(False)
+    conv = await assistant.load_or_create_conv(False)
+
+    while True:
+        print()
+        user_input = input("User: ")
+        cmd = Cmd.from_input(user_input)
+
+        if cmd == Cmd.Quit:
+            break
+
+        elif cmd.startswith(Cmd.Chat):
+            msg = cmd.split(": ", 1)[1]  
+            res = await asst.chat(conv, msg)
+            #print(f"{asst_msg(res)}")
+            asst_msg(res)
+
+        elif cmd == Cmd.RefreshAll:
+            asst = Assistant(DEFAULT_DIR)
+            await asst.init_from_dir(True)
+            await asst.load_or_create_conv(True)
+
+        elif cmd == Cmd.RefreshConv:
+            await asst.load_or_create_conv(True)
+
+        elif cmd == Cmd.RefreshInst:
+            await asst.upload_instructions()
+            await asst.load_or_create_conv(True)
+
+        elif cmd == Cmd.RefreshFiles:
+            await asst.upload_files(True)
+            asst.load_or_create_conv(True)
+
 
 
 
@@ -1058,13 +1271,18 @@ def get_context(string: str, tokens: list[str]):
         raise ValueError("Invalid token; must be one of 'TIME', 'DATE', or 'GPE'")
 
     nlp = spacy.load("en_core_web_sm")
-    doc = nlp(string)
 
-    res = [ent.text for ent in doc.ents if ent.label_ in tokens]
+    try:
+        doc = nlp(string)
 
-    result = " ".join(res)
+        res = [ent.text for ent in doc.ents if ent.label_ in tokens]
 
-    return result
+        result = " ".join(res)
+
+        return result
+    
+    except:
+        return ""
 
 def html_to_text(html: str, ignore_script_and_style: bool = True):
     soup = BeautifulSoup(html, "html.parser")
