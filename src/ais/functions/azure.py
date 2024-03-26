@@ -212,7 +212,6 @@ def getContacts(name: Optional[str]):
     account = O365Auth(SCOPES)
     contacts = account.address_book().get_contacts()
 
-    print(name)
     if not name:
         contact_reports = []
 

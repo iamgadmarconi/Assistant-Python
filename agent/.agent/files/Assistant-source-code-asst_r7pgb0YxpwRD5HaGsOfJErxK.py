@@ -822,19 +822,17 @@ def getContacts(name: Optional[str]):
         for contact in contacts:
             # Calculate the fuzzy match score
             match_score = fuzz.ratio(contact.full_name.lower(), name.lower())
-            # print(match_score)
             
             if match_score >= threshold:
-                # Extract email addresses
                 email_addresses = ', '.join([email.address for email in contact.emails])
-                print(email_addresses)
-                # Similarly, you can format phone numbers if needed
+
                 home_phones = ', '.join(contact.home_phones) if contact.home_phones else 'None'
                 business_phones = ', '.join(contact.business_phones) if contact.business_phones else 'None'
                 
                 contact_report = (f"Name: {contact.full_name}\n"
                                 f"Email: {email_addresses}\n"
-                                f"Phone: {home_phones}, {business_phones}")
+                                f"Phone: {home_phones}, {business_phones}\n"
+                                f"__Match_Score: {match_score}")
                 
                 contact_reports.append(contact_report)
 
