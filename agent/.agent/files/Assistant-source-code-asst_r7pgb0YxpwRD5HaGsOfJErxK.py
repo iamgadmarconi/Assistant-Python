@@ -143,7 +143,7 @@ from src.utils.database import write_to_memory
 from src.utils.files import find
 from src.utils.cli import red_text, green_text, yellow_text
 
-from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent
+from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
 
 
@@ -438,6 +438,17 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                     }
                 )
 
+            elif func_name == "getContacts":
+                outputs = getContacts(
+                    name = args.get("name", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+                
             else:
                 raise ValueError(f"Function '{func_name}' not found")
 
@@ -579,7 +590,9 @@ import dateparser
 
 from typing import Optional
 from datetime import datetime, timedelta
+from fuzzywuzzy import fuzz
 from O365 import Account, MSGraphProtocol
+from O365.utils import Query
 
 from src.utils.files import find
 from src.utils.tools import get_context, html_to_text
@@ -780,6 +793,54 @@ def createCalendarEvent(subject: str, start: str, end: Optional[str], location: 
 
 def query():
     pass
+
+def getContacts(name: Optional[str]):
+    threshold = 80
+    account = O365Auth(SCOPES)
+    contacts = account.address_book().get_contacts()
+
+    print(name)
+    if not name:
+        contact_reports = []
+
+        for contact in contacts:
+            email_addresses = ', '.join([email.address for email in contact.emails])
+
+            home_phones = ', '.join(contact.home_phones) if contact.home_phones else 'None'
+            business_phones = ', '.join(contact.business_phones) if contact.business_phones else 'None'
+            
+            contact_report = (f"Name: {contact.full_name}\n"
+                              f"Email: {email_addresses}\n"
+                              f"Phone: {home_phones}, {business_phones}")
+            
+            contact_reports.append(contact_report)
+
+        contact_reports = "\n".join(contact_reports)
+    
+    else:
+        contact_reports = []
+        for contact in contacts:
+            # Calculate the fuzzy match score
+            match_score = fuzz.ratio(contact.full_name.lower(), name.lower())
+            # print(match_score)
+            
+            if match_score >= threshold:
+                # Extract email addresses
+                email_addresses = ', '.join([email.address for email in contact.emails])
+                print(email_addresses)
+                # Similarly, you can format phone numbers if needed
+                home_phones = ', '.join(contact.home_phones) if contact.home_phones else 'None'
+                business_phones = ', '.join(contact.business_phones) if contact.business_phones else 'None'
+                
+                contact_report = (f"Name: {contact.full_name}\n"
+                                f"Email: {email_addresses}\n"
+                                f"Phone: {home_phones}, {business_phones}")
+                
+                contact_reports.append(contact_report)
+
+        contact_reports = "\n".join(contact_reports)
+
+    return contact_reports
 
 
  # ==== file path: agent\..\src\ais\functions\misc.py ==== 

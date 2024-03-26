@@ -212,13 +212,19 @@ def getContacts(name: Optional[str]):
     account = O365Auth(SCOPES)
     contacts = account.address_book().get_contacts()
 
+    print(name)
     if not name:
         contact_reports = []
 
         for contact in contacts:
+            email_addresses = ', '.join([email.address for email in contact.emails])
+
+            home_phones = ', '.join(contact.home_phones) if contact.home_phones else 'None'
+            business_phones = ', '.join(contact.business_phones) if contact.business_phones else 'None'
+            
             contact_report = (f"Name: {contact.full_name}\n"
-                            f"Email: {contact.email}\n"
-                            f"Phone: {contact.phone}")
+                              f"Email: {email_addresses}\n"
+                              f"Phone: {home_phones}, {business_phones}")
             
             contact_reports.append(contact_report)
 
@@ -231,11 +237,18 @@ def getContacts(name: Optional[str]):
             match_score = fuzz.ratio(contact.full_name.lower(), name.lower())
             
             if match_score >= threshold:
-                # Extract email addresses
+                email_addresses = ', '.join([email.address for email in contact.emails])
+
+                home_phones = ', '.join(contact.home_phones) if contact.home_phones else 'None'
+                business_phones = ', '.join(contact.business_phones) if contact.business_phones else 'None'
+                
                 contact_report = (f"Name: {contact.full_name}\n"
-                                f"Email: {contact.email}\n"
-                                f"Phone: {contact.phone}")
+                                f"Email: {email_addresses}\n"
+                                f"Phone: {home_phones}, {business_phones}\n"
+                                f"__Match_Score: {match_score}")
                 
                 contact_reports.append(contact_report)
+
+        contact_reports = "\n".join(contact_reports)
 
     return contact_reports

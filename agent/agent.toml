@@ -879,6 +879,8 @@ description = """
 
                             -> sendEmail('john.doe@outlook.com, Subject, Body)
 
+        * If multiple matches are found, ask the user to specify the contact further, or provide the best match.
+
 """
 
 [[file_bundles]]
