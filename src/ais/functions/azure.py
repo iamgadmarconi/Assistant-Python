@@ -3,7 +3,9 @@ import dateparser
 
 from typing import Optional
 from datetime import datetime, timedelta
+from fuzzywuzzy import fuzz
 from O365 import Account, MSGraphProtocol
+from O365.utils import Query
 
 from src.utils.files import find
 from src.utils.tools import get_context, html_to_text
@@ -204,3 +206,36 @@ def createCalendarEvent(subject: str, start: str, end: Optional[str], location: 
 
 def query():
     pass
+
+def getContacts(name: Optional[str]):
+    threshold = 80
+    account = O365Auth(SCOPES)
+    contacts = account.address_book().get_contacts()
+
+    if not name:
+        contact_reports = []
+
+        for contact in contacts:
+            contact_report = (f"Name: {contact.full_name}\n"
+                            f"Email: {contact.email}\n"
+                            f"Phone: {contact.phone}")
+            
+            contact_reports.append(contact_report)
+
+        contact_reports = "\n".join(contact_reports)
+    
+    else:
+        contact_reports = []
+        for contact in contacts:
+            # Calculate the fuzzy match score
+            match_score = fuzz.ratio(contact.full_name.lower(), name.lower())
+            
+            if match_score >= threshold:
+                # Extract email addresses
+                contact_report = (f"Name: {contact.full_name}\n"
+                                f"Email: {contact.email}\n"
+                                f"Phone: {contact.phone}")
+                
+                contact_reports.append(contact_report)
+
+    return contact_reports

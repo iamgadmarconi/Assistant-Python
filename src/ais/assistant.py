@@ -12,7 +12,7 @@ from src.utils.database import write_to_memory
 from src.utils.files import find
 from src.utils.cli import red_text, green_text, yellow_text
 
-from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent
+from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
 
 
@@ -307,6 +307,17 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                     }
                 )
 
+            elif func_name == "getContacts":
+                outputs = getContacts(
+                    name = args.get("name", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+                
             else:
                 raise ValueError(f"Function '{func_name}' not found")
 

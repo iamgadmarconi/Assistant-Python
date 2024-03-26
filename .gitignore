@@ -149,3 +149,5 @@ conv.json
 memory.json
 memory.db
 *.db
+.env
+.env

@@ -221,12 +221,14 @@ description = """
 This function allows you to compose an email. The user query does not have to be direct.
 
 THIS IS A PREREQUISITE FUNCTION FOR THE sendEmail FUNCTION. You should call this function before calling the sendEmail function.
+IF A USER PASSES A NAME INSTEAD OF AN EMAIL ADDRESS AS A RECIPIENT, CALL THE getContacts FUNCTION WITH THE NAME AS PARAMETER, AND USE THE EMAIL RETURNED AS RECIPIENT.
 
     :Params:
 
         recipients: list[str]
 
             When calling this function, you should pass a list of strings containing the recipients of the email.
+            IF A USER PASSES A NAME INSTEAD OF AN EMAIL ADDRESS AS A RECIPIENT, CALL THE getContacts FUNCTION WITH THE NAME AS PARAMETER, AND USE THE EMAIL RETURNED AS RECIPIENT.
 
                 Example:
 
@@ -797,6 +799,85 @@ description = """
     recurrence: Optional[bool]
 
         The recurrence displayed in writeCalendarEvent
+
+"""
+
+[[tools]]
+type = "function"
+[tools.function]
+name = "getContacts"
+description = """
+
+This function allows you to retrieve the Users contacts. The user query does not have to be direct.
+This function has two modes of operation, one where the User asks for their contacts, and one where the User asks for a specific contact.
+If the user asks for their contacts, call the function without passing any parameters. If the user asks for a specific contact, pass the name of the contact as a parameter.
+
+!!! Additionally, this function MUST be called if the User asks to send an email to a contact and uses a name (instead of an email address) as a recipient. In this case, call the function with the passed name, and use the email returned by the function to send the email. !!!
+
+    :Params:
+
+        name: Optional[str]
+
+            If the user asks for a specific contact, or if the function is called to determine an email recipient, you should pass a string containing the name of the contact.
+
+                Example:
+
+                    User: 'Send an email to John Doe'
+
+                    -> getContacts('John Doe')
+
+                        !!! You will get a contact report containing an email matching to John Doe. !!!
+
+                        -> writeEmail('john.doe@outlook.com', Subject, Body)
+
+                            -> Request user confirmation
+
+                                -> sendEmail('john.doe@outlook.com', Subject, Body)
+
+
+    :Returns:
+
+        contacts: list[str]
+
+            A list of strings containing the Users contacts. Deliver it in Natural language. If a specific contact is requested, the contact report will contain the best matches (above 80% similarity) to the requested name.
+
+                Example:
+
+                    User: 'Who are my contacts?'
+
+                    -> getContacts()
+
+                        -> 'Your contacts are: 
+                                1. John Doe
+                                2. Jane Doe
+                                3. Bob Smith
+                                4. Alice Johnson
+                                5. Tom Brown'
+
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.name]
+type = "string"
+description = """
+
+    name: Optional[str]
+
+        If the user asks for a specific contact, or if the function is called to determine an email recipient, you should pass a string containing the name of the contact.
+
+            Example:
+
+                User: 'Send an email to John Doe'
+
+                -> getContacts('John Doe')
+
+                    !!! You will get a contact report containing an email matching to John Doe. !!!
+
+                    -> writeEmail('john.doe@outlook.com', Subject, Body)
+
+                        -> Request user confirmation
+
+                            -> sendEmail('john.doe@outlook.com, Subject, Body)
 
 """
 
