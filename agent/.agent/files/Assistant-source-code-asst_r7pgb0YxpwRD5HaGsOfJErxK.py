@@ -512,10 +512,15 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
                 file_id=file_id,
             )
         
-        except Exception as e:
-            # print(f"Couldn't remove assistant file '{filename}': {e}")
-            red_text(f"Couldn't remove assistant file '{filename}: {e}'")
-            raise
+        except:
+            try:
+                yellow_text(f"Couldn't remove assistant file '{filename}', trying again...")
+                client.files.delete(file_id)
+                green_text(f"File '{filename}' removed")
+            except Exception as e:
+                # print(f"Couldn't remove assistant file '{filename}': {e}")
+                red_text(f"Couldn't remove assistant file '{filename}: {e}'")
+                raise
 
     with open(filename, "rb") as file:
         uploaded_file = client.files.create(
@@ -799,7 +804,6 @@ def getContacts(name: Optional[str]):
     account = O365Auth(SCOPES)
     contacts = account.address_book().get_contacts()
 
-    print(name)
     if not name:
         contact_reports = []
 
@@ -839,6 +843,14 @@ def getContacts(name: Optional[str]):
         contact_reports = "\n".join(contact_reports)
 
     return contact_reports
+
+
+ # ==== file path: agent\..\src\ais\functions\math.py ==== 
+
+import requests
+
+def mathSolver():
+    pass
 
 
  # ==== file path: agent\..\src\ais\functions\misc.py ==== 

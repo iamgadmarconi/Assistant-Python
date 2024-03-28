@@ -381,10 +381,15 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
                 file_id=file_id,
             )
         
-        except Exception as e:
-            # print(f"Couldn't remove assistant file '{filename}': {e}")
-            red_text(f"Couldn't remove assistant file '{filename}: {e}'")
-            raise
+        except:
+            try:
+                yellow_text(f"Couldn't remove assistant file '{filename}', trying again...")
+                client.files.delete(file_id)
+                green_text(f"File '{filename}' removed")
+            except Exception as e:
+                # print(f"Couldn't remove assistant file '{filename}': {e}")
+                red_text(f"Couldn't remove assistant file '{filename}: {e}'")
+                raise
 
     with open(filename, "rb") as file:
         uploaded_file = client.files.create(
