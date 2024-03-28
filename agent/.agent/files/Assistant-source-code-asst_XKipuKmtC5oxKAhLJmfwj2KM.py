@@ -134,7 +134,9 @@ import backoff
 import json
 import os
 import re
+from PIL import Image
 
+from io import BytesIO
 from openai import NotFoundError
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
@@ -469,8 +471,21 @@ async def get_thread_message(client, thread_id: str):
         ).data
 
         msg = next(iter(messages), None)
+
         if msg is None:
             raise ValueError("No message found in thread")
+        
+        msg_content = next(iter(msg.content), None)
+
+        if msg_content:
+            if hasattr(msg_content, "image_file"):
+                file_id = msg_content.image_file.file_id
+                resp = client.files.with_raw_response.retrieve_content(file_id)
+                if resp.status_code == 200:
+                    image_data = BytesIO(resp.content)
+                    img = Image.open(image_data)
+                    img.show()
+
         txt = get_text_content(msg)
 
         write_to_memory("Assistant", txt)

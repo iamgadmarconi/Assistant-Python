@@ -19,3 +19,4 @@ fnmatch
 spacy
 beautifulsoup4
 dotenv
+pillow
