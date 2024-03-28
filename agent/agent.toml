@@ -883,6 +883,86 @@ description = """
 
 """
 
+[[tools]]
+type = "function"
+[tools.function]
+name = "csvQuery"
+description = """
+
+A function to query a .csv or excel file. The user query does not have to be direct. DO NOT ATTEMPT TO ANALYZE A CSV OR XLSX FILE WITHOUT CALLING THIS FUNCTION
+
+    :Params:
+
+        path: str
+
+            When calling this function, you should pass a string containing the path to the .csv file.
+
+                Example:
+
+                    User: 'What is the total revenue for the year 2023?'
+
+                    -> csvQuery('path/to/file.csv', 'total revenue for the year 2023')
+
+        query: str
+
+            When calling this function, you should pass a string containing the query you want to perform on the .csv file.
+
+                Example:
+
+                    User: 'What is the total revenue for the year 2023?'
+
+                    -> csvQuery(path, 'total revenue for the year 2023')
+
+    :Returns:
+
+        query_results: str
+
+            A string containing the results of the query. Deliver it in Natural language.
+
+                Example:
+
+                    User: 'What is the total revenue for the year 2023?'
+
+                    -> csvQuery('total revenue for the year 2023')
+
+                        -> 'The total revenue for the year 2023 is $1,000,000'
+
+
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.path]
+type = "string"
+description = """
+
+    path: str
+
+        When calling this function, you should pass a string containing the path to the .csv file.
+
+            Example:
+
+                User: 'What is the total revenue for the year 2023?'
+
+                -> csvQuery('path/to/file.csv', 'total revenue for the year 2023')
+
+"""
+[tools.function.parameters.properties.query]
+type = "string"
+description = """
+
+    query: str
+
+        When calling this function, you should pass a string containing the query you want to perform on the .csv file.
+
+            Example:
+
+                User: 'What is the total revenue for the year 2023?'
+
+                -> csvQuery(path, 'total revenue for the year 2023')
+
+"""
+
+
 [[file_bundles]]
 bundle_name = "source-code"
 src_dir = "../src"
@@ -890,19 +970,19 @@ src_globs = ["**/*.py"]
 dst_ext = "py"
 
 [[file_bundles]]
-bundle_name = "knowledge"
-src_dir = "files"
-src_globs = ["*.md"]
-dst_ext = "md"
-
-[[file_bundles]]
 bundle_name = "memory"
-src_dir = "../src"
+src_dir = "../agent"
 src_globs = ["**/*.json"]
 dst_ext = "json" 
 
 [[file_bundles]]
 bundle_name = "images"
-src_dir = "../src/files/img"
+src_dir = "../files"
 src_globs = ["*.png", "*.jpg", "*.jpeg"]
 dst_ext = "img"
+
+[[file_bundles]]
+bundle_name = "data"
+src_dir = "../files"
+src_globs = ["*.csv", "*.xlsx"]
+dst_ext = "data"

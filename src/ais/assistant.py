@@ -15,6 +15,7 @@ from src.utils.cli import red_text, green_text, yellow_text
 
 from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
+from src.ais.functions.office import csvQuery
 
 
 async def create(client, config):
@@ -318,6 +319,18 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                         "output": outputs
                     }
                 )
+            
+            elif func_name == "csvQuery":
+                outputs = csvQuery(
+                    path = args.get("path", None),
+                    query = args.get("query", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
                 
             else:
                 raise ValueError(f"Function '{func_name}' not found")
@@ -407,13 +420,19 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
             file=file,
             purpose="assistants",
         )
+    try:
+        assistant_files.create(
+            assistant_id=asst_id,
+            file_id=uploaded_file.id,
+        )
 
-    assistant_files.create(
-        assistant_id=asst_id,
-        file_id=uploaded_file.id,
-    )
-
-    green_text(f"File '{filename}' uploaded")
-    # print(f"File '{filename}' uploaded")
-    return uploaded_file.id, True
+        green_text(f"File '{filename}' uploaded")
+        # print(f"File '{filename}' uploaded")
+        return uploaded_file.id, True
+    
+    except Exception as e:
+        # print(f"Failed to upload file '{filename}': {e}")
+        red_text(f"\nFailed to upload file '{filename}': {e}\n")
+        yellow_text(f"This can be a bug with the OpenAI API. Please check the storage at https://platform.openai.com/storage or try again")
+        return None, False
 

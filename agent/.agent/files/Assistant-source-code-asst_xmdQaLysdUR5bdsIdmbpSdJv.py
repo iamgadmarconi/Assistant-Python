@@ -8,7 +8,7 @@ from aiofiles import open as aio_open
 from pathlib import Path
 from openai import OpenAI
 
-from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json
+from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json, find
 from src.utils.cli import green_text, red_text, yellow_text
 from src.ais.assistant import load_or_create_assistant, upload_instruction, upload_file_by_name, get_thread, create_thread, run_thread_message
 
@@ -62,25 +62,40 @@ class Assistant:
             os.remove(file)
 
         for bundle in self.config["file_bundles"]:
+            # print(f"\n debug -- bundle: {bundle}\n")
             src_dir = Path(self.dir).joinpath(bundle['src_dir'])
-
+            # print(f"\n debug -- src_dir: {src_dir}\n")
             if src_dir.is_dir():
                 src_globs = bundle['src_globs']
 
                 files = list_files(src_dir, src_globs, None)
 
+                # print(f"\n debug -- files: {files}\n")
+
                 if files:
-                    bundle_file_name = f"{self.name}-{bundle['bundle_name']}-{self.asst_id}.{bundle['dst_ext']}"
-                    bundle_file = self.data_files_dir().joinpath(bundle_file_name)
+                    
 
-                    force_reupload = recreate or not bundle_file.exists()
+                    if bundle['bundle_name'] == "source-code":
+                        bundle_file_name = f"{self.name}-{bundle['bundle_name']}-{self.asst_id}.{bundle['dst_ext']}"
+                        bundle_file = self.data_files_dir().joinpath(bundle_file_name)
+                        force_reupload = recreate or not bundle_file.exists()
 
-                    # Assuming bundle_to_file bundles files into the specified bundle_file
-                    bundle_to_file(files, bundle_file)
+                        # Assuming bundle_to_file bundles files into the specified bundle_file
+                        bundle_to_file(files, bundle_file)
+                        # print(f"\n debug -- bundle_file: {type(bundle_file)}\n")
+                        _, uploaded = await upload_file_by_name(self.oac, self.asst_id, bundle_file, force_reupload)
 
-                    _, uploaded = await upload_file_by_name(self.oac, self.asst_id, bundle_file, force_reupload)
-                    if uploaded:
-                        num_uploaded += 1
+                        if uploaded:
+                            num_uploaded += 1
+                    else:  
+                        for file in files:
+                            # print(f"\n debug -- type: {type(file)}\n")
+                            # print(f"\n debug -- file: {file}\n")
+                            # print(f"\n debug -- path str: {str(file.resolve())}\n")
+                            if not str(file.name) == "conv.json":
+                                _, uploaded = await upload_file_by_name(self.oac, self.asst_id, file.resolve(), False)
+                                if uploaded:
+                                    num_uploaded += 1
 
         return num_uploaded
     
@@ -146,6 +161,7 @@ from src.utils.cli import red_text, green_text, yellow_text
 
 from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
+from src.ais.functions.office import csvQuery
 
 
 async def create(client, config):
@@ -449,6 +465,18 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                         "output": outputs
                     }
                 )
+            
+            elif func_name == "csvQuery":
+                outputs = csvQuery(
+                    path = args.get("path", None),
+                    query = args.get("query", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
                 
             else:
                 raise ValueError(f"Function '{func_name}' not found")
@@ -538,15 +566,21 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
             file=file,
             purpose="assistants",
         )
+    try:
+        assistant_files.create(
+            assistant_id=asst_id,
+            file_id=uploaded_file.id,
+        )
 
-    assistant_files.create(
-        assistant_id=asst_id,
-        file_id=uploaded_file.id,
-    )
-
-    green_text(f"File '{filename}' uploaded")
-    # print(f"File '{filename}' uploaded")
-    return uploaded_file.id, True
+        green_text(f"File '{filename}' uploaded")
+        # print(f"File '{filename}' uploaded")
+        return uploaded_file.id, True
+    
+    except Exception as e:
+        # print(f"Failed to upload file '{filename}': {e}")
+        red_text(f"\nFailed to upload file '{filename}': {e}\n")
+        yellow_text(f"This can be a bug with the OpenAI API. Please check the storage at https://platform.openai.com/storage or try again")
+        return None, False
 
 
 
@@ -630,7 +664,7 @@ def get_text_content(client, msg):
 
     if isinstance(msg_content.text.value, str):
         txt = msg_content.text.value
-        print(f"\n\ndebug --Text content: {txt}\n\n")
+        # print(f"\n\ndebug --Text content: {txt}\n\n")
         pattern = r'\[bytes](.*?)\[/bytes]'
         # Find all occurrences of the pattern
         decoded_bytes_list = []
@@ -647,7 +681,7 @@ def get_text_content(client, msg):
 
         # Reassemble the textual content without the encoded bytes
         textual_content = "".join(text_parts)
-        print(f"\n\nDecoded bytes: {decoded_bytes_list}\n\n")
+        # print(f"\n\nDecoded bytes: {decoded_bytes_list}\n\n")
         for resp in decoded_bytes_list:
             image_data = BytesIO(resp)
             img = Image.open(image_data)
@@ -1006,6 +1040,48 @@ def getWeather(msg: Optional[str]):
         # API call failed this usually happens if the API key is invalid or not provided
         return f"Failed to retrieve weather data: {response.status_code}"
 
+
+
+ # ==== file path: agent\..\src\ais\functions\office.py ==== 
+
+from langchain_experimental.agents import create_pandas_dataframe_agent
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_openai import OpenAI
+import pandas as pd
+
+from src.utils.files import find
+
+
+MEMORY = {
+    "chat_history": [],
+}
+
+def csvQuery(path: str, query: str):
+    print(f"\ndebug -- called csvQuery\n\n")
+    print(f"\ndebug --MEMORY: {MEMORY}\n\n")
+    print(f"\ndebug --query: {query}\n\n")
+    print(f"\ndebug --path: {path}\n\n")
+
+    df = pd.read_csv(find(path))
+    print(f"debug --df: {df.head()}")
+    llm = OpenAI(model="gpt-4-turbo")
+
+    agent = create_pandas_dataframe_agent(llm, df, agent_type="openai-tools", verbose=True)
+    result = agent.invoke(
+        {
+            "input": query,
+            "chat_history": MEMORY["chat_history"],
+        }
+    )
+
+    MEMORY["chat_history"].extend([
+        HumanMessage(content=query),
+        AIMessage(content=result["output"]),
+    ])
+
+    print(f"\ndebug --result: {result['output']}\n\n")
+
+    return result["output"]
 
 
  # ==== file path: agent\..\src\gui\app.py ==== 
@@ -1406,7 +1482,7 @@ def db_to_json():
     with open(r"agent\.agent\persistance\memory.json", "w") as f:
         json.dump(data, f, indent=4)
 
-def find(name, path):
+def find(name, path=os.path.dirname(os.path.abspath(__file__))):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)

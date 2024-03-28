@@ -5,7 +5,7 @@ from aiofiles import open as aio_open
 from pathlib import Path
 from openai import OpenAI
 
-from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json
+from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json, find
 from src.utils.cli import green_text, red_text, yellow_text
 from src.ais.assistant import load_or_create_assistant, upload_instruction, upload_file_by_name, get_thread, create_thread, run_thread_message
 
@@ -59,25 +59,40 @@ class Assistant:
             os.remove(file)
 
         for bundle in self.config["file_bundles"]:
+            # print(f"\n debug -- bundle: {bundle}\n")
             src_dir = Path(self.dir).joinpath(bundle['src_dir'])
-
+            # print(f"\n debug -- src_dir: {src_dir}\n")
             if src_dir.is_dir():
                 src_globs = bundle['src_globs']
 
                 files = list_files(src_dir, src_globs, None)
 
+                # print(f"\n debug -- files: {files}\n")
+
                 if files:
-                    bundle_file_name = f"{self.name}-{bundle['bundle_name']}-{self.asst_id}.{bundle['dst_ext']}"
-                    bundle_file = self.data_files_dir().joinpath(bundle_file_name)
+                    
 
-                    force_reupload = recreate or not bundle_file.exists()
+                    if bundle['bundle_name'] == "source-code":
+                        bundle_file_name = f"{self.name}-{bundle['bundle_name']}-{self.asst_id}.{bundle['dst_ext']}"
+                        bundle_file = self.data_files_dir().joinpath(bundle_file_name)
+                        force_reupload = recreate or not bundle_file.exists()
 
-                    # Assuming bundle_to_file bundles files into the specified bundle_file
-                    bundle_to_file(files, bundle_file)
+                        # Assuming bundle_to_file bundles files into the specified bundle_file
+                        bundle_to_file(files, bundle_file)
+                        # print(f"\n debug -- bundle_file: {type(bundle_file)}\n")
+                        _, uploaded = await upload_file_by_name(self.oac, self.asst_id, bundle_file, force_reupload)
 
-                    _, uploaded = await upload_file_by_name(self.oac, self.asst_id, bundle_file, force_reupload)
-                    if uploaded:
-                        num_uploaded += 1
+                        if uploaded:
+                            num_uploaded += 1
+                    else:  
+                        for file in files:
+                            # print(f"\n debug -- type: {type(file)}\n")
+                            # print(f"\n debug -- file: {file}\n")
+                            # print(f"\n debug -- path str: {str(file.resolve())}\n")
+                            if not str(file.name) == "conv.json":
+                                _, uploaded = await upload_file_by_name(self.oac, self.asst_id, file.resolve(), False)
+                                if uploaded:
+                                    num_uploaded += 1
 
         return num_uploaded
     

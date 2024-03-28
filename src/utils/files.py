@@ -131,7 +131,7 @@ def db_to_json():
     with open(r"agent\.agent\persistance\memory.json", "w") as f:
         json.dump(data, f, indent=4)
 
-def find(name, path):
+def find(name, path=os.path.dirname(os.path.abspath(__file__))):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
