@@ -18,7 +18,7 @@ def getLocation():
     g = geocoder.ip('me').city
     geolocator = Nominatim(user_agent="User")
     location = geolocator.geocode(g)
-    return location
+    return location.address
 
 def getWeather(msg: Optional[str]):
     api_key = os.environ.get("OPENWEATHER_API_KEY")

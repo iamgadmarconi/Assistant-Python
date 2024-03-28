@@ -3,9 +3,8 @@ import backoff
 import json
 import os
 import re
-from PIL import Image
+import base64
 
-from io import BytesIO
 from openai import NotFoundError
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
@@ -322,6 +321,14 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                 
             else:
                 raise ValueError(f"Function '{func_name}' not found")
+            
+    # print(f"debug-- tool_outputs: {tool_outputs}\n\n")
+
+    for tool_output in tool_outputs:
+        if isinstance(tool_output['output'], bytes):
+            tool_output['output'] = "[bytes]" + base64.b64encode(tool_output['output']).decode("utf-8") + "[/bytes]"
+
+    # print(f"debug-- tool_outputs after encoding: {tool_outputs}\n\n")
 
     client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread_id,
@@ -343,19 +350,8 @@ async def get_thread_message(client, thread_id: str):
 
         if msg is None:
             raise ValueError("No message found in thread")
-        
-        msg_content = next(iter(msg.content), None)
 
-        if msg_content:
-            if hasattr(msg_content, "image_file"):
-                file_id = msg_content.image_file.file_id
-                resp = client.files.with_raw_response.retrieve_content(file_id)
-                if resp.status_code == 200:
-                    image_data = BytesIO(resp.content)
-                    img = Image.open(image_data)
-                    img.show()
-
-        txt = get_text_content(msg)
+        txt = get_text_content(client, msg)
 
         write_to_memory("Assistant", txt)
 
