@@ -10,12 +10,12 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
-from src.utils.files import find
+from src.utils.files import find, get_file_hashmap
 from src.utils.cli import red_text, green_text, yellow_text
 
 from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
-from src.ais.functions.office import csvQuery
+from src.ais.functions.office import findFile
 
 
 async def create(client, config):
@@ -110,16 +110,6 @@ async def delete(client, asst_id: str, wipe=False):
     # print(f"Assistant deleted")
     green_text("Assistant deleted")
 
-async def get_file_hashmap(client, asst_id: str):
-    assts = client.beta.assistants
-    assistant_files = assts.files.list(assistant_id=asst_id).data
-    asst_file_ids = {file.id for file in assistant_files}
-
-    org_files = client.files.list().data
-    file_id_by_name = {org_file.filename: org_file.id for org_file in org_files if org_file.id in asst_file_ids}
-    
-    return file_id_by_name
-
 async def create_thread(client):
     threads = client.beta.threads
     res = threads.create()
@@ -179,7 +169,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
                     pass  # The spinner will continue spinning
 
                 elif run.status in ['requires_input', 'RequiresInput', 'requires_action', 'RequiresAction']:
-                    await call_required_function(client, thread_id, run.id, run.required_action)
+                    await call_required_function(asst_id, client, thread_id, run.id, run.required_action)
 
                 else:
                     print() 
@@ -190,7 +180,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
 
                 await asyncio.sleep(0.5)
 
-async def call_required_function(client, thread_id: str, run_id: str, required_action):
+async def call_required_function(asst_id, client, thread_id: str, run_id: str, required_action):
     tool_outputs = []
 
     for action in required_action:
@@ -320,10 +310,23 @@ async def call_required_function(client, thread_id: str, run_id: str, required_a
                     }
                 )
             
-            elif func_name == "csvQuery":
-                outputs = csvQuery(
-                    path = args.get("path", None),
-                    query = args.get("query", None)
+            # elif func_name == "csvQuery":
+            #     outputs = csvQuery(
+            #         path = args.get("path", None),
+            #         query = args.get("query", None)
+            #     )
+            #     tool_outputs.append(
+            #         {
+            #             "tool_call_id": action[1].tool_calls[0].id,
+            #             "output": outputs
+            #         }
+            #     )
+                
+            elif func_name == "findFile":
+                outputs = findFile(
+                    client = client,
+                    asst_id = asst_id,
+                    filename = args.get("filename", None),
                 )
                 tool_outputs.append(
                     {

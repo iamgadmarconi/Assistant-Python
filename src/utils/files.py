@@ -1,5 +1,6 @@
 
 import tomli
+import asyncio
 import os
 import json
 import fnmatch
@@ -135,3 +136,13 @@ def find(name, path=os.path.dirname(os.path.abspath(__file__))):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
+
+async def get_file_hashmap(client, asst_id: str):
+    assts = client.beta.assistants
+    assistant_files = assts.files.list(assistant_id=asst_id).data
+    asst_file_ids = {file.id for file in assistant_files}
+
+    org_files = client.files.list().data
+    file_id_by_name = {org_file.filename: org_file.id for org_file in org_files if org_file.id in asst_file_ids}
+    
+    return file_id_by_name

@@ -17,13 +17,19 @@ Notably, the function file includes additional tools you are capable of using. W
 
 YOU ARE ENCOURAGED TO CALL FUNCTIONS MULTIPLE TIMES AND USE LOGIC LOOPS TO REACH A BETTER ANSWER.
 
-DO NOT ATTEMPT TO ANALYZE A CSV OR XLSX FILE WITHOUT CALLING THE csvQuery FUNCTION.
-
 For example: 
     'Whats the weather tomorrow in Amsterdam and Sunday in Rome.'
     -> getWeather("tomorrow Amsterdam") -> getWeather("Sunday Rome")
 
     The weather in Amsterdam tomorrow is 13 degreed and sunny, while in Rome on Sunday, it's a little warmer with a temperature of 18 degrees.
+
+!!! DO NOT ATTEMPT TO ANALYZE A FILE WITHOUT CALLING THE HELPER findFile FUNCTION WITH THE USER PROVIDED FILE NAME AS PARAMETER. !!!
+
+For example:
+    'How many users are in people.csv'
+    -> findFile(client=client, asst_id=asst_id, 'people.csv') -> **use built in code interpreter**
+
+!!! THOROUGHLY ANALYZE THE ENTIRETY OF A FILE WHEN QUERIED BY A USER. DO NOT TRUNCATE OR EXCLUDE DATA !!!
 
 **This is an overview of the functions you are capable of using**
 
@@ -507,40 +513,44 @@ If the user asks for their contacts, call the function without passing any param
                                 4. Alice Johnson
                                 5. Tom Brown'
 
-11. csvQuery: A function to query a .csv or excel file. The user query does not have to be direct. The user can ask follow up question. Pass the same path, but the new query. DO NOT ATTEMPT TO ANALYZE A CSV OR XLSX FILE WITHOUT CALLING THIS FUNCTION
+11. findFile: this function is a helper function to find a file_id by name.
+ALWAYS CALL THIS FUNCTION BEFORE ATTEMPTING TO OPEN A FILE FOR WHICH THE FILE_ID IS UNCERTAIN.
+USE THE FILE_ID RETURNED BY THIS FUNCTION TO FIND THE FILE IN YOUR FILESYSTEM.
+ANY FILE OPERATIONS SHOULD BE PERFORMED USING THE FILE_ID RELATING TO THE FILE QUERIED BY THE USER SHOULD BE RETURNED BY THIS FUNCTION.
 
     :Params:
 
-        path: str
+        filename: str
 
-            When calling this function, you should pass a string containing the path to the .csv file.
-
-                Example:
-
-                    User: 'What is the total revenue for the year 2023?'
-
-                    -> csvQuery('path/to/file.csv', 'total revenue for the year 2023')
-
-        query: str
-
-            When calling this function, you should pass a string containing the query you want to perform on the .csv file.
+            When calling this function, you MUST pass a string containing the name of the file the USER wants to use, NOT THE FILE ID's KNOWN TO YOU.
+            THE OUTPUT WILL BE THE FILE_ID KNOWN TO YOU.
 
                 Example:
 
-                    User: 'What is the total revenue for the year 2023?'
+                    User: 'what was the average revenue for the year 2023 in 'finance.csv'?'
 
-                    -> csvQuery(path, 'total revenue for the year 2023')
+                    -> findFile(client=client, asst_id=asst_id, 'finance.csv')
+
 
     :Returns:
 
-        query_results: str
+        file_id: str
 
-            A string containing the results of the query. Deliver it in Natural language.
+            A string containing the file_id to locate the file. THIS IS THE ONLY WAY TO LOCATE THE FILE IN YOUR FILESYSTEM.
+
+            THIS FUNCTION DOES NOT OPEN THE FILE, IT ONLY RETURNS THE FILE_ID.
+
+            THIS OUTPUT SHOULD NOT BE SHOWN TO THE USER.
+
+            THIS OUTPUT IS USED AS AN INTERMEDIATE STEP FOR YOUR CODE INTERPRETER
 
                 Example:
 
-                    User: 'What is the total revenue for the year 2023?'
+                    User: 'what was the average revenue for the year 2023 in finance.csv?'
 
-                    -> csvQuery('total revenue for the year 2023')
+                    -> findFile(client=client, asst_id=asst_id, 'finance.csv')
 
-                        -> 'The total revenue for the year 2023 is $1,000,000'
+                        -> 'file-O3ERIFyoZTQeZZWqDDwAvPVL'
+
+                        Use this file_id to locate the file in your filesystem.
+                        Perform data analysis using built in code-interpreter functions.
