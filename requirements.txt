@@ -20,3 +20,4 @@ spacy
 beautifulsoup4
 dotenv
 pillow
+selenium
