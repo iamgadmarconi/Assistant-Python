@@ -3,7 +3,7 @@ import asyncio
 from typing import Union
 
 from src.agent.agent import Assistant
-from src.utils.cli import asst_msg
+from src.utils.cli import asst_msg, help_menu, welcome_message
 
 
 DEFAULT_DIR = "agent"
@@ -16,6 +16,8 @@ class Cmd:
     RefreshInst = "RefreshInst"
     RefreshFiles = "RefreshFiles"
     Chat = "Chat"
+    Help = "Help"
+    Clear = "Clear"
 
     def __init__(self) -> None:
         pass
@@ -26,14 +28,25 @@ class Cmd:
 
         if input_str == "/q":
             return cls.Quit
+        
         elif input_str in ["/r", "/ra"]:
             return cls.RefreshAll
+        
         elif input_str == "/rc":
             return cls.RefreshConv
+        
         elif input_str == "/ri":
             return cls.RefreshInst
+        
         elif input_str == "/rf":
             return cls.RefreshFiles
+        
+        elif input_str == "/h":
+            return cls.Help
+        
+        elif input_str.startswith("/c"):
+            return "Clear"
+        
         else:
             return f"{cls.Chat}: {input_str}"
 
@@ -41,6 +54,8 @@ async def cli():
     assistant = Assistant(DEFAULT_DIR)
     asst = await assistant.init_from_dir(False)
     conv = await assistant.load_or_create_conv(False)
+
+    welcome_message()
 
     while True:
         print()
@@ -71,4 +86,11 @@ async def cli():
         elif cmd == Cmd.RefreshFiles:
             await asst.upload_files(True)
             asst.load_or_create_conv(True)
+
+        elif cmd == Cmd.Help:
+            help_menu()
+
+        elif cmd == Cmd.Clear:
+            print("\033[H\033[J")
+            welcome_message()
 

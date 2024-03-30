@@ -1001,7 +1001,9 @@ def getWeather(msg: Optional[str]):
     location = get_context(msg, ["GPE"])
 
     if location == "":
-        location = getLocation()
+        g = geocoder.ip('me').city
+        geolocator = Nominatim(user_agent="User")
+        location = geolocator.geocode(g)
         lat, lon = location.latitude, location.longitude
 
     else:
@@ -1047,8 +1049,12 @@ def getWeather(msg: Optional[str]):
 
  # ==== file path: agent\..\src\ais\functions\office.py ==== 
 
+import csv
 
-from src.utils.files import get_file_hashmap
+import pandas as pd
+
+from src.utils.files import get_file_hashmap, find
+
 
 def findFile(client, asst_id, filename: str):
 
@@ -1057,6 +1063,101 @@ def findFile(client, asst_id, filename: str):
     file_id = file_id_by_name.get(filename, "File not found")
 
     return file_id
+
+def csvWriter(filename:str, data: list):
+    # path = find(filename)
+    # with open(path, 'r', encoding='utf-8') as file:
+    #     writer = csv.writer(file)
+    # TODO: Implement csvWriter
+    pass
+
+
+
+ # ==== file path: agent\..\src\ais\functions\web.py ==== 
+
+import requests
+import time
+
+from bs4 import BeautifulSoup
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+# from webdriver_manager.chrome import ChromeDriverManager
+
+
+def web_parser(url: str):
+    response = requests.get(url)
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Parse the HTML content
+        soup = BeautifulSoup(response.text, 'lxml')
+        
+        # Extract and print the text in a readable form
+        # This removes HTML tags and leaves plain text
+        return soup
+    else:
+        return f"Failed to retrieve the webpage. Status code: {response.status_code}"
+    
+def webText(url: str):
+    text = web_parser(url).get_text()
+
+    return text
+
+def webMenus(url: str):
+    soup = web_parser(url)
+    menus = soup.find_all(['a', 'nav', 'ul', 'li'], class_=['menu', 'nav', 'nav-menu', 'nav-menu-item'])
+    menu_list = []
+    for menu in menus:
+        menu_list.append(menu.text)
+    return "\n".join(menu_list)
+
+def webLinks(url: str):
+    soup = web_parser(url)
+    links = soup.find_all('a')
+    link_list = []
+    for link in links:
+        link_list.append(link.get('href'))
+    return "\n".join(link_list)
+
+def webImages(url: str):
+    soup = web_parser(url)
+    images = soup.find_all('img')
+    image_list = []
+    for image in images:
+        image_list.append(image.get('src'))
+    return "\n".join(image_list)
+
+def webTables(url: str):
+    soup = web_parser(url)
+    tables = soup.find_all('table')
+    table_list = []
+    for table in tables:
+        table_list.append(table.text)
+    return "\n".join(table_list)
+
+def webForms(url: str):
+    soup = web_parser(url)
+    forms = soup.find_all('form')
+    form_list = []
+    for form in forms:
+        form_list.append(form.text)
+    return "\n".join(form_list)
+
+# def menuInteract(url: str, menu: str):
+#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+
+#     driver.get(url)
+#     # Use XPath to find an element by text, this is one example, adjust based on the webpage structure
+#     menu_item = driver.find_element(By.XPATH, f"//*[contains(text(), '{menu}')]")
+#     menu_item_id = menu_item.get_attribute('id')
+#     print(f"The ID of the menu item '{menu}' is: {menu_item_id}")
+#     menu_item.click()
+#     driver.quit()
+#     time.sleep(5)  # Adjust sleep time as necessary
+
+#     new_page_url = driver.current_url
+#     return new_page_url
 
 
  # ==== file path: agent\..\src\gui\app.py ==== 
@@ -1192,7 +1293,7 @@ import asyncio
 from typing import Union
 
 from src.agent.agent import Assistant
-from src.utils.cli import asst_msg
+from src.utils.cli import asst_msg, help_menu, welcome_message
 
 
 DEFAULT_DIR = "agent"
@@ -1205,6 +1306,8 @@ class Cmd:
     RefreshInst = "RefreshInst"
     RefreshFiles = "RefreshFiles"
     Chat = "Chat"
+    Help = "Help"
+    Clear = "Clear"
 
     def __init__(self) -> None:
         pass
@@ -1223,6 +1326,10 @@ class Cmd:
             return cls.RefreshInst
         elif input_str == "/rf":
             return cls.RefreshFiles
+        elif input_str == "/h":
+            return cls.Help
+        elif input_str.startswith("/c"):
+            return "Clear"
         else:
             return f"{cls.Chat}: {input_str}"
 
@@ -1230,6 +1337,8 @@ async def cli():
     assistant = Assistant(DEFAULT_DIR)
     asst = await assistant.init_from_dir(False)
     conv = await assistant.load_or_create_conv(False)
+
+    welcome_message()
 
     while True:
         print()
@@ -1261,20 +1370,33 @@ async def cli():
             await asst.upload_files(True)
             asst.load_or_create_conv(True)
 
+        elif cmd == Cmd.Help:
+            help_menu()
+
+        elif cmd == Cmd.Clear:
+            print("\033[H\033[J")
+            welcome_message()
+
 
 
 
  # ==== file path: agent\..\src\utils\cli.py ==== 
 
+import shutil
+
 from rich.console import Console
 from rich.text import Text
 from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.columns import Columns
 
 
 def asst_msg(content):
+    term_width = shutil.get_terminal_size().columns
     console = Console()
     markdown = Markdown(content)
-    console.print(markdown, style="cyan")
+    panel = Panel(markdown, title="Buranya", expand=False)
+    console.print(panel, style="cyan")
 
 def red_text(content):
     console = Console()
@@ -1294,7 +1416,136 @@ def yellow_text(content):
     text.stylize("yellow")
     console.print(text)
 
+def help_menu():
+    console = Console()
 
+    term_width = shutil.get_terminal_size().columns
+
+    ascii_art = """
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡤⣶⠇⢳⠄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡴⠋⣡⣊⡴⡄⠈⠉⢧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠔⣾⠃⠀⠀⠀⠀⠀⠀⠀⢀⠞⠉⢀⣼⠟⢹⢃⣇⣀⣀⡈⢳⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣰⠏⣼⠇⠀⠀⠀⣀⠤⠖⠚⠛⠛⠒⠒⠫⠼⢤⣼⣔⠋⡿⢹⠁⠀⣷⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢠⣄⠀⠰⡏⠀⣿⣆⣀⣴⠟⠁⠀⠀⢀⠤⠒⠒⣀⣈⣉⣩⠤⠴⠟⢒⠷⠒⠉⠉⠉⠉⠛⢦⡀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢺⠻⣦⡀⢷⡀⢣⣏⢁⢇⣠⠔⠒⠈⠉⠉⠉⠉⠉⠘⠢⢄⡫⣓⡶⠁⠀⠀⠀⠀⠀⠀⠀⠀⠙⣦⡀⠀⠀⠀
+⠀⠀⠀⣀⣼⣆⠈⠛⠿⠿⠶⢽⡾⠉⠁⡀⠀⠀⠀⠠⠀⠂⢤⡤⠤⠤⢬⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⡌⣲⡄⠀
+⢰⡾⠟⢛⣲⠶⠿⡶⡶⢲⠞⢡⠀⠀⠀⠈⠑⢤⣀⡀⠀⠀⠀⠹⣯⠉⢁⡆⠀⠀⠀⠀⠀⢀⣀⣀⣀⠀⠀⠀⢸⡇⠀⠀
+⢸⡷⠀⠈⠒⢤⠜⡜⠀⡏⠀⡆⠀⠀⠰⡀⠀⠀⠙⡯⣵⠖⢲⣍⠉⠉⠛⢷⠀⠀⠀⡴⠊⠁⠀⠀⠀⠉⠲⡀⢈⠑⢤⡀
+⠈⠳⡀⠀⢠⣃⢴⠀⢀⠀⢀⡇⡆⠀⠀⢏⡲⢄⣀⠝⠁⠀⢸⣿⣷⡀⠀⠘⣧⠀⠸⠀⠀⠀⠀⠀⠀⠀⠀⢸⣸⠖⠉⠁
+⠀⠀⠳⡀⠉⠉⡛⠀⢸⠀⢸⡿⡝⣄⠀⢸⡏⠓⡏⠀⠀⠀⠀⢻⣿⣷⠀⢰⡓⠷⣔⠀⠀⠀⠀⠀⠀⠀⠀⢸⡟⠀⠀⠀
+⠀⠀⠀⠑⢄⣀⡇⢰⣿⢇⠸⡇⣨⣎⠒⠚⠣⢄⣇⠀⠀⠀⠀⠀⠙⢻⡴⠁⠘⡖⡟⠑⠦⣀⡀⠀⢀⣀⠴⠋⣧⠀⠀⠀
+⠀⠀⠀⠀⠀⠉⣿⡾⢻⣄⡱⠋⠀⢿⣷⡄⠀⠀⢹⠢⠤⠀⠤⠄⠞⠁⠀⠀⡘⠀⢣⡀⡠⡺⠉⢏⠹⡖⠒⠒⠛⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⡿⣿⢸⠈⡇⠀⠀⠈⢿⣿⣆⠀⢸⠀⣀⣀⣀⡴⢥⠀⠀⢰⠁⠀⠀⢏⢰⠃⠀⢘⣤⡇⠀⠀⠀⠀⠀⠀
+⠀⠀⡀⠀⠤⢚⣿⡽⣻⠀⢣⠀⠀⠀⠀⠙⢛⠴⢁⡼⢡⠞⠁⠀⠠⡇⢠⠃⠀⠀⠀⠈⣇⢀⡠⣿⠃⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠈⠁⠀⠉⢹⡇⣏⠀⠀⠉⣶⠒⠒⠊⠁⠉⠁⠳⣏⠀⠀⣠⠞⡠⣿⠀⠀⠀⠀⠀⠀⢀⡾⠁⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣸⣷⠽⣆⡀⠀⠇⣳⣄⡀⠀⠀⠀⠀⠈⢉⣩⠴⢊⠁⡏⠀⠀⠀⠀⠀⣠⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢠⡞⠉⠀⠀⠀⠈⠑⢢⡏⢦⠈⠁⡖⠲⣖⡲⠛⠁⠀⠈⡆⠀⠀⠀⠀⣠⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣰⠏⠀⠀⠀⠀⠀⢀⡀⠀⠇⠀⠳⠊⢀⡠⠊⠀⠀⠀⠀⠀⠘⣄⢀⣠⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⡏⠀⠀⠀⠀⡠⠊⠁⠈⠱⡇⠀⢀⣴⠟⠀⠀⠀⠀⠀⠀⠀⢰⣈⡿⠘⠢⢄⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣇⠀⠀⠀⡜⠀⠀⠀⠀⣼⠥⣤⣫⠊⠀⠀⠀⠀⠀⠀⠀⠀⢸⢠⣇⣀⠀⠀⠀⢀⠬⠷⠤⣀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠙⢦⣄⠀⢣⡀⢀⡠⠊⢀⠇⢨⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⢨⡾⠁⠀⠉⠀⠲⣇⠤⢄⣀⠀⠙⢦⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠈⢉⣙⣛⣯⣣⣄⡎⢠⣃⡠⠤⠐⣲⣶⣦⣄⡀⠀⠀⢸⣧⡀⢀⡀⠀⠀⠓⠤⣤⣈⠱⡄⠀⢻⡄⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣿⣿⣶⡀⠀⠀⠙⠻⠋⠀⣠⠞⠋⠉⠀⠀⠈⠳⡀⡜⠁⢱⠀⠈⠓⢄⡀⠀⠀⠉⢲⡇⠀⠀⣷⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⡄⠀⠀⠀⢀⣞⣁⠀⠀⠀⠀⠀⠀⠀⣱⡇⣠⠴⢏⠲⣄⠈⠑⢤⡀⢀⡼⠃⠀⢠⡿⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⡀⠀⠀⠸⣿⣿⣿⣦⡀⠀⠀⠀⢠⣿⠿⢷⣄⡀⠙⢮⡳⢄⡀⠈⠁⠀⣠⢔⡿⠁⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣷⣤⣀⠀⣽⣿⣿⣿⣧⠀⠀⠀⠚⠁⠀⠀⠈⢻⡄⠀⠉⠢⢭⣩⣉⡩⠖⠋⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠙⢿⣿⣿⣿⣿⣿⣿⣿⠋⠉⠹⣿⣧⠀⠀⠀⠀⠀⠀⠀⣠⡷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⣻⣿⡃⠀⠀⠀⣿⣿⣿⣶⣦⣤⣶⣶⣿⣏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⣤⠴⠦⠤⣄⡀⢀⡾⠁⠀⠉⠳⣄⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢠⣞⣁⣀⠀⠀⠈⢷⠟⠋⠓⢦⡀⠀⢘⣿⣿⣿⡿⠿⠛⢿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢸⣿⣿⣿⣿⣶⡀⠘⣦⣄⠀⠀⢱⡀⢠⡏⠉⠀⠀⠀⠀⠘⣿⣿⣿⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠸⣿⣿⣿⣿⣿⣧⠀⠈⢻⡃⠀⢸⣷⠋⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠹⣿⣿⣿⣿⣿⠀⠀⠀⠑⣤⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢨⣿⣿⣿⣿⡆⠀⣠⣾⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠈⢿⣿⣿⣿⡹⣄⣿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠙⢿⣿⡧⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    
+    """
+    help_message_1 = Text("Here are some commands you can use:\n", style="bold")
+    help_message_2 = Text("\n    - '\h' : Display this help menu", style="")
+    help_message_3 = Text("\n    - '\q' : Quit the program", style="")
+    help_message_4 = Text("\n    - '\r' : Recreate the assistant", style="")
+    help_message_5 = Text("\n    - '\ra' : Refresh all data", style="")
+    help_message_6 = Text("\n    - '\rc' : Refresh the conversation", style="")
+    help_message_7 = Text("\n    - '\ri' : Refresh the instructions", style="")
+    help_message_8 = Text("\n    - '\rf' : Refresh the files", style="")
+    help_message_9 = Text("\n    - '\c' : Clear the screen", style="")
+
+    help_message = help_message_1 + help_message_2 + help_message_3 + help_message_4 + help_message_5 + \
+        help_message_6 + help_message_7 + help_message_8 + help_message_9
+
+    art_panel = Panel(ascii_art, title="Buranya", expand=False)
+    message_panel = Panel(help_message, title="Message", expand=False, border_style="green", width=term_width // 2)
+
+    if term_width < 80:
+        console.print(Columns([art_panel, message_panel], expand=True, equal=True))
+
+    else:
+        console.print(Columns([art_panel, message_panel], expand=True))
+
+def welcome_message():
+    console = Console()
+
+    term_width = shutil.get_terminal_size().columns
+
+    ascii_art = """
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀   ⢀⡔⣻⠁⠀⢀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⣾⠳⢶⣦⠤⣀⠀⠀⠀⠀⠀⠀⠀⣾⢀⡇⡴⠋⣀⠴⣊⣩⣤⠶⠞⢹⣄⠀⠀⠀
+⠀⠀⠀⠀⢸⠀⠀⢠⠈⠙⠢⣙⠲⢤⠤⠤⠀⠒⠳⡄⣿⢀⠾⠓⢋⠅⠛⠉⠉⠝⠀⠼⠀⠀⠀
+⠀⠀⠀⠀⢸⠀⢰⡀⠁⠀⠀⠈⠑⠦⡀⠀⠀⠀⠀⠈⠺⢿⣂⠀⠉⠐⠲⡤⣄⢉⠝⢸⠀⠀⠀
+⠀⠀⠀⠀⢸⠀⢀⡹⠆⠀⠀⠀⠀⡠⠃⠀⠀⠀⠀⠀⠀⠀⠉⠙⠲⣄⠀⠀⠙⣷⡄⢸⠀⠀⠀
+⠀⠀⠀⠀⢸⡀⠙⠂⢠⠀⠀⡠⠊⠀⠀⠀⠀⢠⠀⠀⠀⠀⠘⠄⠀⠀⠑⢦⣔⠀⢡⡸⠀⠀⠀
+⠀⠀⠀⠀⢀⣧⠀⢀⡧⣴⠯⡀⠀⠀⠀⠀⠀⡎⠀⠀⠀⠀⠀⢸⡠⠔⠈⠁⠙⡗⡤⣷⡀⠀⠀
+⠀⠀⠀⠀⡜⠈⠚⠁⣬⠓⠒⢼⠅⠀⠀⠀⣠⡇⠀⠀⠀⠀⠀⠀⣧⠀⠀⠀⡀⢹⠀⠸⡄⠀⠀
+⠀⠀⠀⡸⠀⠀⠀⠘⢸⢀⠐⢃⠀⠀⠀⡰⠋⡇⠀⠀⠀⢠⠀⠀⡿⣆⠀⠀⣧⡈⡇⠆⢻⠀⠀
+⠀⠀⢰⠃⠀⠀⢀⡇⠼⠉⠀⢸⡤⠤⣶⡖⠒⠺⢄⡀⢀⠎⡆⣸⣥⠬⠧⢴⣿⠉⠁⠸⡀⣇⠀
+⠀⠀⠇⠀⠀⠀⢸⠀⠀⠀⣰⠋⠀⢸⣿⣿⠀⠀⠀⠙⢧⡴⢹⣿⣿⠀⠀⠀⠈⣆⠀⠀⢧⢹⡄
+⠀⣸⠀⢠⠀⠀⢸⡀⠀⠀⢻⡀⠀⢸⣿⣿⠀⠀⠀⠀⡼⣇⢸⣿⣿⠀⠀⠀⢀⠏⠀⠀⢸⠀⠇
+⠀⠓⠈⢃⠀⠀⠀⡇⠀⠀⠀⣗⠦⣀⣿⡇⠀⣀⠤⠊⠀⠈⠺⢿⣃⣀⠤⠔⢸⠀⠀⠀⣼⠑⢼ 
+⠀⠀⠀⢸⡀⣀⣾⣷⡀⠀⢸⣯⣦⡀⠀⠀⠀⢇⣀⣀⠐⠦⣀⠘⠀⠀⢀⣰⣿⣄⠀⠀⡟⠀⠀
+⠀⠀⠀⠀⠛⠁⣿⣿⣧⠀⣿⣿⣿⣿⣦⣀⠀⠀⠀⠀⠀⠀⠀⣀⣠⣴⣿⣿⡿⠈⠢⣼⡇⠀⠀
+⠀⠀⠀⠀⠀⠀⠈⠁⠈⠻⠈⢻⡿⠉⣿⠿⠛⡇⠒⠒⢲⠺⢿⣿⣿⠉⠻⡿⠁⠀⠀⠈⠁⠀⠀
+⢀⠤⠒⠦⡀⠀⠀⠀⠀⠀⠀⠀⢀⠞⠉⠆⠀⠀⠉⠉⠉⠀⠀⡝⣍⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⡎⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⡰⠋⠀⠀⢸⠀⠀⠀⠀⠀⠀⠀⢡⠈⢦⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⡇⠀⠀⠸⠁⠀⠀⠀⠀⢀⠜⠁⠀⠀⠀⡸⠀⠀⠀⠀⠀⠀⠀⠘⡄⠈⢳⡀⠀⠀⠀⠀⠀⠀⠀
+⡇⠀⠀⢠⠀⠀⠀⠀⠠⣯⣀⠀⠀⠀⡰⡇⠀⠀⠀⠀⠀⠀⠀⠀⢣⠀⢀⡦⠤⢄⡀⠀⠀⠀
+⢱⡀⠀⠈⠳⢤⣠⠖⠋⠛⠛⢷⣄⢠⣷⠁⠀⠀⠀⠀⠀⠀⠀⠀⠘⡾⢳⠃⠀⠀⠘⢇⠀⠀⠀
+⠀⠙⢦⡀⠀⢠⠁⠀⠀⠀⠀⠀⠙⣿⣏⣀⠀⠀⠀⠀⠀⠀⠀⣀⣴⣧⡃⠀⠀⠀⠀⣸⠀⠀⠀
+⠀⠀⠀⠈⠉⢺⣄⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣗⣤⣀⣠⡾⠃⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠣⢅⡤⣀⣀⣠⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠉⠉⠉⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠁⠀⠉⣿⣿⣿⣿⣿⡿⠻⣿⣿⣿⣿⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⠀⠀⠀⠀⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣿⣿⣟⠀⠀⢠⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿⣿⠀⠀⢸⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⡏⠀⠀⢸⣿⣿⣿⣿⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⣿⠀⠀⠀⢺⣿⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠈⠉⠻⣿⣿⣿⠟⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣿⠏ 
+
+    """
+
+    welcome_message_1 = Text("Hello! I'm Buranya, your personal assistant.\n", style="bold")
+    welcome_message_2 = Text("\nI can help you with your daily tasks.", style="")
+    welcome_message_3 = Text("\nYou can ask me to do things like:", style="")
+    welcome_message_4 = Text("\n    - Send an email", style="")
+    welcome_message_5 = Text("\n    - Check the weather", style="")
+    welcome_message_6 = Text("\n    - Set a reminder", style="")
+    welcome_message_7 = Text("\n    - Check your calendar", style="")
+    welcome_message_8 = Text("\n    - And more...", style="")
+    welcome_message_9 = Text("\n\nFor a list of commands, type '\h'")
+    welcome_message_10 = Text("\n\nHow can I help you today?", style="bold")
+
+    welcome_message = welcome_message_1 + welcome_message_2 + welcome_message_3 + welcome_message_4 + \
+        welcome_message_5 + welcome_message_6 + welcome_message_7 + welcome_message_8 + welcome_message_9 + welcome_message_10
+    art_panel = Panel(ascii_art, title="Buranya", expand=False)
+    message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green", width=term_width // 2)
+
+    if term_width < 80:
+        console.print(Columns([art_panel, message_panel], expand=True, equal=True))
+
+    else:
+        console.print(Columns([art_panel, message_panel], expand=True))
 
 
  # ==== file path: agent\..\src\utils\database.py ==== 

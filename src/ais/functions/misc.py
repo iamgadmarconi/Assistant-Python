@@ -27,7 +27,9 @@ def getWeather(msg: Optional[str]):
     location = get_context(msg, ["GPE"])
 
     if location == "":
-        location = getLocation()
+        g = geocoder.ip('me').city
+        geolocator = Nominatim(user_agent="User")
+        location = geolocator.geocode(g)
         lat, lon = location.latitude, location.longitude
 
     else:
