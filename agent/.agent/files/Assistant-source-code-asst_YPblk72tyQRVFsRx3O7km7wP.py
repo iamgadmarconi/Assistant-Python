@@ -162,6 +162,7 @@ from src.utils.cli import red_text, green_text, yellow_text
 from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
 from src.ais.functions.office import findFile
+from src.ais.functions.web import webText, webMenus, webLinks, webImages, webTables, webForms
 
 
 async def create(client, config):
@@ -473,6 +474,72 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
                     client = client,
                     asst_id = asst_id,
                     filename = args.get("filename", None),
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "webText":
+                outputs = webText(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "webMenus":
+                outputs = webMenus(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "webLinks":
+                outputs = webLinks(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "webImages":
+                outputs = webImages(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "webTables":
+                outputs = webTables(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "webForms":
+                outputs = webForms(
+                    url = args.get("url", None)
                 )
                 tool_outputs.append(
                     {
@@ -1075,32 +1142,13 @@ def csvWriter(filename:str, data: list):
 
  # ==== file path: agent\..\src\ais\functions\web.py ==== 
 
-import requests
-import time
+from src.utils.tools import web_parser
 
-from bs4 import BeautifulSoup
-
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-# from webdriver_manager.chrome import ChromeDriverManager
-
-
-def web_parser(url: str):
-    response = requests.get(url)
-    # Check if the request was successful
-    if response.status_code == 200:
-        # Parse the HTML content
-        soup = BeautifulSoup(response.text, 'lxml')
-        
-        # Extract and print the text in a readable form
-        # This removes HTML tags and leaves plain text
-        return soup
-    else:
-        return f"Failed to retrieve the webpage. Status code: {response.status_code}"
     
 def webText(url: str):
+    print(f"\n debug-- Called webText with url: {url}")
     text = web_parser(url).get_text()
+    print(f"\n debug-- webText returned: {text}")
 
     return text
 
@@ -1318,18 +1366,25 @@ class Cmd:
 
         if input_str == "/q":
             return cls.Quit
+        
         elif input_str in ["/r", "/ra"]:
             return cls.RefreshAll
+        
         elif input_str == "/rc":
             return cls.RefreshConv
+        
         elif input_str == "/ri":
             return cls.RefreshInst
+        
         elif input_str == "/rf":
             return cls.RefreshFiles
+        
         elif input_str == "/h":
             return cls.Help
+        
         elif input_str.startswith("/c"):
             return "Clear"
+        
         else:
             return f"{cls.Chat}: {input_str}"
 
@@ -1471,17 +1526,19 @@ def help_menu():
     help_message_7 = Text("\n    - '\ri' : Refresh the instructions", style="")
     help_message_8 = Text("\n    - '\rf' : Refresh the files", style="")
     help_message_9 = Text("\n    - '\c' : Clear the screen", style="")
+    help_message_10 = Text("\n\nHow can I help you today?", style="bold")
 
     help_message = help_message_1 + help_message_2 + help_message_3 + help_message_4 + help_message_5 + \
         help_message_6 + help_message_7 + help_message_8 + help_message_9
 
     art_panel = Panel(ascii_art, title="Buranya", expand=False)
-    message_panel = Panel(help_message, title="Message", expand=False, border_style="green", width=term_width // 2)
 
     if term_width < 80:
+        message_panel = Panel(help_message, title="Message", expand=False, border_style="green")
         console.print(Columns([art_panel, message_panel], expand=True, equal=True))
 
     else:
+        message_panel = Panel(help_message, title="Message", expand=False, border_style="green", width=term_width // 2)
         console.print(Columns([art_panel, message_panel], expand=True))
 
 def welcome_message():
@@ -1539,12 +1596,13 @@ def welcome_message():
     welcome_message = welcome_message_1 + welcome_message_2 + welcome_message_3 + welcome_message_4 + \
         welcome_message_5 + welcome_message_6 + welcome_message_7 + welcome_message_8 + welcome_message_9 + welcome_message_10
     art_panel = Panel(ascii_art, title="Buranya", expand=False)
-    message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green", width=term_width // 2)
 
     if term_width < 80:
+        message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green")
         console.print(Columns([art_panel, message_panel], expand=True, equal=True))
 
     else:
+        message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green", width=term_width // 2)
         console.print(Columns([art_panel, message_panel], expand=True))
 
 
@@ -1728,6 +1786,8 @@ async def get_file_hashmap(client, asst_id: str):
  # ==== file path: agent\..\src\utils\tools.py ==== 
 
 import spacy
+import requests
+
 from bs4 import BeautifulSoup
 
 
@@ -1768,6 +1828,19 @@ def html_to_text(html: str, ignore_script_and_style: bool = True):
     text = '\n'.join(chunk for chunk in chunks if chunk)
     
     return text
+
+def web_parser(url: str):
+    response = requests.get(url)
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Parse the HTML content
+        soup = BeautifulSoup(response.text, 'lxml')
+        
+        # Extract and print the text in a readable form
+        # This removes HTML tags and leaves plain text
+        return soup
+    else:
+        return f"Failed to retrieve the webpage. Status code: {response.status_code}"
 
 
  # ==== file path: agent\..\src\utils\__init__.py ==== 

@@ -93,12 +93,13 @@ def help_menu():
         help_message_6 + help_message_7 + help_message_8 + help_message_9
 
     art_panel = Panel(ascii_art, title="Buranya", expand=False)
-    message_panel = Panel(help_message, title="Message", expand=False, border_style="green", width=term_width // 2)
 
     if term_width < 80:
+        message_panel = Panel(help_message, title="Message", expand=False, border_style="green")
         console.print(Columns([art_panel, message_panel], expand=True, equal=True))
 
     else:
+        message_panel = Panel(help_message, title="Message", expand=False, border_style="green", width=term_width // 2)
         console.print(Columns([art_panel, message_panel], expand=True))
 
 def welcome_message():
@@ -156,10 +157,11 @@ def welcome_message():
     welcome_message = welcome_message_1 + welcome_message_2 + welcome_message_3 + welcome_message_4 + \
         welcome_message_5 + welcome_message_6 + welcome_message_7 + welcome_message_8 + welcome_message_9 + welcome_message_10
     art_panel = Panel(ascii_art, title="Buranya", expand=False)
-    message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green", width=term_width // 2)
 
     if term_width < 80:
+        message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green")
         console.print(Columns([art_panel, message_panel], expand=True, equal=True))
 
     else:
+        message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green", width=term_width // 2)
         console.print(Columns([art_panel, message_panel], expand=True))

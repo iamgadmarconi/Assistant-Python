@@ -1,4 +1,6 @@
 import spacy
+import requests
+
 from bs4 import BeautifulSoup
 
 
@@ -39,3 +41,16 @@ def html_to_text(html: str, ignore_script_and_style: bool = True):
     text = '\n'.join(chunk for chunk in chunks if chunk)
     
     return text
+
+def web_parser(url: str):
+    response = requests.get(url)
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Parse the HTML content
+        soup = BeautifulSoup(response.text, 'lxml')
+        
+        # Extract and print the text in a readable form
+        # This removes HTML tags and leaves plain text
+        return soup
+    else:
+        return f"Failed to retrieve the webpage. Status code: {response.status_code}"

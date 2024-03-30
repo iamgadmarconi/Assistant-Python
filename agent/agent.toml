@@ -1037,6 +1037,280 @@ description = """
 parameters.required = ["filename"]
 
 
+[[tools]]
+type = "function"
+[tools.function]
+name = "webText"
+description = """
+
+THIS TOOL GIVES YOU THE ABILITY TO ACCESS REAL TIME DATA FROM THE WEB. USE THIS FUNCTION TO GET TEXT FROM A WEBSITE. CALL THIS FUNCTION WHEN THE USER ASKS FOR INFORMATION FROM A WEBSITE, OR IF THE USER ASKS TO SUMMARIZE / EXPLAIN A WEBSITE.
+
+A function to get text from a website. Call this function when the user asks for information from a website, or if the user asks to summarize a website.
+
+THIS FUNCTION SHOULD ALWAYS BE CALLED BEFORE YOU RESPOND YOU ARE NOT CAPABLE OF ACCESSING REAL TIME DATA.
+
+ONLY RESPOND YOU ARE NOT CAPABLE OF ACCESSING REAL TIME DATA IF THIS FUNCTION RETURNS AN ERROR.
+
+    :Params:
+
+        url: str
+
+            When calling this function, you should pass a string containing the URL of the website.
+
+                Example:
+
+                    User: 'What is the latest news on CNN?'
+
+                    -> webText('https://www.cnn.com')
+
+    :Returns:
+
+        text: str
+
+            A string containing the text from the website. Deliver it in Natural language.
+
+                Example:
+
+                    User: 'What is the latest news on CNN?'
+
+                    -> webText('https://www.cnn.com')
+
+                        -> 'The latest news on CNN is...'
+
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.url]
+type = "string"
+description = """
+
+    url: str
+
+        When calling this function, you should pass a string containing the URL of the website.
+
+            Example:
+
+                User: 'What is the latest news on CNN?'
+
+                -> webText('https://www.cnn.com')
+
+"""
+parameters.required = ["url"]
+
+[[tools]]
+type = "function"
+[tools.function]
+name = "webImages"
+description = """
+
+A function to get an image from a website.
+
+    :Params:
+
+        url: str
+
+            When calling this function, you should pass a string containing the URL of the website.
+
+                Example:
+
+                    User: 'Show me the latest image on CNN'
+
+                    -> webImages('https://www.cnn.com')
+
+    :Returns:
+
+        image: str
+
+            A string containing the image from the website. Deliver it in Natural language.
+
+                Example:
+
+                    User: 'Show me the latest image on CNN'
+
+                    -> webImages('https://www.cnn.com')
+
+                        -> 'The latest image on CNN is...'
+
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.url]
+type = "string"
+description = """
+
+    url: str
+
+        When calling this function, you should pass a string containing the URL of the website.
+
+            Example:
+
+                User: 'Show me the latest image on CNN'
+
+                -> webImage('https://www.cnn.com')
+
+"""
+parameters.required = ["url"]
+
+[[tools]]
+type = "function"
+[tools.function]
+name = "webLinks"
+description = """
+
+A function to get links from a website.
+
+    :Params:
+
+        url: str
+
+            When calling this function, you should pass a string containing the URL of the website.
+
+                Example:
+
+                    User: 'What are the latest links on CNN?'
+
+                    -> webLinks('https://www.cnn.com')
+
+    :Returns:
+
+        links: list[str]
+
+            A list of strings containing the links from the website. Deliver it in Natural language.
+
+                Example:
+
+                    User: 'What are the latest links on CNN?'
+
+                    -> webLinks('https://www.cnn.com')
+
+                        -> 'The latest links on CNN are...'
+
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.url]
+type = "string"
+description = """
+
+    url: str
+
+        When calling this function, you should pass a string containing the URL of the website.
+
+            Example:
+
+                User: 'What are the latest links on CNN?'
+
+                -> webLinks('https://www.cnn.com')
+
+"""
+parameters.required = ["url"]
+
+[[tools]]
+type = "function"
+[tools.function]
+name = "webMenus"
+description = """
+
+A function to get menus from a website.
+
+    :Params:
+
+        url: str
+
+            When calling this function, you should pass a string containing the URL of the website.
+
+                Example:
+
+                    User: 'Describe the CNN website?'
+
+                    -> webMenus('https://www.cnn.com')
+
+    :Returns:
+
+        menus: list[str]
+
+            A list of strings containing the menus from the website. Deliver it in Natural language.
+
+                Example:
+
+                    User: 'Describe the CNN website'
+
+                    -> webMenus('https://www.cnn.com')
+
+                        -> 'The website contains various news articles, a section for videos, and a section for opinion pieces.'
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.url]
+type = "string"
+description = """
+
+    url: str
+
+        When calling this function, you should pass a string containing the URL of the website.
+
+            Example:
+
+                User: 'Describe the CNN website'
+
+                -> webMenus('https://www.cnn.com')
+
+"""
+parameters.required = ["url"]
+
+[[tools]]
+type = "function"
+[tools.function]
+name = "webForms"
+description = """
+
+A function to get forms from a website.
+
+    :Params:
+
+        url: str
+
+            When calling this function, you should pass a string containing the URL of the website.
+
+                Example:
+
+                    User: 'What forms are available on the CNN website?'
+
+                    -> webForms('https://www.cnn.com')
+
+    :Returns:
+
+        forms: str
+
+            A list of strings containing the forms from the website. Deliver it in Natural language.
+
+                Example:
+
+                    User: 'What forms are available on the CNN website?'
+
+                    -> webForms('https://www.cnn.com')
+
+                        -> 'The website contains a form for signing up for a newsletter, a form for submitting feedback, and a form for contacting customer support.'
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.url]
+type = "string"
+description = """
+
+    url: str
+
+        When calling this function, you should pass a string containing the URL of the website.
+
+            Example:
+
+                User: 'What forms are available on the CNN website?'
+
+                -> webForms('https://www.cnn.com')
+
+"""
+parameters.required = ["url"]
+
 
 [[file_bundles]]
 bundle_name = "source-code"

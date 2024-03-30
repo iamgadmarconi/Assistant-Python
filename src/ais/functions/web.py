@@ -1,26 +1,5 @@
-import requests
-import time
+from src.utils.tools import web_parser
 
-from bs4 import BeautifulSoup
-
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-# from webdriver_manager.chrome import ChromeDriverManager
-
-
-def web_parser(url: str):
-    response = requests.get(url)
-    # Check if the request was successful
-    if response.status_code == 200:
-        # Parse the HTML content
-        soup = BeautifulSoup(response.text, 'lxml')
-        
-        # Extract and print the text in a readable form
-        # This removes HTML tags and leaves plain text
-        return soup
-    else:
-        return f"Failed to retrieve the webpage. Status code: {response.status_code}"
     
 def webText(url: str):
     text = web_parser(url).get_text()

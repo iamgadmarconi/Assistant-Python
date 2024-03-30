@@ -16,6 +16,7 @@ from src.utils.cli import red_text, green_text, yellow_text
 from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
 from src.ais.functions.office import findFile
+from src.ais.functions.web import webText, webMenus, webLinks, webImages, webTables, webForms
 
 
 async def create(client, config):
@@ -327,6 +328,72 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
                     client = client,
                     asst_id = asst_id,
                     filename = args.get("filename", None),
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "webText":
+                outputs = webText(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "webMenus":
+                outputs = webMenus(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "webLinks":
+                outputs = webLinks(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "webImages":
+                outputs = webImages(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "webTables":
+                outputs = webTables(
+                    url = args.get("url", None)
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+
+            elif func_name == "webForms":
+                outputs = webForms(
+                    url = args.get("url", None)
                 )
                 tool_outputs.append(
                     {
