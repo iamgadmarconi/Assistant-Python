@@ -1,13 +1,14 @@
 import csv
-
+import asyncio
 import pandas as pd
 
 from src.utils.files import get_file_hashmap, find
 
 
-def findFile(client, asst_id, filename: str):
+async def findFile(client, asst_id, filename: str):
+    print(f"Debug--- Called findFile with parameters: {filename}")
 
-    file_id_by_name = get_file_hashmap(client, asst_id)
+    file_id_by_name = await get_file_hashmap(client, asst_id)
     
     file_id = file_id_by_name.get(filename, "File not found")
 

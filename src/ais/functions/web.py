@@ -1,6 +1,9 @@
+import os
+import requests
+
 from src.utils.tools import web_parser
 
-    
+
 def webText(url: str):
     text = web_parser(url).get_text()
 
@@ -60,3 +63,15 @@ def webForms(url: str):
 
 #     new_page_url = driver.current_url
 #     return new_page_url
+
+def webQuery(query: str):
+    print(f"Debug--- Called webQuery with prompt: {query}")
+    app_id = os.getenv('WOLFRAM_APP_ID')
+    try:
+        query = query.replace(" ", "+")
+    except AttributeError:
+        return f"You entered the query: {query} which is not a valid query. Please try again with the inferred query."
+    url = f'https://www.wolframalpha.com/api/v1/llm-api?input={query}&appid={app_id}'
+    response = requests.get(url)
+    print(f"Debug--- Wolfram response: {response.json()}")
+    return response.json()['output']

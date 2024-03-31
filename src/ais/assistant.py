@@ -7,16 +7,17 @@ import base64
 
 from openai import NotFoundError
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from inspect import signature, Parameter
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
 from src.utils.files import find, get_file_hashmap
 from src.utils.cli import red_text, green_text, yellow_text
 
-from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
+from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, createCalendarEvent, saveCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
 from src.ais.functions.office import findFile
-from src.ais.functions.web import webText, webMenus, webLinks, webImages, webTables, webForms
+from src.ais.functions.web import webText, webMenus, webLinks, webImages, webTables, webForms, webQuery
 
 
 async def create(client, config):
@@ -75,7 +76,7 @@ async def upload_instruction(client, config, asst_id: str, instructions: str):
         # print(f"Failed to upload instruction: {e}")
         raise  
 
-async def delete(client, asst_id: str, wipe=False):
+async def delete(client, asst_id: str, wipe=True):
     assts = client.beta.assistants 
     assistant_files = client.files
 
@@ -139,6 +140,36 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
         run = threads.runs.create(
             thread_id=thread_id,
             assistant_id=asst_id,
+            additional_instructions=""" 
+            You have access to real time data and current data (past your knowledge cutoff) to help you answer the user's question.
+            You have 2 ways to query for real time data:
+            1. If the user provides a url: Use the web tools to extract the data from the web page. (webText, webMenus, webLinks, webImages, webTables, webForms)
+                1. Use these tools if a user asks for a summary of a webpage, the menu of a website, the links on a webpage, the images on a webpage, the tables on a webpage, or the forms on a webpage.
+                2. If the user provides a url: Use the webText tool to extract the text from the webpage.
+            2. If the user provides a query: Use the webQuery tool to query the web for the data the tool uses Wolfram Alpha to provide accurate information and powerful results.
+                When a user asks for specific information or data that requires external verification or computation, use the appropriate tool to fetch this data. Here is the process for using the webQuery tool:
+                1. Comprehend the User Query: Read the user's message carefully to understand what specific information they are seeking. This could range from mathematical problems, scientific data, historical facts, to real-time information.
+                2. Infer the Query: Based on the user's message, infer the most direct and unambiguous query that can be passed to the Wolfram Alpha tool. This step is crucial as it transforms a potentially broad or vague user question into a focused query.
+                3. Formulate the Query: Clearly formulate the inferred query in a concise and precise manner. If the user's request involves complex or multi-part questions, break it down into simpler, single-focus queries if possible.
+                4. Call the Tool with the Inferred Query: Use the wolframQuery function to pass the query to Wolfram Alpha. Ensure the query is enclosed in quotes and accurately reflects the information being sought. For example:
+                    webQuery(specific query derived from user's message)
+                5. Interpret the Results: Once Wolfram Alpha returns the results, interpret them to ensure they accurately address the user's original query. If the results are complex, consider summarizing them in a way that is understandable and directly answers the user's request.
+                6. Communicate the Answer: Clearly present the information or data retrieved from Wolfram Alpha to the user. If relevant, include the context of the user's original query and how the results relate to it.
+                7. Verify and Correct if Necessary: If the user provides feedback indicating that the information provided does not meet their needs or is incorrect, re-evaluate the initial query and whether it was accurately inferred and formulated. If necessary, revise the query and repeat the process.              
+                Remember, the key to successfully utilizing the wolframQuery tool is a clear understanding of the user's request, an accurately inferred query, and effective communication of the results.
+            
+            For all tools, the user query does not need to be direct, interpret the message, and pass the required query to the tool.
+            **Several tools must be only called after a prerequisite tool has been called and user confirmation**:
+
+            1. createCalendarEvent is a prerequisite funciton to saveCalendarEvent
+                1. Optionally, getDate() can be called to get the start date if not provided by the user.
+                2. createCalendarEvent should be called multiple times until the user is satisfied with the event
+            2. writeEmail is a prerequisite function to sendEmail
+                1. Optionally, if the user does not specify an email, or refers to a recipient by name, you must call getContacts and pass the name or ask for clarification.
+                2. writeEmail must be called multiple times until the user is satisfied with the email
+            3. findFile is a prerequisite function for all data analysis tasks on files.
+                1. This tool should always be called when a user refers to a file by name for context.
+            """
         )
 
     except Exception as e:
@@ -174,250 +205,90 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
 
                 else:
                     print() 
-                    await delete(client, asst_id)
+                    # await delete(client, asst_id)
                     # print(f"Unexpected run status: {run.status}")
                     red_text(f"Unexpected run status: {run.status}")
                     raise
 
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.2)
 
 async def call_required_function(asst_id, client, thread_id: str, run_id: str, required_action):
     tool_outputs = []
 
+    # Function mapping
+    function_map = {
+        "getWeather": getWeather,
+        "getCalendar": getCalendar,
+        "readEmail": readEmail,
+        "writeEmail": writeEmail,
+        "sendEmail": sendEmail,
+        "getLocation": getLocation,
+        "getDate": getDate,
+        "createCalendarEvent": createCalendarEvent,
+        "saveCalendarEvent": saveCalendarEvent,
+        "getContacts": getContacts,
+        "findFile": findFile,
+        "webText": webText,
+        "webMenus": webMenus,
+        "webLinks": webLinks,
+        "webImages": webImages,
+        "webTables": webTables,
+        "webForms": webForms,
+        "webQuery": webQuery,
+    }
+
+    def filter_args(func, provided_args):
+        sig = signature(func)
+        filtered_args = {}
+        missing_args = []
+
+        for name, param in sig.parameters.items():
+            if param.default == Parameter.empty:  # This is a required parameter
+                if name not in provided_args:
+                    missing_args.append(name)
+                else:
+                    filtered_args[name] = provided_args[name]
+            elif name in provided_args:  # Optional but provided
+                filtered_args[name] = provided_args[name]
+        
+        if missing_args:
+            red_text(f"Missing required arguments for {func.__name__}: {', '.join(missing_args)}")
+        
+        return filtered_args
+    
     for action in required_action:
         if not isinstance(action[1], str):
-            
             func_name = action[1].tool_calls[0].function.name
             args = json.loads(action[1].tool_calls[0].function.arguments)
-            
-            if func_name == "getWeather":
-                outputs = getWeather(
-                    msg = args.get("msg", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-            elif func_name == "getCalendar":
-                outputs = getCalendar(
-                    upto = args.get("upto", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-            
-            elif func_name == "readEmail":
-                outputs = readEmail(
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
 
-            elif func_name == "writeEmail":
-                outputs = writeEmail(
-                    recipients=args.get("recipients", None),
-                    subject = args.get("subject", None),
-                    body = args.get("body", None),
-                    attachments = args.get("attachments", None)
-                )
-                
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-            
-            elif func_name == "sendEmail":
-                outputs = sendEmail(
-                    recipients=args.get("recipients", None),
-                    subject = args.get("subject", None),
-                    body = args.get("body", None),
-                    attachments = args.get("attachments", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
+            if func_name in function_map:
+                func = function_map[func_name]
+                # Handle special cases or additional parameters here
+                if func_name == "findFile":
+                    filtered_args = filter_args(func, {**args, "client": client, "asst_id": asst_id})
+                else:
+                    filtered_args = filter_args(func, args)
 
-            elif func_name == "getLocation":
-                outputs = getLocation()
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-            
-            elif func_name == "getDate":
-                outputs = getDate()
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
+                outputs = func(**filtered_args)
 
-            elif func_name == "writeCalendarEvent":
-                outputs = writeCalendarEvent(
-                    subject = args.get("subject", None),
-                    start = args.get("start", None),
-                    end = args.get("end", None),
-                    location = args.get("location", None),
-                    body = args.get("body", None),
-                    recurrence = args.get("recurrence", False)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-
-            elif func_name == "createCalendarEvent":
-                outputs = createCalendarEvent(
-                    subject = args.get("subject", None),
-                    start = args.get("start", None),
-                    end = args.get("end", None),
-                    location = args.get("location", None),
-                    body = args.get("body", None),
-                    recurrence = args.get("recurrence", False)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-
-            elif func_name == "getContacts":
-                outputs = getContacts(
-                    name = args.get("name", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-            
-            # elif func_name == "csvQuery":
-            #     outputs = csvQuery(
-            #         path = args.get("path", None),
-            #         query = args.get("query", None)
-            #     )
-            #     tool_outputs.append(
-            #         {
-            #             "tool_call_id": action[1].tool_calls[0].id,
-            #             "output": outputs
-            #         }
-            #     )
-                
-            elif func_name == "findFile":
-                outputs = findFile(
-                    client = client,
-                    asst_id = asst_id,
-                    filename = args.get("filename", None),
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-            
-            elif func_name == "webText":
-                outputs = webText(
-                    url = args.get("url", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-            
-            elif func_name == "webMenus":
-                outputs = webMenus(
-                    url = args.get("url", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-            
-            elif func_name == "webLinks":
-                outputs = webLinks(
-                    url = args.get("url", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-
-            elif func_name == "webImages":
-                outputs = webImages(
-                    url = args.get("url", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-
-            elif func_name == "webTables":
-                outputs = webTables(
-                    url = args.get("url", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-
-            elif func_name == "webForms":
-                outputs = webForms(
-                    url = args.get("url", None)
-                )
-                tool_outputs.append(
-                    {
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    }
-                )
-                
+                tool_outputs.append({
+                    "tool_call_id": action[1].tool_calls[0].id,
+                    "output": outputs
+                })
             else:
                 raise ValueError(f"Function '{func_name}' not found")
-            
-    # print(f"debug-- tool_outputs: {tool_outputs}\n\n")
 
+    # Encode bytes output to Base64 string if necessary
     for tool_output in tool_outputs:
         if isinstance(tool_output['output'], bytes):
             tool_output['output'] = "[bytes]" + base64.b64encode(tool_output['output']).decode("utf-8") + "[/bytes]"
-
-    # print(f"debug-- tool_outputs after encoding: {tool_outputs}\n\n")
 
     client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread_id,
         run_id=run_id,
         tool_outputs=tool_outputs,
     )
+
 
 async def get_thread_message(client, thread_id: str):
     threads = client.beta.threads

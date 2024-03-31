@@ -21,6 +21,7 @@ def getLocation():
     return location.address
 
 def getWeather(msg: Optional[str]):
+    print(f"Debug--- Called getWeather with parameters: {msg}")
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
     time = get_context(msg, ["TIME", "DATE"])

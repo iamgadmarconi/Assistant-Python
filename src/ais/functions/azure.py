@@ -30,6 +30,7 @@ def O365Auth(scopes_helper: list[str] = SCOPES):
         raise Exception("Failed to authenticate with O365")
 
 def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
+    print(f"Debug--- Called writeEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     
     email_report = (
         f"To: {', '.join([recipient for recipient in recipients])}\n"
@@ -42,6 +43,7 @@ def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[
 
 
 def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
+    print(f"Debug--- Called sendEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     try:
         account = O365Auth(SCOPES)
         m = account.new_message()
@@ -64,6 +66,7 @@ def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[l
         return "Failed to send email"
 
 def readEmail():
+    print(f"Debug--- Called readEmail")
     
     account = O365Auth(SCOPES)
 
@@ -91,6 +94,7 @@ def readEmail():
     return email_reports
     
 def getCalendar(upto: Optional[str] = None):
+    print(f"Debug--- Called getCalendar with parameters: {upto}")
 
     account = O365Auth(SCOPES)
 
@@ -139,8 +143,8 @@ def getCalendar(upto: Optional[str] = None):
 
     return cal_reports
 
-def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
-    
+def createCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+    print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     settings = {"PREFER_DATES_FROM": "future"}
 
     start_time = get_context(start, ["TIME", "DATE"])
@@ -171,7 +175,8 @@ def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: O
 
     return calendar_report
 
-def createCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+def saveCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+    print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     account = O365Auth(SCOPES)
     schedule = account.schedule()
     calendar = schedule.get_default_calendar()
@@ -202,10 +207,6 @@ def createCalendarEvent(subject: str, start: str, end: Optional[str], location: 
     event.save()
 
     return "Event created successfully"
-
-
-def query():
-    pass
 
 def getContacts(name: Optional[str]):
     threshold = 80

@@ -153,16 +153,17 @@ import base64
 
 from openai import NotFoundError
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from inspect import signature, Parameter
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
 from src.utils.files import find, get_file_hashmap
 from src.utils.cli import red_text, green_text, yellow_text
 
-from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, writeCalendarEvent, createCalendarEvent, getContacts
+from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, createCalendarEvent, saveCalendarEvent, getContacts
 from src.ais.functions.misc import getWeather, getLocation, getDate
 from src.ais.functions.office import findFile
-from src.ais.functions.web import webText, webMenus, webLinks, webImages, webTables, webForms
+from src.ais.functions.web import webText, webMenus, webLinks, webImages, webTables, webForms, webQuery
 
 
 async def create(client, config):
@@ -221,7 +222,7 @@ async def upload_instruction(client, config, asst_id: str, instructions: str):
         # print(f"Failed to upload instruction: {e}")
         raise  
 
-async def delete(client, asst_id: str, wipe=False):
+async def delete(client, asst_id: str, wipe=True):
     assts = client.beta.assistants 
     assistant_files = client.files
 
@@ -285,6 +286,36 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
         run = threads.runs.create(
             thread_id=thread_id,
             assistant_id=asst_id,
+            additional_instructions=""" 
+            You have access to real time data and current data (past your knowledge cutoff) to help you answer the user's question.
+            You have 2 ways to query for real time data:
+            1. If the user provides a url: Use the web tools to extract the data from the web page. (webText, webMenus, webLinks, webImages, webTables, webForms)
+                1. Use these tools if a user asks for a summary of a webpage, the menu of a website, the links on a webpage, the images on a webpage, the tables on a webpage, or the forms on a webpage.
+                2. If the user provides a url: Use the webText tool to extract the text from the webpage.
+            2. If the user provides a query: Use the webQuery tool to query the web for the data the tool uses Wolfram Alpha to provide accurate information and powerful results.
+                When a user asks for specific information or data that requires external verification or computation, use the appropriate tool to fetch this data. Here is the process for using the webQuery tool:
+                1. Comprehend the User Query: Read the user's message carefully to understand what specific information they are seeking. This could range from mathematical problems, scientific data, historical facts, to real-time information.
+                2. Infer the Query: Based on the user's message, infer the most direct and unambiguous query that can be passed to the Wolfram Alpha tool. This step is crucial as it transforms a potentially broad or vague user question into a focused query.
+                3. Formulate the Query: Clearly formulate the inferred query in a concise and precise manner. If the user's request involves complex or multi-part questions, break it down into simpler, single-focus queries if possible.
+                4. Call the Tool with the Inferred Query: Use the wolframQuery function to pass the query to Wolfram Alpha. Ensure the query is enclosed in quotes and accurately reflects the information being sought. For example:
+                    webQuery(specific query derived from user's message)
+                5. Interpret the Results: Once Wolfram Alpha returns the results, interpret them to ensure they accurately address the user's original query. If the results are complex, consider summarizing them in a way that is understandable and directly answers the user's request.
+                6. Communicate the Answer: Clearly present the information or data retrieved from Wolfram Alpha to the user. If relevant, include the context of the user's original query and how the results relate to it.
+                7. Verify and Correct if Necessary: If the user provides feedback indicating that the information provided does not meet their needs or is incorrect, re-evaluate the initial query and whether it was accurately inferred and formulated. If necessary, revise the query and repeat the process.              
+                Remember, the key to successfully utilizing the wolframQuery tool is a clear understanding of the user's request, an accurately inferred query, and effective communication of the results.
+            
+            For all tools, the user query does not need to be direct, interpret the message, and pass the required query to the tool.
+            **Several tools must be only called after a prerequisite tool has been called and user confirmation**:
+
+            1. createCalendarEvent is a prerequisite funciton to saveCalendarEvent
+                1. Optionally, getDate() can be called to get the start date if not provided by the user.
+                2. createCalendarEvent should be called multiple times until the user is satisfied with the event
+            2. writeEmail is a prerequisite function to sendEmail
+                1. Optionally, if the user does not specify an email, or refers to a recipient by name, you must call getContacts and pass the name or ask for clarification.
+                2. writeEmail must be called multiple times until the user is satisfied with the email
+            3. findFile is a prerequisite function for all data analysis tasks on files.
+                1. This tool should always be called when a user refers to a file by name for context.
+            """
         )
 
     except Exception as e:
@@ -320,7 +351,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
 
                 else:
                     print() 
-                    await delete(client, asst_id)
+                    # await delete(client, asst_id)
                     # print(f"Unexpected run status: {run.status}")
                     red_text(f"Unexpected run status: {run.status}")
                     raise
@@ -369,9 +400,9 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
 
             elif func_name == "writeEmail":
                 outputs = writeEmail(
-                    recipients=args.get("recipients", None),
-                    subject = args.get("subject", None),
-                    body = args.get("body", None),
+                    recipients=args.get("recipients"),
+                    subject = args.get("subject"),
+                    body = args.get("body"),
                     attachments = args.get("attachments", None)
                 )
                 
@@ -384,9 +415,9 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
             
             elif func_name == "sendEmail":
                 outputs = sendEmail(
-                    recipients=args.get("recipients", None),
-                    subject = args.get("subject", None),
-                    body = args.get("body", None),
+                    recipients=args.get("recipients"),
+                    subject = args.get("subject"),
+                    body = args.get("body"),
                     attachments = args.get("attachments", None)
                 )
                 tool_outputs.append(
@@ -414,10 +445,10 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
                     }
                 )
 
-            elif func_name == "writeCalendarEvent":
-                outputs = writeCalendarEvent(
-                    subject = args.get("subject", None),
-                    start = args.get("start", None),
+            elif func_name == "createCalendarEvent":
+                outputs = createCalendarEvent(
+                    subject = args.get("subject"),
+                    start = args.get("start"),
                     end = args.get("end", None),
                     location = args.get("location", None),
                     body = args.get("body", None),
@@ -430,10 +461,10 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
                     }
                 )
 
-            elif func_name == "createCalendarEvent":
-                outputs = createCalendarEvent(
-                    subject = args.get("subject", None),
-                    start = args.get("start", None),
+            elif func_name == "saveCalendarEvent":
+                outputs = saveCalendarEvent(
+                    subject = args.get("subject"),
+                    start = args.get("start"),
                     end = args.get("end", None),
                     location = args.get("location", None),
                     body = args.get("body", None),
@@ -473,7 +504,7 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
                 outputs = findFile(
                     client = client,
                     asst_id = asst_id,
-                    filename = args.get("filename", None),
+                    filename = args.get("filename"),
                 )
                 tool_outputs.append(
                     {
@@ -484,7 +515,7 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
             
             elif func_name == "webText":
                 outputs = webText(
-                    url = args.get("url", None)
+                    url = args.get("url")
                 )
                 tool_outputs.append(
                     {
@@ -495,7 +526,7 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
             
             elif func_name == "webMenus":
                 outputs = webMenus(
-                    url = args.get("url", None)
+                    url = args.get("url")
                 )
                 tool_outputs.append(
                     {
@@ -506,7 +537,7 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
             
             elif func_name == "webLinks":
                 outputs = webLinks(
-                    url = args.get("url", None)
+                    url = args.get("url")
                 )
                 tool_outputs.append(
                     {
@@ -517,7 +548,7 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
 
             elif func_name == "webImages":
                 outputs = webImages(
-                    url = args.get("url", None)
+                    url = args.get("url")
                 )
                 tool_outputs.append(
                     {
@@ -528,7 +559,7 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
 
             elif func_name == "webTables":
                 outputs = webTables(
-                    url = args.get("url", None)
+                    url = args.get("url")
                 )
                 tool_outputs.append(
                     {
@@ -539,7 +570,18 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
 
             elif func_name == "webForms":
                 outputs = webForms(
-                    url = args.get("url", None)
+                    url = args.get("url")
+                )
+                tool_outputs.append(
+                    {
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    }
+                )
+            
+            elif func_name == "webQuery":
+                outputs = webQuery(
+                    query = args.get("query")
                 )
                 tool_outputs.append(
                     {
@@ -564,6 +606,7 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
         run_id=run_id,
         tool_outputs=tool_outputs,
     )
+
 
 async def get_thread_message(client, thread_id: str):
     threads = client.beta.threads
@@ -806,6 +849,7 @@ def O365Auth(scopes_helper: list[str] = SCOPES):
         raise Exception("Failed to authenticate with O365")
 
 def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
+    print(f"Debug--- Called writeEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     
     email_report = (
         f"To: {', '.join([recipient for recipient in recipients])}\n"
@@ -818,6 +862,7 @@ def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[
 
 
 def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
+    print(f"Debug--- Called sendEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     try:
         account = O365Auth(SCOPES)
         m = account.new_message()
@@ -840,6 +885,7 @@ def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[l
         return "Failed to send email"
 
 def readEmail():
+    print(f"Debug--- Called readEmail")
     
     account = O365Auth(SCOPES)
 
@@ -867,6 +913,7 @@ def readEmail():
     return email_reports
     
 def getCalendar(upto: Optional[str] = None):
+    print(f"Debug--- Called getCalendar with parameters: {upto}")
 
     account = O365Auth(SCOPES)
 
@@ -915,8 +962,8 @@ def getCalendar(upto: Optional[str] = None):
 
     return cal_reports
 
-def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
-    
+def createCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+    print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     settings = {"PREFER_DATES_FROM": "future"}
 
     start_time = get_context(start, ["TIME", "DATE"])
@@ -947,7 +994,8 @@ def writeCalendarEvent(subject: str, start: str, end: Optional[str], location: O
 
     return calendar_report
 
-def createCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+def saveCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+    print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     account = O365Auth(SCOPES)
     schedule = account.schedule()
     calendar = schedule.get_default_calendar()
@@ -978,10 +1026,6 @@ def createCalendarEvent(subject: str, start: str, end: Optional[str], location: 
     event.save()
 
     return "Event created successfully"
-
-
-def query():
-    pass
 
 def getContacts(name: Optional[str]):
     threshold = 80
@@ -1062,6 +1106,7 @@ def getLocation():
     return location.address
 
 def getWeather(msg: Optional[str]):
+    print(f"Debug--- Called getWeather with parameters: {msg}")
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
     time = get_context(msg, ["TIME", "DATE"])
@@ -1117,15 +1162,16 @@ def getWeather(msg: Optional[str]):
  # ==== file path: agent\..\src\ais\functions\office.py ==== 
 
 import csv
-
+import asyncio
 import pandas as pd
 
 from src.utils.files import get_file_hashmap, find
 
 
-def findFile(client, asst_id, filename: str):
+async def findFile(client, asst_id, filename: str):
+    print(f"Debug--- Called findFile with parameters: {filename}")
 
-    file_id_by_name = get_file_hashmap(client, asst_id)
+    file_id_by_name = await get_file_hashmap(client, asst_id)
     
     file_id = file_id_by_name.get(filename, "File not found")
 
@@ -1142,13 +1188,14 @@ def csvWriter(filename:str, data: list):
 
  # ==== file path: agent\..\src\ais\functions\web.py ==== 
 
+import os
+import requests
+
 from src.utils.tools import web_parser
 
-    
+
 def webText(url: str):
-    print(f"\n debug-- Called webText with url: {url}")
     text = web_parser(url).get_text()
-    print(f"\n debug-- webText returned: {text}")
 
     return text
 
@@ -1206,6 +1253,19 @@ def webForms(url: str):
 
 #     new_page_url = driver.current_url
 #     return new_page_url
+
+def webQuery(query: str):
+    print(f"Debug--- Called webQuery with prompt: {query}")
+    app_id = os.getenv('WOLFRAM_APP_ID')
+    try:
+        query = query.replace(" ", "+")
+    except AttributeError:
+        return f"You entered the query: {query} which is not a valid query. Please try again with the inferred query."
+    url = f'https://www.wolframalpha.com/api/v1/llm-api?input={query}&appid={app_id}'
+    response = requests.get(url)
+    print(f"Debug--- Wolfram response: {response.json()}")
+    return response.json()['output']
+
 
 
  # ==== file path: agent\..\src\gui\app.py ==== 
