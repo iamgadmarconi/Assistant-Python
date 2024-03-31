@@ -41,6 +41,8 @@ For all tools, the user query does not need to be direct, interpret the message,
 
 1. createCalendarEvent is a prerequisite funciton to saveCalendarEvent
     1. Optionally, getDate() can be called to get the start date if not provided by the user.
+        1. IF THE DATE IS EXPLICITLY PROVIDED BY THE USER, USE THAT DATE. THE PARAMETER SHOULD BE THE STRING EXACTLY AS PROVIDED BY THE USER.
+        2. THE DATE PROVIDED BY THE USER CAN BE AMBIGOUS, SUCH AS 'TOMORROW' OR 'NEXT WEEK'. DO NOT ATTEMPT TO MANIPULATE THE DATE IF IT IS EXPLICITLY STATED IN THE USER MESSAGE
     2. createCalendarEvent should be called multiple times until the user is satisfied with the event
 2. writeEmail is a prerequisite function to sendEmail
     1. Optionally, if the user does not specify an email, or refers to a recipient by name, you must call getContacts and pass the name to retrieve the email address or ask for clarification.

@@ -147,9 +147,9 @@ def createCalendarEvent(subject: str, start: str, end: Optional[str], location: 
     print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     settings = {"PREFER_DATES_FROM": "future"}
 
-    start_time = get_context(start, ["TIME", "DATE"])
-    if start_time != "":
-        start_time_str = dateparser.parse(start_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+    start = get_context(start, ["TIME", "DATE"])
+    if start != "":
+        start_time_str = dateparser.parse(start, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
     else:
         start_time_str = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 

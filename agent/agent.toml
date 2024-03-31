@@ -608,6 +608,8 @@ name = "createCalendarEvent"
 description = """
 This function allows you to compose a calendar event. The user query does not have to be direct. 
 THIS IS A PREREQUISITE FUNCTION FOR THE saveCalendarEvent FUNCTION. You should call this function before calling the saveCalendarEvent function.
+IF A DATE IS EXPLICITLY PROVIDED BY THE USER, USE THAT DATE. THE PARAMETER SHOULD BE THE STRING EXACTLY AS PROVIDED BY THE USER.
+THE DATE PROVIDED BY THE USER CAN BE AMBIGOUS, SUCH AS 'TOMORROW' OR 'NEXT WEEK'. DO NOT ATTEMPT TO MANIPULATE THE DATE IF IT IS EXPLICITLY STATED IN THE USER MESSAGE
 
     :Params:
 
@@ -626,6 +628,8 @@ THIS IS A PREREQUISITE FUNCTION FOR THE saveCalendarEvent FUNCTION. You should c
         start: str
 
             When calling this function, you should pass a string containing the start time of the event.
+            IF THE DATE IS EXPLICITLY PROVIDED BY THE USER, USE THAT DATE. THE PARAMETER SHOULD BE THE STRING EXACTLY AS PROVIDED BY THE USER.
+            THE DATE PROVIDED BY THE USER CAN BE AMBIGOUS, SUCH AS 'TOMORROW' OR 'NEXT WEEK'. DO NOT ATTEMPT TO MANIPULATE THE DATE IF IT IS EXPLICITLY STATED IN THE USER MESSAGE
 
                 Example:
 
@@ -728,6 +732,8 @@ Usage:
     start: str
 
         When calling this function, you should pass a string containing the start time of the event.
+        IF THE DATE IS EXPLICITLY PROVIDED BY THE USER, USE THAT DATE. THE PARAMETER SHOULD BE THE STRING EXACTLY AS PROVIDED BY THE USER.
+        THE DATE PROVIDED BY THE USER CAN BE AMBIGOUS, SUCH AS 'TOMORROW' OR 'NEXT WEEK'. DO NOT ATTEMPT TO MANIPULATE THE DATE IF IT IS EXPLICITLY STATED IN THE USER MESSAGE
 
             Example:
 
