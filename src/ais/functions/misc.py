@@ -20,14 +20,14 @@ def getLocation():
     location = geolocator.geocode(g)
     return location.address
 
-def getWeather(msg: Optional[str]):
-    print(f"Debug--- Called getWeather with parameters: {msg}")
+def getWeather(msg: Optional[str]=None):
+    # print(f"Debug--- Called getWeather with parameters: {msg}")
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
     time = get_context(msg, ["TIME", "DATE"])
     location = get_context(msg, ["GPE"])
 
-    if location == "":
+    if not location:
         g = geocoder.ip('me').city
         geolocator = Nominatim(user_agent="User")
         location = geolocator.geocode(g)

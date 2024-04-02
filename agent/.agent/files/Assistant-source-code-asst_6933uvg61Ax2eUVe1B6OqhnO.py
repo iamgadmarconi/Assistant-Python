@@ -292,6 +292,11 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             ##Real-time Data Retrieval##
             URL-based Data Extraction: If a URL is provided by the user, employ web tools (`webText(url: str))`, `webMenus(url: str))`, `webLinks(url: str))`, `webImages(url: str))`, `webTables(url: str))`, `webForms(url: str))`) to extract specific data types as requested. For text extraction from a webpage, use the `webText(url: str))` tool.
             
+            ###!!!IMPORTANT!!!###
+            1. Use the `webQuery(query: str)` tool for queries requiring up-to-date information or data beyond the knowledge-cutoff.
+            2. Use `findFile(filename: str)` to locate files for data analysis tasks before performing any analysis with `code_interpreter`
+            3. **Use the raw text provided by the user to indicate `start` and `end` dates for calendar events.**
+
             ###Query-based Data Search###
             For inquiries requiring up-to-date information or data beyond the your knowledge-cutoff, use the `webQuery(query: str)` tool. Follow these steps:
                 1. Understand the user's request to identify the specific information sought.
@@ -409,18 +414,18 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
 
             if func_name in function_map:
                 func = function_map[func_name]
-                # Handle special cases or additional parameters here
                 if func_name == "findFile":
                     filtered_args = filter_args(func, {**args, "client": client, "asst_id": asst_id})
                 else:
                     filtered_args = filter_args(func, args)
 
-                outputs = func(**filtered_args)
+                if filtered_args is not None:  # Check if args were successfully filtered
+                    outputs = func(**filtered_args)
 
-                tool_outputs.append({
-                    "tool_call_id": action[1].tool_calls[0].id,
-                    "output": outputs
-                })
+                    tool_outputs.append({
+                        "tool_call_id": action[1].tool_calls[0].id,
+                        "output": outputs
+                    })
             else:
                 raise ValueError(f"Function '{func_name}' not found")
 
@@ -429,12 +434,12 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
         if isinstance(tool_output['output'], bytes):
             tool_output['output'] = "[bytes]" + base64.b64encode(tool_output['output']).decode("utf-8") + "[/bytes]"
 
+    # Assuming client.beta.threads.runs.submit_tool_outputs is correctly implemented
     client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread_id,
         run_id=run_id,
         tool_outputs=tool_outputs,
     )
-
 
 async def get_thread_message(client, thread_id: str):
     threads = client.beta.threads
@@ -659,7 +664,7 @@ from src.utils.tools import get_context, html_to_text
 SCOPES = ["basic", "message_all", "calendar_all", "address_book_all", "tasks_all"]
 
 
-def O365Auth(scopes_helper: list[str] = SCOPES):
+def O365Auth(scopes_helper: list[str]=SCOPES):
     protocol = MSGraphProtocol()
     credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
     scopes_graph = protocol.get_scopes_for(scopes_helper)
@@ -675,7 +680,7 @@ def O365Auth(scopes_helper: list[str] = SCOPES):
     except:
         raise Exception("Failed to authenticate with O365")
 
-def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
+def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list]=None):
     print(f"Debug--- Called writeEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     
     email_report = (
@@ -688,7 +693,7 @@ def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[
     return email_report
 
 
-def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
+def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list]=None):
     print(f"Debug--- Called sendEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     try:
         account = O365Auth(SCOPES)
@@ -739,7 +744,7 @@ def readEmail():
 
     return email_reports
     
-def getCalendar(upto: Optional[str] = None):
+def getCalendar(upto: Optional[str]=None):
     print(f"Debug--- Called getCalendar with parameters: {upto}")
 
     account = O365Auth(SCOPES)
@@ -789,7 +794,7 @@ def getCalendar(upto: Optional[str] = None):
 
     return cal_reports
 
-def createCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+def createCalendarEvent(subject: str, start: str, end: Optional[str]=None, location: Optional[str]=None, body: Optional[str]=None, recurrence: bool=False):
     print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     settings = {"PREFER_DATES_FROM": "future"}
 
@@ -821,7 +826,7 @@ def createCalendarEvent(subject: str, start: str, end: Optional[str], location: 
 
     return calendar_report
 
-def saveCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
+def saveCalendarEvent(subject: str, start: str, end: Optional[str]=None, location: Optional[str]=None, body: Optional[str]=None, recurrence: bool=False):
     print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     account = O365Auth(SCOPES)
     schedule = account.schedule()
@@ -854,7 +859,7 @@ def saveCalendarEvent(subject: str, start: str, end: Optional[str], location: Op
 
     return "Event created successfully"
 
-def getContacts(name: Optional[str]):
+def getContacts(name: Optional[str]=None):
     threshold = 80
     account = O365Auth(SCOPES)
     contacts = account.address_book().get_contacts()
@@ -932,14 +937,14 @@ def getLocation():
     location = geolocator.geocode(g)
     return location.address
 
-def getWeather(msg: Optional[str]):
+def getWeather(msg: Optional[str]=None):
     print(f"Debug--- Called getWeather with parameters: {msg}")
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
     time = get_context(msg, ["TIME", "DATE"])
     location = get_context(msg, ["GPE"])
 
-    if location == "":
+    if not location:
         g = geocoder.ip('me').city
         geolocator = Nominatim(user_agent="User")
         location = geolocator.geocode(g)

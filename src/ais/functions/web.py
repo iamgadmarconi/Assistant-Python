@@ -65,7 +65,7 @@ def webForms(url: str):
 #     return new_page_url
 
 def webQuery(query: str):
-    print(f"Debug--- Called webQuery with prompt: {query}")
+    # print(f"Debug--- Called webQuery with prompt: {query}")
     app_id = os.getenv('WOLFRAM_APP_ID')
     try:
         query = query.replace(" ", "+")
@@ -73,5 +73,5 @@ def webQuery(query: str):
         return f"You entered the query: {query} which is not a valid query. Please try again with the inferred query."
     url = f'https://www.wolframalpha.com/api/v1/llm-api?input={query}&appid={app_id}'
     response = requests.get(url)
-    print(f"Debug--- Wolfram response: {response.json()}")
+    # print(f"Debug--- Wolfram response: {response.json()}")
     return response.json()['output']

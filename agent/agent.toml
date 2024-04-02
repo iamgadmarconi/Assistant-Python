@@ -596,6 +596,8 @@ The `sendEmail` function is designed to send an email after the draft has been r
 ###!!!Important Note!!!###
 Before executing the `sendEmail` function, ensure that the email draft has been reviewed and approved by the user. This confirmation step is crucial to prevent inadvertent or erroneous email dispatches. The `sendEmail` function should only be called after the user has explicitly consented to send the email.
 
+##CHECK USER CONFIRMATION BEFORE CALLING `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(str))##
+
 ###Parameters###
 - `recipients (list[str])`: The email addresses of the recipients **EXACTLY**, as confirmed in the `writeEmail` step. 
 - `subject (str)`: The subject line of the email, **EXACTLY** as finalized during the `writeEmail` process.
@@ -616,7 +618,7 @@ Before executing the `sendEmail` function, ensure that the email draft has been 
     B. `subject: (str)`: The subject line of the email, **EXACTLY** as displayed to the user.
     C. `body: (str)`: The email body, **EXACTLY** as displayed to the user.
     D. `attachments (Optional[list[str]])`: Any attachments **EXACTLY** as displayed to the user.
-5. Function Call: `sendEmail([recipients], subject, body, attachments)`
+5. Function Call: `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(str))`
 6. Example Response: "Your email to [Recipient] about [Subject] has been successfully sent."
 
 
@@ -754,6 +756,7 @@ The `createCalendarEvent(subject: (str), start: (str), end: Optional(str), locat
 ###!!!Important Note!!!###
 1. **Prerequisite Function**: The `createCalendarEvent` function is a preparatory step for event creation and requires user confirmation before proceeding to save the event.
 2. **Suggest Event Creation**: If the user makes related queries, for example in an email, suggest to create an event using this function.
+3. **Iterative Process**: If the user requests changes to the event details, adjust the parameters accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the user confirms.
 
 ###Parameters###
 - `subject: (str)`: The title or subject of the event. This string should succinctly encapsulate the essence of the event.
@@ -776,21 +779,31 @@ The `createCalendarEvent(subject: (str), start: (str), end: Optional(str), locat
     A. `subject`: 'English exam'`
     B. `start`: 'next week'
 5. Function Call: `createCalendarEvent(subject='English exam', start='next week')`
-6. Example Response: "Your event for the English exam has been created: Start: in one week at 12:00. End: in one week at 14:00. Would you like to save it?"
+6. Example Response: "Your event for the English exam has been created: 
+    ```Markdown
+    ## Event Details 
+    - Subject: English exam
+    - Start: `output of `createCalendarEvent(subject='English exam', start='next week')`
+    - End: `output of `createCalendarEvent(subject='English exam', start='next week')`
+    - Location: Not specified
+    - Recurrence: Not specified
+
+    Would you like to save it?
+    ```
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena)) until the User confirms.
 ##Explicit Date and Time Provided##
-1. User Inquiry: "Create an event for the English exam on December 12th 2024 at 12:00."
+1. User Inquiry: "Create an event for the English exam on December 12th 2024 at 12:00 lasting 2 hours."
 2. System Inference: The user requests an event creation for the English exam on December 12th at 12:00 lasting 2 hours.
 3. Internal Reasoning: 
     A. The user's query includes a specific date and time.
     B. The user's query includes an end.
 4. Parameter Input:
     A. `subject`: 'English exam'
-    B. `start`: '2024-12-12T12:00:00'
-    C. `end`: '2024-12-12T14:00:00'
-5. Function Call: `createCalendarEvent(subject='English exam', start='2024-12-12T12:00:00', end='2024-12-12T14:00:00')`
+    B. `start`: ' December 12th 2024 at 12:00'
+    C. `end`: 'December 12th at 14:00'
+5. Function Call: `createCalendarEvent(subject='English exam', start='December 12th at 12:00', end='December 12th at 14:00')`
 6. Example Response: "Your event for the English exam has been created: Start: December 12th, 2024 at 12:00. End: December 12th, 2024 at 14:00. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena))` function.
@@ -834,8 +847,8 @@ The user explicitly states the event subject.
     C. The user does not mention an end.
 4. Parameter Input:
     A. `subject`: 'Team Meeting'
-    B. `start`: '2024-12-12T09:00:00'
-5. Function Call: `createCalendarEvent(subject='Team Meeting', start='2024-12-12T09:00:00')`
+    B. `start`: 'December 12th, 2024 at 9:00 AM'
+5. Function Call: `createCalendarEvent(subject='Team Meeting', start='December 12th, 2024 at 9:00 AM')`
 6. Example Response: "Your event for the Team Meeting has been created: Start: December 12th, 2024 at 9:00 AM. End: Not specified. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -851,8 +864,8 @@ The user's request implies the event subject without explicitly stating it.
     D. The user does not mention an end.
 4. Parameter Input:
     A. `subject`: 'Team Meeting' (Inferred from the user's discussion about meeting with the team.)
-    B. `start`: '2024-12-12T09:00:00'
-5. Function Call: `createCalendarEvent(subject='Team Meeting', start='2024-12-12T09:00:00')`
+    B. `start`: 'December 12th, 2024 at 9:00 AM.'
+5. Function Call: `createCalendarEvent(subject='Team Meeting', start='December 12th, 2024 at 9:00 AM.')`
 6. Example Response: "Your event for the Team Meeting has been created: Start: December 12th, 2024 at 9:00 AM. End: Not specified. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -878,7 +891,10 @@ description = """
 `start (str)`: Determine the event's start, based on the user's input. This critical parameter sets the event's beginning in the calendar.
 
 ###Parameter Description###
-The `start` parameter is essential for scheduling the event, representing the time when the event is set to begin. It requires a string input that can either be directly provided by the user or inferred from their request. The parameter must accommodate explicit dates and times given by the user, including potentially ambiguous terms like "tomorrow" or "next week." This approach ensures the event aligns with the user's expectations without any modifications to the specified timeframe.
+The `start` parameter is essential for scheduling the event, representing the time when the event is set to begin. It requires a string input provided by the user.
+
+###!!!Important Note!!!###
+**ENTER THE START EXACTLY AS PROVIDED BY THE USER, EVEN IF AMBIGUOUS.**
 
 ###Parameter Usage###
 ##Start Explicitly Mentioned##
@@ -947,6 +963,9 @@ description = """
 ###Parameter Description###
 The `end` parameter is crucial for defining the duration of an event by indicating when it concludes. It accepts a string that represents the end, which can be explicitly provided by the user or deduced from context. If the user does not specify an end, it may be beneficial to request further clarification or apply a reasonable estimation based on typical event lengths or similar past events.
 
+###!!!Important Note!!!###
+**ENTER THE START EXACTLY AS PROVIDED BY THE USER, EVEN IF AMBIGUOUS.**
+
 ###Parameter Usage###
 This parameter is employed by passing a string that denotes the end of the event into the function call. The input should either directly reflect the user's indication or be an informed estimate in the absence of specific details from the user.
 ##End Explicitly Mentioned##
@@ -956,9 +975,9 @@ This parameter is employed by passing a string that denotes the end of the event
     A. The user provides a specific end for the event.
 4. Parameter Input:
     A. `subject`: 'English exam'
-    B. `start`: '2024-12-12T12:00:00'
-    C. `end`: '2024-12-12T14:00:00'
-5. Function Call: `createCalendarEvent(subject='English exam', start='2024-12-12T12:00:00', end='2024-12-12T14:00:00')`
+    B. `start`: 'December 12th, 2024 12:00'
+    C. `end`: 'December 12th, 2024 14:00'
+5. Function Call: `createCalendarEvent(subject='English exam', start='December 12th, 2024 12:00', end='December 12th, 2024 14:00')`
 6. Example Response: "Your event for the English exam has been created: Start: December 12th, 2024 at 12:00. End: December 12th, 2024 at 14:00. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -974,9 +993,9 @@ This parameter is employed by passing a string that denotes the end of the event
     D. Exams typically last a couple hours.
 4. Parameter Input:
     A. `subject`: 'English exam'
-    B. `start`: '2024-12-12T12:00:00'
-    C. `end`: '2024-12-12T14:00:00' (Estimated based on exam duration)
-5. Function Call: `createCalendarEvent(subject='English exam', start='2024-12-12T12:00:00', end='2024-12-12T14:00:00')`
+    B. `start`: 'December 12th, 2024 12:00'
+    C. `end`: 'December 12th, 2024 14:00' (Estimated based on exam duration)
+5. Function Call: `createCalendarEvent(subject='English exam', start='December 12th, 2024 12:00', end='December 12th, 2024 14:00')`
 6. Example Response: "Your event for the English exam has been created: Start: December 12th, 2024 at 12:00. End: December 12th, 2024 at 14:00. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -996,8 +1015,8 @@ This parameter is employed by passing a string that denotes the end of the event
     C. The duration of a Marathon varies significantly.
 7. Parameter Input:
     A. `subject`: 'Marathon'
-    B. `start`: '2024-12-12
-8. Function Call: `createCalendarEvent(subject='Marathon', start='2024-12-12')`
+    B. `start`: 'December 12th, 2024'
+8. Function Call: `createCalendarEvent(subject='Marathon', start='December 12th, 2024')`
 9. Example Response: "Your event for the Marathon has been created: Start: December 12th, 2024. Would you like to save it?"
 10. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -1034,10 +1053,10 @@ This parameter should be included in the function call if the user has provided 
     C. The end can be estimated based on the event type or standard durations.
 4. Parameter Input:
     A. `subject`: 'English exam'
-    B. `start`: '2024-12-12T12:00:00'
-    C. `end`: '2024-12-12T14:00:00' (Estimated based on exam duration)
+    B. `start`: 'December 12th, 2024 at 12:00'
+    C. `end`: 'December 12th, 2024 at 14:00' (Estimated based on exam duration)
     C. `location`: 'University of Amsterdam'
-5. Function Call: `createCalendarEvent(subject='English exam', start='2024-12-12T12:00:00', end='2024-12-12T14:00:00', location='University of Amsterdam')`
+5. Function Call: `createCalendarEvent(subject='English exam', start='December 12th, 2024 at 12:00', end='December 12th, 2024 at 14:00', location='University of Amsterdam')`
 6. Example Response: "Your event for the English exam has been created: Start: December 12th, 2024 at 12:00. End: December 12th, 2024 at 14:00. Location: University of Amsterdam. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -1052,10 +1071,10 @@ This parameter should be included in the function call if the user has provided 
     D. Attempt to obtain the location from context. Meetings are likely to be at the office.
 4. Parameter Input:
     A. `subject`: 'Team Meeting'
-    B. `start`: '2024-12-12T09:00:00'
-    C. `end`: '2024-12-12T10:00:00' (Estimated based on meeting duration)
+    B. `start`: 'December 12th, 2024 at 9:00 AM'
+    C. `end`: ' December 12th, 2024 at 10:00 AM' (Estimated based on meeting duration)
     D. `location`: 'Office' (Inferred from the context)
-5. Function Call: `createCalendarEvent(subject='Team Meeting', start='2024-12-12T09:00:00', end='2024-12-12T10:00:00', location='Office')`
+5. Function Call: `createCalendarEvent(subject='Team Meeting', start=' December 12th, 2024 at 9:00 AM', end=' December 12th, 2024 at 10:00 AM', location='Office')`
 6. Example Response: "Your event for the Team Meeting has been created: Start: December 12th, 2024 at 9:00 AM. End: December 12th, 2024 at 10:00 AM. Location: Office. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -1071,10 +1090,10 @@ This parameter should be included in the function call if the user has provided 
     E. Include the Zoom link in the location.
 4. Parameter Input:
     A. `subject`: 'Team Meeting'
-    B. `start`: '2024-12-12T09:00:00'
-    C. `end`: '2024-12-12T10:00:00' (Estimated based on meeting duration)
+    B. `start`: 'December 12th, 2024 at 9:00 AM'
+    C. `end`: ' December 12th, 2024 at 10:00 AM' (Estimated based on meeting duration)
     D. `location`: 'Zoom: https//:zoom.com/109435h'
-5. Function Call: `createCalendarEvent(subject='Team Meeting', start='2024-12-12T09:00:00', end='2024-12-12T10:00:00', location='Zoom: https//:zoom.com/109435h')`
+5. Function Call: `createCalendarEvent(subject='Team Meeting', start=' December 12th, 2024 at 9:00 AM', end=' December 12th, 2024 at 10:00 AM', location='Zoom: https//:zoom.com/109435h')`
 6. Example Response: "Your event for the Team Meeting has been created: Start: December 12th, 2024 at 9:00 AM. End: December 12th, 2024 at 10:00 AM. Location: Zoom: https//:zoom.com/109435h. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -1111,11 +1130,11 @@ Incorporate this parameter into the function call if the user specifies or impli
     E. The location can be inferred from context (e.g., office or conference room).
 4. Parameter Input:
     A. `subject`: 'Weekly Team Meeting'
-    B. `start`: '2023-10-05T09:00:00'
-    C. `end`: '2023-10-05T09:30:00' (Estimated based on meeting duration)
+    B. `start`: 'Wednesday at 9:00 AM'
+    C. `end`: 'Wednesday at 9:30 AM' (Estimated based on meeting duration)
     D. `location`: 'Office' (Inferred from the context)
     E. `recurrence`: `True`
-5. Function Call: `createCalendarEvent(subject='Weekly Team Meeting', start='2023-10-05T09:00:00', end='2023-10-05T09:30:00', location='Office', recurrence=True)`
+5. Function Call: `createCalendarEvent(subject='Weekly Team Meeting', start='Wednesday at 9:00 AM', end='Wednesday at 9:30 AM', location='Office', recurrence=True)`
 6. Example Response: "Your event for the Weekly Team Meeting has been created: Start: October 5th, 2023 at 9:00 AM. End: October 5th, 2023 at 9:30 AM. Location: Office. Recurrence: Weekly. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -1146,7 +1165,9 @@ description = """
 The `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function is crucial for integrating and finalizing events within the user's calendar. It serves as the concluding step in the event creation process, activated after the user has confirmed the details prepared by the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function. This function securely stores the event, ensuring it is reflected accurately in the user's calendar.
 
 ###!!!IMPORTANT NOTE!!!###
-This function is intended as a follow-up to `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))`, and should only be invoked after receiving user confirmation of the event details.
+**This function is intended as a follow-up to `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))`, and should only be invoked after receiving user confirmation of the event details.**
+
+##CHECK FOR USER CONFIRMATION BEFORE CALLING saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean)).##
 
 ###Parameters###
 - `subject (str)`: The event's title, **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
@@ -1167,11 +1188,11 @@ This function is intended as a follow-up to `createCalendarEvent(subject: (str),
     B. Proceed with saving the event in the user's calendar.
 4. Parameter Input:
     A. `subject`: 'Team Meeting' (Example **EXACT** subject from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.`)
-    B. `start`: '2024-12-12T09:00:00' (Example **EXACT** start from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
+    B. `start`: 'Wednesday at 9:00 AM' (Example **EXACT** start from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
     C. `end`: Not specified (Example **EXACT** end from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
     D. `location`: Not specified (Example **EXACT** location from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
     E. `recurrence`: Not specified (Example **EXACT** recurrence from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
-4. Function Call: `saveCalendarEvent(subject='Team Meeting', start='2024-12-12T09:00:00')`
+4. Function Call: `saveCalendarEvent(subject='Team Meeting', start='Wednesday at 9:00 AM')`
 5. Example Response: "Your event for the Team Meeting has been successfully saved in your calendar."
 
 ##User Request for Modification##
@@ -1183,9 +1204,9 @@ This function is intended as a follow-up to `createCalendarEvent(subject: (str),
     C. Call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` to adjust the event details.
 4. Parameter Input:
     A. `subject`: 'Team Meeting' (Example **EXACT** subject from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
-    B. `start`: '2024-12-12T09:00:00' (Example **EXACT** start from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
+    B. `start`: 'Wednesday at 9:00 AM' (Example **EXACT** start from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
     C. `location`: 'Conference Room' (Updated location as requested by the user.)
-5. Function Call: `createCalendarEvent(subject='Team Meeting', start='2024-12-12T09:00:00', location='Conference Room')`
+5. Function Call: `createCalendarEvent(subject='Team Meeting', start='Wednesday at 9:00 AM', location='Conference Room')`
 6. Example Response: "The location for your Team Meeting has been updated to the Conference Room. Would you like to save it?"
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.

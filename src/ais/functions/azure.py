@@ -13,7 +13,7 @@ from src.utils.tools import get_context, html_to_text
 SCOPES = ["basic", "message_all", "calendar_all", "address_book_all", "tasks_all"]
 
 
-def O365Auth(scopes_helper: list[str] = SCOPES):
+def O365Auth(scopes_helper: list[str]=SCOPES):
     protocol = MSGraphProtocol()
     credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
     scopes_graph = protocol.get_scopes_for(scopes_helper)
@@ -29,8 +29,8 @@ def O365Auth(scopes_helper: list[str] = SCOPES):
     except:
         raise Exception("Failed to authenticate with O365")
 
-def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
-    print(f"Debug--- Called writeEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
+def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list]=None):
+    # print(f"Debug--- Called writeEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     
     email_report = (
         f"To: {', '.join([recipient for recipient in recipients])}\n"
@@ -42,8 +42,8 @@ def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[
     return email_report
 
 
-def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list] = None):
-    print(f"Debug--- Called sendEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
+def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list]=None):
+    # print(f"Debug--- Called sendEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     try:
         account = O365Auth(SCOPES)
         m = account.new_message()
@@ -66,7 +66,7 @@ def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[l
         return "Failed to send email"
 
 def readEmail():
-    print(f"Debug--- Called readEmail")
+    # print(f"Debug--- Called readEmail")
     
     account = O365Auth(SCOPES)
 
@@ -93,8 +93,8 @@ def readEmail():
 
     return email_reports
     
-def getCalendar(upto: Optional[str] = None):
-    print(f"Debug--- Called getCalendar with parameters: {upto}")
+def getCalendar(upto: Optional[str]=None):
+    # print(f"Debug--- Called getCalendar with parameters: {upto}")
 
     account = O365Auth(SCOPES)
 
@@ -143,8 +143,8 @@ def getCalendar(upto: Optional[str] = None):
 
     return cal_reports
 
-def createCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
-    print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
+def createCalendarEvent(subject: str, start: str, end: Optional[str]=None, location: Optional[str]=None, body: Optional[str]=None, recurrence: bool=False):
+    # print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     settings = {"PREFER_DATES_FROM": "future"}
 
     start = get_context(start, ["TIME", "DATE"])
@@ -175,8 +175,8 @@ def createCalendarEvent(subject: str, start: str, end: Optional[str], location: 
 
     return calendar_report
 
-def saveCalendarEvent(subject: str, start: str, end: Optional[str], location: Optional[str], body: Optional[str], recurrence: False):
-    print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
+def saveCalendarEvent(subject: str, start: str, end: Optional[str]=None, location: Optional[str]=None, body: Optional[str]=None, recurrence: bool=False):
+    # print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     account = O365Auth(SCOPES)
     schedule = account.schedule()
     calendar = schedule.get_default_calendar()
@@ -208,7 +208,7 @@ def saveCalendarEvent(subject: str, start: str, end: Optional[str], location: Op
 
     return "Event created successfully"
 
-def getContacts(name: Optional[str]):
+def getContacts(name: Optional[str]=None):
     threshold = 80
     account = O365Auth(SCOPES)
     contacts = account.address_book().get_contacts()
