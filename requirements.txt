@@ -18,3 +18,5 @@ beautifulsoup4==4.12.2
 python-dotenv==1.0.0
 Pillow==9.5.0
 selenium==4.14.0
+pandas==2.2.1
+python-Levenshtein==0.25.0
