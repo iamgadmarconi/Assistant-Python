@@ -79,14 +79,14 @@ def help_menu():
     
     """
     help_message_1 = Text("Here are some commands you can use:\n", style="bold")
-    help_message_2 = Text("\n    - '\h' : Display this help menu", style="")
-    help_message_3 = Text("\n    - '\q' : Quit the program", style="")
-    help_message_4 = Text("\n    - '\r' : Recreate the assistant", style="")
-    help_message_5 = Text("\n    - '\ra' : Refresh all data", style="")
-    help_message_6 = Text("\n    - '\rc' : Refresh the conversation", style="")
-    help_message_7 = Text("\n    - '\ri' : Refresh the instructions", style="")
-    help_message_8 = Text("\n    - '\rf' : Refresh the files", style="")
-    help_message_9 = Text("\n    - '\c' : Clear the screen", style="")
+    help_message_2 = Text("\n    - '/h' : Display this help menu", style="")
+    help_message_3 = Text("\n    - '/q' : Quit the program", style="")
+    help_message_4 = Text("\n    - '/r' : Recreate the assistant", style="")
+    help_message_5 = Text("\n    - '/ra' : Refresh all data", style="")
+    help_message_6 = Text("\n    - '/rc' : Refresh the conversation", style="")
+    help_message_7 = Text("\n    - '/ri' : Refresh the instructions", style="")
+    help_message_8 = Text("\n    - '/rf' : Refresh the files", style="")
+    help_message_9 = Text("\n    - '/c' : Clear the screen", style="")
     help_message_10 = Text("\n\nHow can I help you today?", style="bold")
 
     help_message = help_message_1 + help_message_2 + help_message_3 + help_message_4 + help_message_5 + \
