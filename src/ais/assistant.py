@@ -141,36 +141,34 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             thread_id=thread_id,
             assistant_id=asst_id,
             additional_instructions=""" 
-            You have access to real time data and current data (past your knowledge cutoff) to help you answer the user's question.
-            You have 2 ways to query for real time data:
-            1. If the user provides a url: Use the web tools to extract the data from the web page. (webText, webMenus, webLinks, webImages, webTables, webForms)
-                1. Use these tools if a user asks for a summary of a webpage, the menu of a website, the links on a webpage, the images on a webpage, the tables on a webpage, or the forms on a webpage.
-                2. If the user provides a url: Use the webText tool to extract the text from the webpage.
-            2. If the user provides a query: Use the webQuery tool to query the web for the data the tool uses Wolfram Alpha to provide accurate information and powerful results.
-                When a user asks for specific information or data that requires external verification or computation, use the appropriate tool to fetch this data. Here is the process for using the webQuery tool:
-                1. Comprehend the User Query: Read the user's message carefully to understand what specific information they are seeking. This could range from mathematical problems, scientific data, historical facts, to real-time information.
-                2. Infer the Query: Based on the user's message, infer the most direct and unambiguous query that can be passed to the Wolfram Alpha tool. This step is crucial as it transforms a potentially broad or vague user question into a focused query.
-                3. Formulate the Query: Clearly formulate the inferred query in a concise and precise manner. If the user's request involves complex or multi-part questions, break it down into simpler, single-focus queries if possible.
-                4. Call the Tool with the Inferred Query: Use the wolframQuery function to pass the query to Wolfram Alpha. Ensure the query is enclosed in quotes and accurately reflects the information being sought. For example:
-                    webQuery(specific query derived from user's message)
-                5. Interpret the Results: Once Wolfram Alpha returns the results, interpret them to ensure they accurately address the user's original query. If the results are complex, consider summarizing them in a way that is understandable and directly answers the user's request.
-                6. Communicate the Answer: Clearly present the information or data retrieved from Wolfram Alpha to the user. If relevant, include the context of the user's original query and how the results relate to it.
-                7. Verify and Correct if Necessary: If the user provides feedback indicating that the information provided does not meet their needs or is incorrect, re-evaluate the initial query and whether it was accurately inferred and formulated. If necessary, revise the query and repeat the process.              
-                Remember, the key to successfully utilizing the wolframQuery tool is a clear understanding of the user's request, an accurately inferred query, and effective communication of the results.
-            
-            For all tools, the user query does not need to be direct, interpret the message, and pass the required query to the tool.
-            **Several tools must be only called after a prerequisite tool has been called and user confirmation**:
+            ###Additional Instructions###
 
-            1. createCalendarEvent is a prerequisite funciton to saveCalendarEvent
-                1. Optionally, getDate() can be called to get the start date if not provided by the user.
-                    1. IF THE DATE IS EXPLICITLY PROVIDED BY THE USER, USE THAT DATE. THE PARAMETER SHOULD BE THE STRING EXACTLY AS PROVIDED BY THE USER.
-                    2. THE DATE PROVIDED BY THE USER CAN BE AMBIGOUS, SUCH AS 'TOMORROW' OR 'NEXT WEEK'. DO NOT ATTEMPT TO MANIPULATE THE DATE IF IT IS EXPLICITLY STATED IN THE USER MESSAGE
-                2. createCalendarEvent should be called multiple times until the user is satisfied with the event
-            2. writeEmail is a prerequisite function to sendEmail
-                1. Optionally, if the user does not specify an email, or refers to a recipient by name, you must call getContacts and pass the name or ask for clarification.
-                2. writeEmail must be called multiple times until the user is satisfied with the email
-            3. findFile is a prerequisite function for all data analysis tasks on files.
-                1. This tool should always be called when a user refers to a file by name for context.
+            ##Real-time Data Retrieval##
+            URL-based Data Extraction: If a URL is provided by the user, employ web tools (`webText(url: str))`, `webMenus(url: str))`, `webLinks(url: str))`, `webImages(url: str))`, `webTables(url: str))`, `webForms(url: str))`) to extract specific data types as requested. For text extraction from a webpage, use the `webText(url: str))` tool.
+            
+            ###Query-based Data Search###
+            For inquiries requiring up-to-date information or data beyond the your knowledge-cutoff, use the `webQuery(query: str)` tool. Follow these steps:
+                1. Understand the user's request to identify the specific information sought.
+                2. Derive a focused query that accurately represents the user's need.
+                3. Formulate this query concisely for submission to Wolfram Alpha via the webQuery function.
+                4. Interpret and summarize the returned data to directly address the user's query.
+                5. Present the findings clearly, ensuring relevance and accuracy.
+                6. Revise the query and response based on user feedback if necessary.
+
+            ##Email Composition and Sending##
+                1. Preparatory Steps:
+                    1. Utilize the `writeEmail(recipients: list(str), subject: str, body: str, attachments: Optional(list[str]))` function to draft emails, incorporating details such as recipients, subject, body, and optional attachments.
+                    2. For recipient email addresses, use `getContacts(name: Optional(str))` when only a name is provided. Ensure clarity and accuracy in detailing the email's content.
+                    3. Preview the drafted email to the user for confirmation or adjustments.
+
+            ###Prerequisite Tool Usage###
+                1. The `createCalendarEvent(subject: str, start: str, end: Optional(str), location: Optional(str), reccurence: Optional(boolean))` function must precede `saveCalendarEvent(subject: str, start: str, end: Optional(str), location: Optional(str), reccurence: Optional(boolean))` usage. Use `getDate()` optionally to determine the start date if not provided.
+                2. The `writeEmail(recipients: list(str), subject: str, body: str, attachments: Optional(list[str]))` function is a precursor to `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(list[str]))`. If an email address is unspecified, employ `getContacts(name: Optional(str))` to ascertain the recipient's email or seek clarification.
+                3. The `findFile(filename: str)` function is essential before performing any data analysis tasks on files. This tool is activated when file context is mentioned by the user.
+
+            ##User Interaction and Clarification##
+                1. Directly interpret user queries to formulate appropriate tool commands, even if the user's request is indirect.
+                2. Seek user confirmation before proceeding with actions that depend on prior tool usage or specific user input, ensuring accuracy and user satisfaction.
             """
         )
 
@@ -378,4 +376,3 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
         red_text(f"\nFailed to upload file '{filename}': {e}\n")
         yellow_text(f"This can be a bug with the OpenAI API. Please check the storage at https://platform.openai.com/storage or try again")
         return None, False
-

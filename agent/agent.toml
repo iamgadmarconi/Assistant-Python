@@ -1396,7 +1396,7 @@ The `findFile(filename: (str))` function is designed to search for and return th
 
 ###!!!IMPORTANT NOTE!!!###
 1. This function does not open the file but solely returns the file_id, which is essential for subsequent file operations.
-2. The file_id should not be displayed to the user but used internally by the code interpreter for file handling tasks.
+2. The file_id should not be displayed to the user but used internally by the `code_interpreter` for file handling tasks.
 3. The function is a preliminary step in file operations, ensuring that file-related actions are executed on the intended file.
 4. The file_id is the only method to locate and access files within the filesystem.
 
@@ -1407,7 +1407,7 @@ The `findFile(filename: (str))` function is designed to search for and return th
 `file_id (str)`: A unique identifier for the file specified by the filename parameter. This file_id is essential for locating the file within the filesystem for any subsequent file operations. It is crucial to understand that:
 *The file_id is the only method to accurately locate the file in the filesystem.*
 *The function does not open the file; it merely returns the file_id.*
-*The returned file_id should not be displayed to the user but used as an intermediate step in the code interpreter for further file operations.*
+*The returned file_id should not be displayed to the user but used as an intermediate step in the `code_interpreter` for further file operations.*
 
 ###Usage Example###
 Suppose a user wants to perform data analysis on a file named `finance.csv` to calculate the average revenue for the year 2023. The workflow would be as follows:
@@ -1422,7 +1422,7 @@ Suppose a user wants to perform data analysis on a file named `finance.csv` to c
     A. The function returns the file_id associated with `finance.csv`. This file_id is crucial for subsequent data analysis operations.
     B. This is an implicit step in the data analysis process, ensuring that the correct file is accessed for revenue calculation.
 6. Proceed with data analysis operations using the obtained file_id.
-7. Use `code interpreter` tool to manipulate and analyze the data within the specified file.
+7. Use `code_interpreter` tool to manipulate and analyze the data within the specified file.
 8. Example Response: The average revenue for the year 2023 in `finance.csv` is $X.
 
 ###Process Flow###
@@ -1455,7 +1455,7 @@ To utilize this parameter effectively, input must be a string that corresponds t
     A. The function returns the file_id associated with `finance.csv`. This file_id is crucial for subsequent data analysis operations.
     B. This is an implicit step in the data analysis process, ensuring that the correct file is accessed for revenue calculation.
 6. Proceed with data analysis operations using the obtained file_id.
-7. Use `code interpreter` tool to manipulate and analyze the data within the specified file.
+7. Use `code_interpreter` tool to manipulate and analyze the data within the specified file.
 8. Example Response: The average revenue for the year 2023 in `finance.csv` is $X.
 
 ###Objective###

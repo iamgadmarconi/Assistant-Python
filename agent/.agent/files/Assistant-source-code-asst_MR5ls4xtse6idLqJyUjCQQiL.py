@@ -1480,7 +1480,7 @@ def welcome_message():
     welcome_message_6 = Text("\n    - Set a reminder", style="")
     welcome_message_7 = Text("\n    - Check your calendar", style="")
     welcome_message_8 = Text("\n    - And more...", style="")
-    welcome_message_9 = Text("\n\nFor a list of commands, type '\h'")
+    welcome_message_9 = Text("\n\nFor a list of commands, type '/h'")
     welcome_message_10 = Text("\n\nHow can I help you today?", style="bold")
 
     welcome_message = welcome_message_1 + welcome_message_2 + welcome_message_3 + welcome_message_4 + \
