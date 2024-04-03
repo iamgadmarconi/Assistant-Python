@@ -8,9 +8,25 @@ from aiofiles import open as aio_open
 from pathlib import Path
 from openai import OpenAI
 
-from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json, find
+from src.utils.files import (
+    load_from_toml,
+    list_files,
+    bundle_to_file,
+    load_from_json,
+    load_to_json,
+    ensure_dir,
+    db_to_json,
+    find,
+)
 from src.utils.cli import green_text, red_text, yellow_text
-from src.ais.assistant import load_or_create_assistant, upload_instruction, upload_file_by_name, get_thread, create_thread, run_thread_message
+from src.ais.assistant import (
+    load_or_create_assistant,
+    upload_instruction,
+    upload_file_by_name,
+    get_thread,
+    create_thread,
+    run_thread_message,
+)
 
 
 class Assistant:
@@ -27,7 +43,12 @@ class Assistant:
         db_to_json()
 
         try:
-            await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=True)
+            await upload_file_by_name(
+                self.oac,
+                asst_id=self.asst_id,
+                filename=Path(r"agent\.agent\persistance\memory.json"),
+                force=True,
+            )
         except:
             # print("No previous memory")
             yellow_text("No previous memory")
@@ -40,20 +61,20 @@ class Assistant:
     async def upload_instructions(self):
         file_path = os.path.join(self.dir, self.config["instructions_file"])
         if os.path.exists(file_path):
-            async with aio_open(file_path, 'r') as file:
+            async with aio_open(file_path, "r") as file:
                 inst_content = await file.read()
-            await upload_instruction(self.oac, self.config, self.asst_id, inst_content)  
+            await upload_instruction(self.oac, self.config, self.asst_id, inst_content)
             return True
         else:
             return False
-        
+
     async def upload_files(self, recreate: bool) -> int:
         num_uploaded = 0
 
         data_files_dir = self.data_files_dir()
 
         exclude_element = f"*{self.asst_id}*"
-        
+
         for file in list_files(data_files_dir, ["*.rs", "*.md"], [exclude_element]):
 
             if ".agent" not in str(file):
@@ -63,19 +84,18 @@ class Assistant:
 
         for bundle in self.config["file_bundles"]:
             # print(f"\n debug -- bundle: {bundle}\n")
-            src_dir = Path(self.dir).joinpath(bundle['src_dir'])
+            src_dir = Path(self.dir).joinpath(bundle["src_dir"])
             # print(f"\n debug -- src_dir: {src_dir}\n")
             if src_dir.is_dir():
-                src_globs = bundle['src_globs']
+                src_globs = bundle["src_globs"]
 
                 files = list_files(src_dir, src_globs, None)
 
                 # print(f"\n debug -- files: {files}\n")
 
                 if files:
-                    
 
-                    if bundle['bundle_name'] == "source-code":
+                    if bundle["bundle_name"] == "source-code":
                         bundle_file_name = f"{self.name}-{bundle['bundle_name']}-{self.asst_id}.{bundle['dst_ext']}"
                         bundle_file = self.data_files_dir().joinpath(bundle_file_name)
                         force_reupload = recreate or not bundle_file.exists()
@@ -83,22 +103,26 @@ class Assistant:
                         # Assuming bundle_to_file bundles files into the specified bundle_file
                         bundle_to_file(files, bundle_file)
                         # print(f"\n debug -- bundle_file: {type(bundle_file)}\n")
-                        _, uploaded = await upload_file_by_name(self.oac, self.asst_id, bundle_file, force_reupload)
+                        _, uploaded = await upload_file_by_name(
+                            self.oac, self.asst_id, bundle_file, force_reupload
+                        )
 
                         if uploaded:
                             num_uploaded += 1
-                    else:  
+                    else:
                         for file in files:
                             # print(f"\n debug -- type: {type(file)}\n")
                             # print(f"\n debug -- file: {file}\n")
                             # print(f"\n debug -- path str: {str(file.resolve())}\n")
                             if not str(file.name) == "conv.json":
-                                _, uploaded = await upload_file_by_name(self.oac, self.asst_id, file.resolve(), False)
+                                _, uploaded = await upload_file_by_name(
+                                    self.oac, self.asst_id, file.resolve(), False
+                                )
                                 if uploaded:
                                     num_uploaded += 1
 
         return num_uploaded
-    
+
     async def load_or_create_conv(self, recreate: bool):
         conv_file = Path(self.data_dir()).joinpath("conv.json")
 
@@ -107,23 +131,23 @@ class Assistant:
 
         try:
             conv = load_from_json(conv_file)
-            await get_thread(self.oac, conv['thread_id'])
-            # print(f"Conversation loaded")  
+            await get_thread(self.oac, conv["thread_id"])
+            # print(f"Conversation loaded")
             green_text(f"Conversation loaded")
 
         except (FileNotFoundError, json.JSONDecodeError):
             thread_id = await create_thread(self.oac)
-            # print(f"Conversation created")  
+            # print(f"Conversation created")
             green_text(f"Conversation created")
-            conv = {'thread_id': thread_id}
+            conv = {"thread_id": thread_id}
             load_to_json(conv_file, conv)
 
         return conv
-    
+
     async def chat(self, conv, msg: str) -> str:
         res = await run_thread_message(self.oac, self.asst_id, conv["thread_id"], msg)
         return res
-    
+
     def data_dir(self) -> Path:
         """Returns the path to the data directory, ensuring its existence."""
         data_dir = Path(self.dir + r"\.agent")
@@ -135,6 +159,7 @@ class Assistant:
         files_dir = self.data_dir().joinpath("files")
         ensure_dir(files_dir)
         return files_dir
+
 
 
  # ==== file path: agent\..\src\agent\__init__.py ==== 
@@ -160,20 +185,37 @@ from src.utils.database import write_to_memory
 from src.utils.files import find, get_file_hashmap
 from src.utils.cli import red_text, green_text, yellow_text
 
-from src.ais.functions.azure import getCalendar, readEmail, writeEmail, sendEmail, createCalendarEvent, saveCalendarEvent, getContacts
+from src.ais.functions.azure import (
+    getCalendar,
+    readEmail,
+    writeEmail,
+    sendEmail,
+    createCalendarEvent,
+    saveCalendarEvent,
+    getContacts,
+)
 from src.ais.functions.misc import getWeather, getLocation, getDate
 from src.ais.functions.office import findFile
-from src.ais.functions.web import webText, webMenus, webLinks, webImages, webTables, webForms, webQuery
+from src.ais.functions.web import (
+    webText,
+    webMenus,
+    webLinks,
+    webImages,
+    webTables,
+    webForms,
+    webQuery,
+)
 
 
 async def create(client, config):
     assistant = client.beta.assistants.create(
-        name = config["name"],
-        model = config["model"],
-        tools = config["tools"],
+        name=config["name"],
+        model=config["model"],
+        tools=config["tools"],
     )
 
     return assistant
+
 
 async def load_or_create_assistant(client, config, recreate: bool = False):
     asst_obj = await first_by_name(client, config["name"])
@@ -190,40 +232,42 @@ async def load_or_create_assistant(client, config, recreate: bool = False):
         green_text(f"Assistant '{config['name']}' loaded")
         # print(f"Assistant '{config['name']}' loaded")
         return asst_id
-    
+
     else:
         asst_obj = await create(client, config)
         green_text(f"Assistant '{config['name']}' created")
         # print(f"Assistant '{config['name']}' created")
         return asst_obj.id
 
+
 async def first_by_name(client, name: str):
     assts = client.beta.assistants
     assistants = assts.list().data
-    asst_obj =  next((asst for asst in assistants if asst.name == name), None)
+    asst_obj = next((asst for asst in assistants if asst.name == name), None)
     return asst_obj
 
-@backoff.on_exception(backoff.expo,
-                    NotFoundError,
-                    max_tries=5,
-                    giveup=lambda e: "No assistant found" not in str(e))
+
+@backoff.on_exception(
+    backoff.expo,
+    NotFoundError,
+    max_tries=5,
+    giveup=lambda e: "No assistant found" not in str(e),
+)
 async def upload_instruction(client, config, asst_id: str, instructions: str):
     assts = client.beta.assistants
-    try: 
-        assts.update(
-            assistant_id= asst_id,
-            instructions = instructions
-        )
+    try:
+        assts.update(assistant_id=asst_id, instructions=instructions)
         # print(f"Instructions uploaded to assistant '{config['name']}'")
         green_text(f"Instructions uploaded to assistant '{config['name']}'")
 
     except Exception as e:
         red_text(f"Failed to upload instruction: {e}")
         # print(f"Failed to upload instruction: {e}")
-        raise  
+        raise
+
 
 async def delete(client, asst_id: str, wipe=True):
-    assts = client.beta.assistants 
+    assts = client.beta.assistants
     assistant_files = client.files
 
     file_hashmap = await get_file_hashmap(client, asst_id)
@@ -246,7 +290,7 @@ async def delete(client, asst_id: str, wipe=True):
             os.remove(find("memory.json", "agent"))
     except:
         pass
-    
+
     try:
         if wipe:
             if os.path.exists(find("memory.db", "agent")):
@@ -258,15 +302,18 @@ async def delete(client, asst_id: str, wipe=True):
     # print(f"Assistant deleted")
     green_text("Assistant deleted")
 
+
 async def create_thread(client):
     threads = client.beta.threads
     res = threads.create()
     return res.id
 
+
 async def get_thread(client, thread_id: str):
     threads = client.beta.threads
     res = threads.retrieve(thread_id)
     return res
+
 
 async def run_thread_message(client, asst_id: str, thread_id: str, message: str):
 
@@ -320,7 +367,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             ##User Interaction and Clarification##
                 1. Directly interpret user queries to formulate appropriate tool commands, even if the user's request is indirect.
                 2. Seek user confirmation before proceeding with actions that depend on prior tool usage or specific user input, ensuring accuracy and user satisfaction.
-            """
+            """,
         )
 
     except Exception as e:
@@ -331,39 +378,61 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             run = threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
 
         else:
-            
+
             raise e
-        
+
     write_to_memory("User", message)
 
-    with Progress(SpinnerColumn(), TextColumn("[bold cyan]{task.description}"), transient=True) as progress:
-        task = progress.add_task("[green]Thinking...", total=None)  # Indeterminate progress
-        
+    with Progress(
+        SpinnerColumn(), TextColumn("[bold cyan]{task.description}"), transient=True
+    ) as progress:
+        task = progress.add_task(
+            "[green]Thinking...", total=None
+        )  # Indeterminate progress
+
         while True:
-                # print("-", end="", flush=True)
-                run = threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
+            # print("-", end="", flush=True)
+            run = threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
 
-                if run.status in ["Completed", "completed"]:
-                    progress.stop()
-                    print()
-                    return await get_thread_message(client, thread_id)
-                
-                elif run.status in ["Queued", "InProgress", "run_in_progress", "in_progress", "queued", "pending", "Pending"]:
-                    pass  # The spinner will continue spinning
+            if run.status in ["Completed", "completed"]:
+                progress.stop()
+                print()
+                return await get_thread_message(client, thread_id)
 
-                elif run.status in ['requires_input', 'RequiresInput', 'requires_action', 'RequiresAction']:
-                    await call_required_function(asst_id, client, thread_id, run.id, run.required_action)
+            elif run.status in [
+                "Queued",
+                "InProgress",
+                "run_in_progress",
+                "in_progress",
+                "queued",
+                "pending",
+                "Pending",
+            ]:
+                pass  # The spinner will continue spinning
 
-                else:
-                    print() 
-                    # await delete(client, asst_id)
-                    # print(f"Unexpected run status: {run.status}")
-                    red_text(f"Unexpected run status: {run.status}")
-                    raise
+            elif run.status in [
+                "requires_input",
+                "RequiresInput",
+                "requires_action",
+                "RequiresAction",
+            ]:
+                await call_required_function(
+                    asst_id, client, thread_id, run.id, run.required_action
+                )
 
-                await asyncio.sleep(0.2)
+            else:
+                print()
+                # await delete(client, asst_id)
+                # print(f"Unexpected run status: {run.status}")
+                red_text(f"Unexpected run status: {run.status}")
+                raise
 
-async def call_required_function(asst_id, client, thread_id: str, run_id: str, required_action):
+            await asyncio.sleep(0.2)
+
+
+async def call_required_function(
+    asst_id, client, thread_id: str, run_id: str, required_action
+):
     tool_outputs = []
 
     # Function mapping
@@ -401,12 +470,14 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
                     filtered_args[name] = provided_args[name]
             elif name in provided_args:  # Optional but provided
                 filtered_args[name] = provided_args[name]
-        
+
         if missing_args:
-            red_text(f"Missing required arguments for {func.__name__}: {', '.join(missing_args)}")
-        
+            red_text(
+                f"Missing required arguments for {func.__name__}: {', '.join(missing_args)}"
+            )
+
         return filtered_args
-    
+
     for action in required_action:
         if not isinstance(action[1], str):
             func_name = action[1].tool_calls[0].function.name
@@ -415,24 +486,31 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
             if func_name in function_map:
                 func = function_map[func_name]
                 if func_name == "findFile":
-                    filtered_args = filter_args(func, {**args, "client": client, "asst_id": asst_id})
+                    filtered_args = filter_args(
+                        func, {**args, "client": client, "asst_id": asst_id}
+                    )
                 else:
                     filtered_args = filter_args(func, args)
 
-                if filtered_args is not None:  # Check if args were successfully filtered
+                if (
+                    filtered_args is not None
+                ):  # Check if args were successfully filtered
                     outputs = func(**filtered_args)
 
-                    tool_outputs.append({
-                        "tool_call_id": action[1].tool_calls[0].id,
-                        "output": outputs
-                    })
+                    tool_outputs.append(
+                        {"tool_call_id": action[1].tool_calls[0].id, "output": outputs}
+                    )
             else:
                 raise ValueError(f"Function '{func_name}' not found")
 
     # Encode bytes output to Base64 string if necessary
     for tool_output in tool_outputs:
-        if isinstance(tool_output['output'], bytes):
-            tool_output['output'] = "[bytes]" + base64.b64encode(tool_output['output']).decode("utf-8") + "[/bytes]"
+        if isinstance(tool_output["output"], bytes):
+            tool_output["output"] = (
+                "[bytes]"
+                + base64.b64encode(tool_output["output"]).decode("utf-8")
+                + "[/bytes]"
+            )
 
     # Assuming client.beta.threads.runs.submit_tool_outputs is correctly implemented
     client.beta.threads.runs.submit_tool_outputs(
@@ -441,9 +519,10 @@ async def call_required_function(asst_id, client, thread_id: str, run_id: str, r
         tool_outputs=tool_outputs,
     )
 
+
 async def get_thread_message(client, thread_id: str):
     threads = client.beta.threads
-    
+
     try:
         messages = threads.messages.list(
             thread_id=thread_id,
@@ -461,14 +540,15 @@ async def get_thread_message(client, thread_id: str):
         write_to_memory("Assistant", txt)
 
         return txt
-    
+
     except Exception as e:
         raise ValueError(f"An error occurred: {str(e)}")
+
 
 async def upload_file_by_name(client, asst_id: str, filename: str, force: bool = False):
     assts = client.beta.assistants
     assistant_files = assts.files
-    
+
     file_id_by_name = await get_file_hashmap(client, asst_id)
 
     file_id = file_id_by_name.pop(filename.name, None)
@@ -478,13 +558,10 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
             # print(f"File '{filename}' already uploaded")
             yellow_text(f"File '{filename}' already uploaded")
             return file_id, False
-    
+
     if file_id:
         try:
-            assistant_files.delete(
-                assistant_id=asst_id,
-                file_id=file_id
-            )
+            assistant_files.delete(assistant_id=asst_id, file_id=file_id)
 
         except Exception as e:
             # print(f"Failed to delete file '{filename}': {e}")
@@ -496,10 +573,12 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
                 assistant_id=asst_id,
                 file_id=file_id,
             )
-        
+
         except:
             try:
-                yellow_text(f"Couldn't remove assistant file '{filename}', trying again...")
+                yellow_text(
+                    f"Couldn't remove assistant file '{filename}', trying again..."
+                )
                 client.files.delete(file_id)
                 green_text(f"File '{filename}' removed")
             except Exception as e:
@@ -521,11 +600,13 @@ async def upload_file_by_name(client, asst_id: str, filename: str, force: bool =
         green_text(f"File '{filename}' uploaded")
         # print(f"File '{filename}' uploaded")
         return uploaded_file.id, True
-    
+
     except Exception as e:
         # print(f"Failed to upload file '{filename}': {e}")
         red_text(f"\nFailed to upload file '{filename}': {e}\n")
-        yellow_text(f"This can be a bug with the OpenAI API. Please check the storage at https://platform.openai.com/storage or try again")
+        yellow_text(
+            f"This can be a bug with the OpenAI API. Please check the storage at https://platform.openai.com/storage or try again"
+        )
         return None, False
 
 
@@ -546,22 +627,27 @@ class CreateMessageRequest:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+
 class MessageContentText:
     def __init__(self, text):
         self.text = text
 
+
 class MessageContentImageFile:
     pass
+
 
 class MessageObject:
     def __init__(self, content):
         self.content = content
+
 
 def user_msg(content):
     return CreateMessageRequest(
         role="user",
         content=str(content),  # Converts the content into a string
     )
+
 
 def get_text_content(client, msg):
     if not msg.content:
@@ -571,7 +657,7 @@ def get_text_content(client, msg):
 
     if msg_content is None:
         raise ValueError("No content found in message")
-    
+
     if hasattr(msg_content, "image_file"):
         file_id = msg_content.image_file.file_id
         resp = client.files.with_raw_response.retrieve_content(file_id)
@@ -579,7 +665,7 @@ def get_text_content(client, msg):
             image_data = BytesIO(resp.content)
             img = Image.open(image_data)
             img.show()
-    
+
     msg_file_ids = next(iter(msg.file_ids), None)
 
     if msg_file_ids:
@@ -587,30 +673,36 @@ def get_text_content(client, msg):
         file_data_bytes = file_data.read()
         with open("files", "wb") as file:
             file.write(file_data_bytes)
-            
+
     message_content = msg_content.text
     annotations = message_content.annotations
     citations = []
     for index, annotation in enumerate(annotations):
         # Replace the text with a footnote
-        message_content.value = message_content.value.replace(annotation.text, f' [{index}]')
+        message_content.value = message_content.value.replace(
+            annotation.text, f" [{index}]"
+        )
 
         # Gather citations based on annotation attributes
-        if (file_citation := getattr(annotation, 'file_citation', None)):
+        if file_citation := getattr(annotation, "file_citation", None):
             cited_file = client.files.retrieve(file_citation.file_id)
-            citations.append(f'[{index}] {file_citation.quote} from {cited_file.filename}')
-        elif (file_path := getattr(annotation, 'file_path', None)):
+            citations.append(
+                f"[{index}] {file_citation.quote} from {cited_file.filename}"
+            )
+        elif file_path := getattr(annotation, "file_path", None):
             cited_file = client.files.retrieve(file_path.file_id)
-            citations.append(f'[{index}] Click <here> to download {cited_file.filename}')
+            citations.append(
+                f"[{index}] Click <here> to download {cited_file.filename}"
+            )
             # Note: File download functionality not implemented above for brevity
 
     # Add footnotes to the end of the message before displaying to user
-    message_content.value += '\n' + '\n'.join(citations)
+    message_content.value += "\n" + "\n".join(citations)
 
     if isinstance(msg_content.text.value, str):
         txt = msg_content.text.value
         # print(f"\n\ndebug --Text content: {txt}\n\n")
-        pattern = r'\[bytes](.*?)\[/bytes]'
+        pattern = r"\[bytes](.*?)\[/bytes]"
         # Find all occurrences of the pattern
         decoded_bytes_list = []
         text_parts = re.split(pattern, txt)  # Split the string into parts
@@ -633,10 +725,10 @@ def get_text_content(client, msg):
             img.show()
 
         if len(citations) > 0:
-            textual_content += '\n' + '\n'.join(citations)
+            textual_content += "\n" + "\n".join(citations)
 
         return textual_content
-    
+
     else:
         raise ValueError("Unsupported message content type")
 
@@ -664,7 +756,7 @@ from src.utils.tools import get_context, html_to_text
 SCOPES = ["basic", "message_all", "calendar_all", "address_book_all", "tasks_all"]
 
 
-def O365Auth(scopes_helper: list[str]=SCOPES):
+def O365Auth(scopes_helper: list[str] = SCOPES):
     protocol = MSGraphProtocol()
     credentials = (os.environ.get("CLIENT_ID"), os.environ.get("CLIENT_SECRET"))
     scopes_graph = protocol.get_scopes_for(scopes_helper)
@@ -676,13 +768,16 @@ def O365Auth(scopes_helper: list[str]=SCOPES):
             account.authenticate(scopes=scopes_graph)
 
         return account
-    
+
     except:
         raise Exception("Failed to authenticate with O365")
 
-def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[list]=None):
-    print(f"Debug--- Called writeEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
-    
+
+def writeEmail(
+    recipients: list, subject: str, body: str, attachments: Optional[list] = None
+):
+    # print(f"Debug--- Called writeEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
+
     email_report = (
         f"To: {', '.join([recipient for recipient in recipients])}\n"
         f"Subject: {subject}\n"
@@ -693,8 +788,10 @@ def writeEmail(recipients: list, subject: str, body: str, attachments: Optional[
     return email_report
 
 
-def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[list]=None):
-    print(f"Debug--- Called sendEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
+def sendEmail(
+    recipients: list, subject: str, body: str, attachments: Optional[list] = None
+):
+    # print(f"Debug--- Called sendEmail with parameters: {recipients}, {subject}, {body}, {attachments}")
     try:
         account = O365Auth(SCOPES)
         m = account.new_message()
@@ -706,57 +803,60 @@ def sendEmail(recipients: list, subject: str, body: str, attachments: Optional[l
         if attachments:
 
             for attachment_path in attachments:
-                path = find(attachment_path, r'files/mail')
+                path = find(attachment_path, r"files/mail")
                 m.attachments.add(path)
-        
+
         m.send()
-        
+
         return "Email sent successfully"
-    
+
     except:
         return "Failed to send email"
 
+
 def readEmail():
-    print(f"Debug--- Called readEmail")
-    
+    # print(f"Debug--- Called readEmail")
+
     account = O365Auth(SCOPES)
 
     mailbox = account.mailbox()
     inbox = mailbox.inbox_folder()
 
     messages = inbox.get_messages(limit=5)
-    
 
     email_reports = []
 
     for message in messages:
-        
+
         message_body = html_to_text(message.body)
 
-        email_report = (f"From: {message.sender}\n"
-                        f"Subject: {message.subject}\n"
-                        f"Received: {message.received}\n"
-                        f"Body: {message_body}\n")
-        
+        email_report = (
+            f"From: {message.sender}\n"
+            f"Subject: {message.subject}\n"
+            f"Received: {message.received}\n"
+            f"Body: {message_body}\n"
+        )
+
         email_reports.append(email_report)
 
     email_reports = "\n".join(email_reports)
 
     return email_reports
-    
-def getCalendar(upto: Optional[str]=None):
-    print(f"Debug--- Called getCalendar with parameters: {upto}")
+
+
+def getCalendar(upto: Optional[str] = None):
+    # print(f"Debug--- Called getCalendar with parameters: {upto}")
 
     account = O365Auth(SCOPES)
 
     if upto is None:
         upto = datetime.now() + timedelta(days=7)
-        
+
     else:
         time = get_context(upto, ["TIME", "DATE"])
         if time == "":
             time = "7 days"
-            
+
         settings = {"PREFER_DATES_FROM": "future"}
         diff = dateparser.parse(time, settings=settings)
 
@@ -764,13 +864,15 @@ def getCalendar(upto: Optional[str]=None):
             upto = diff
 
         else:
-            upto = datetime.now() + timedelta(days=7)  # Default to 7 days from now if parsing fails
+            upto = datetime.now() + timedelta(
+                days=7
+            )  # Default to 7 days from now if parsing fails
 
     schedule = account.schedule()
     calendar = schedule.get_default_calendar()
 
-    q = calendar.new_query('start').greater_equal(datetime.now())
-    q.chain('and').on_attribute('end').less_equal(upto)
+    q = calendar.new_query("start").greater_equal(datetime.now())
+    q.chain("and").on_attribute("end").less_equal(upto)
 
     try:
         events = calendar.get_events(query=q, include_recurring=True)
@@ -782,36 +884,56 @@ def getCalendar(upto: Optional[str]=None):
 
     for event in events:
 
-        cal_report = (f"Event: {event.subject}\n"
-                      f"Start: {event.start}\n"
-                      f"End: {event.end}\n"
-                      f"Location: {event.location}\n"
-                      f"Description: {event.body}")
-        
+        cal_report = (
+            f"Event: {event.subject}\n"
+            f"Start: {event.start}\n"
+            f"End: {event.end}\n"
+            f"Location: {event.location}\n"
+            f"Description: {event.body}"
+        )
+
         cal_reports.append(cal_report)
 
     cal_reports = "\n".join(cal_reports)
 
     return cal_reports
 
-def createCalendarEvent(subject: str, start: str, end: Optional[str]=None, location: Optional[str]=None, body: Optional[str]=None, recurrence: bool=False):
-    print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
+
+def createCalendarEvent(
+    subject: str,
+    start: str,
+    end: Optional[str] = None,
+    location: Optional[str] = None,
+    body: Optional[str] = None,
+    recurrence: bool = False,
+):
+    # print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     settings = {"PREFER_DATES_FROM": "future"}
 
     start = get_context(start, ["TIME", "DATE"])
     if start != "":
-        start_time_str = dateparser.parse(start, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+        start_time_str = dateparser.parse(start, settings=settings).strftime(
+            "%d/%m/%Y, %H:%M:%S"
+        )
     else:
         start_time_str = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
     if end:
         end_time = get_context(end, ["TIME", "DATE"])
         if end_time != "":
-            end_time_str = dateparser.parse(end_time, settings=settings).strftime("%d/%m/%Y, %H:%M:%S")
+            end_time_str = dateparser.parse(end_time, settings=settings).strftime(
+                "%d/%m/%Y, %H:%M:%S"
+            )
         else:
-            end_time_str = (datetime.now() + timedelta(hours=1)).strftime("%d/%m/%Y, %H:%M:%S")
+            end_time_str = (datetime.now() + timedelta(hours=1)).strftime(
+                "%d/%m/%Y, %H:%M:%S"
+            )
 
-    start_end_str = f"Start: {start_time_str}, End: {end_time_str}" if end else f"Start: {start_time_str}\n"
+    start_end_str = (
+        f"Start: {start_time_str}, End: {end_time_str}"
+        if end
+        else f"Start: {start_time_str}\n"
+    )
     location_str = f"Location: {location}" if location else ""
     recurrence_str = f"Recurrence: {recurrence}" if recurrence else ""
 
@@ -826,8 +948,16 @@ def createCalendarEvent(subject: str, start: str, end: Optional[str]=None, locat
 
     return calendar_report
 
-def saveCalendarEvent(subject: str, start: str, end: Optional[str]=None, location: Optional[str]=None, body: Optional[str]=None, recurrence: bool=False):
-    print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
+
+def saveCalendarEvent(
+    subject: str,
+    start: str,
+    end: Optional[str] = None,
+    location: Optional[str] = None,
+    body: Optional[str] = None,
+    recurrence: bool = False,
+):
+    # print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     account = O365Auth(SCOPES)
     schedule = account.schedule()
     calendar = schedule.get_default_calendar()
@@ -859,7 +989,8 @@ def saveCalendarEvent(subject: str, start: str, end: Optional[str]=None, locatio
 
     return "Event created successfully"
 
-def getContacts(name: Optional[str]=None):
+
+def getContacts(name: Optional[str] = None):
     threshold = 80
     account = O365Auth(SCOPES)
     contacts = account.address_book().get_contacts()
@@ -868,49 +999,58 @@ def getContacts(name: Optional[str]=None):
         contact_reports = []
 
         for contact in contacts:
-            email_addresses = ', '.join([email.address for email in contact.emails])
+            email_addresses = ", ".join([email.address for email in contact.emails])
 
-            home_phones = ', '.join(contact.home_phones) if contact.home_phones else 'None'
-            business_phones = ', '.join(contact.business_phones) if contact.business_phones else 'None'
-            
-            contact_report = (f"Name: {contact.full_name}\n"
-                              f"Email: {email_addresses}\n"
-                              f"Phone: {home_phones}, {business_phones}")
-            
+            home_phones = (
+                ", ".join(contact.home_phones) if contact.home_phones else "None"
+            )
+            business_phones = (
+                ", ".join(contact.business_phones)
+                if contact.business_phones
+                else "None"
+            )
+
+            contact_report = (
+                f"Name: {contact.full_name}\n"
+                f"Email: {email_addresses}\n"
+                f"Phone: {home_phones}, {business_phones}"
+            )
+
             contact_reports.append(contact_report)
 
         contact_reports = "\n".join(contact_reports)
-    
+
     else:
         contact_reports = []
         for contact in contacts:
             # Calculate the fuzzy match score
             match_score = fuzz.ratio(contact.full_name.lower(), name.lower())
-            
-            if match_score >= threshold:
-                email_addresses = ', '.join([email.address for email in contact.emails])
 
-                home_phones = ', '.join(contact.home_phones) if contact.home_phones else 'None'
-                business_phones = ', '.join(contact.business_phones) if contact.business_phones else 'None'
-                
-                contact_report = (f"Name: {contact.full_name}\n"
-                                f"Email: {email_addresses}\n"
-                                f"Phone: {home_phones}, {business_phones}\n"
-                                f"__Match_Score: {match_score}")
-                
+            if match_score >= threshold:
+                email_addresses = ", ".join([email.address for email in contact.emails])
+
+                home_phones = (
+                    ", ".join(contact.home_phones) if contact.home_phones else "None"
+                )
+                business_phones = (
+                    ", ".join(contact.business_phones)
+                    if contact.business_phones
+                    else "None"
+                )
+
+                contact_report = (
+                    f"Name: {contact.full_name}\n"
+                    f"Email: {email_addresses}\n"
+                    f"Phone: {home_phones}, {business_phones}\n"
+                    f"__Match_Score: {match_score}"
+                )
+
                 contact_reports.append(contact_report)
 
         contact_reports = "\n".join(contact_reports)
 
     return contact_reports
 
-
- # ==== file path: agent\..\src\ais\functions\math.py ==== 
-
-import requests
-
-def mathSolver():
-    pass
 
 
  # ==== file path: agent\..\src\ais\functions\misc.py ==== 
@@ -931,21 +1071,23 @@ from src.utils.tools import get_context
 def getDate():
     return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
+
 def getLocation():
-    g = geocoder.ip('me').city
+    g = geocoder.ip("me").city
     geolocator = Nominatim(user_agent="User")
     location = geolocator.geocode(g)
     return location.address
 
-def getWeather(msg: Optional[str]=None):
-    print(f"Debug--- Called getWeather with parameters: {msg}")
+
+def getWeather(msg: Optional[str] = None):
+    # print(f"Debug--- Called getWeather with parameters: {msg}")
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
     time = get_context(msg, ["TIME", "DATE"])
     location = get_context(msg, ["GPE"])
 
     if not location:
-        g = geocoder.ip('me').city
+        g = geocoder.ip("me").city
         geolocator = Nominatim(user_agent="User")
         location = geolocator.geocode(g)
         lat, lon = location.latitude, location.longitude
@@ -963,7 +1105,7 @@ def getWeather(msg: Optional[str]=None):
 
     except:
         time = datetime.now().timestamp()
-        
+
     url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
 
     response = requests.get(url)
@@ -972,18 +1114,20 @@ def getWeather(msg: Optional[str]=None):
         # Successful API call
         data = response.json()
 
-        match = min(data['list'], key=lambda x: abs(x['dt'] - int(time)))
-        main = match['main']
+        match = min(data["list"], key=lambda x: abs(x["dt"] - int(time)))
+        main = match["main"]
 
-        temperature = main['temp']
-        humidity = main['humidity']
-        weather_description = match['weather'][0]['description']
-        
-        weather_report = (f"Location: {location}\n"
-                          f"Time: {datetime.fromtimestamp(time)}\n"
-                          f"Temperature: {temperature - 273.15}°C\n"
-                          f"Humidity: {humidity}%\n"
-                          f"Description: {weather_description.capitalize()}")
+        temperature = main["temp"]
+        humidity = main["humidity"]
+        weather_description = match["weather"][0]["description"]
+
+        weather_report = (
+            f"Location: {location}\n"
+            f"Time: {datetime.fromtimestamp(time)}\n"
+            f"Temperature: {temperature - 273.15}°C\n"
+            f"Humidity: {humidity}%\n"
+            f"Description: {weather_description.capitalize()}"
+        )
         return weather_report
     else:
         # API call failed this usually happens if the API key is invalid or not provided
@@ -1004,12 +1148,13 @@ async def findFile(client, asst_id, filename: str):
     print(f"Debug--- Called findFile with parameters: {filename}")
 
     file_id_by_name = await get_file_hashmap(client, asst_id)
-    
+
     file_id = file_id_by_name.get(filename, "File not found")
 
     return file_id
 
-def csvWriter(filename:str, data: list):
+
+def csvWriter(filename: str, data: list):
     # path = find(filename)
     # with open(path, 'r', encoding='utf-8') as file:
     #     writer = csv.writer(file)
@@ -1031,45 +1176,53 @@ def webText(url: str):
 
     return text
 
+
 def webMenus(url: str):
     soup = web_parser(url)
-    menus = soup.find_all(['a', 'nav', 'ul', 'li'], class_=['menu', 'nav', 'nav-menu', 'nav-menu-item'])
+    menus = soup.find_all(
+        ["a", "nav", "ul", "li"], class_=["menu", "nav", "nav-menu", "nav-menu-item"]
+    )
     menu_list = []
     for menu in menus:
         menu_list.append(menu.text)
     return "\n".join(menu_list)
 
+
 def webLinks(url: str):
     soup = web_parser(url)
-    links = soup.find_all('a')
+    links = soup.find_all("a")
     link_list = []
     for link in links:
-        link_list.append(link.get('href'))
+        link_list.append(link.get("href"))
     return "\n".join(link_list)
+
 
 def webImages(url: str):
     soup = web_parser(url)
-    images = soup.find_all('img')
+    images = soup.find_all("img")
     image_list = []
     for image in images:
-        image_list.append(image.get('src'))
+        image_list.append(image.get("src"))
     return "\n".join(image_list)
+
 
 def webTables(url: str):
     soup = web_parser(url)
-    tables = soup.find_all('table')
+    tables = soup.find_all("table")
     table_list = []
     for table in tables:
         table_list.append(table.text)
     return "\n".join(table_list)
 
+
 def webForms(url: str):
     soup = web_parser(url)
-    forms = soup.find_all('form')
+    forms = soup.find_all("form")
     form_list = []
     for form in forms:
         form_list.append(form.text)
     return "\n".join(form_list)
+
 
 # def menuInteract(url: str, menu: str):
 #     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -1086,17 +1239,18 @@ def webForms(url: str):
 #     new_page_url = driver.current_url
 #     return new_page_url
 
+
 def webQuery(query: str):
-    print(f"Debug--- Called webQuery with prompt: {query}")
-    app_id = os.getenv('WOLFRAM_APP_ID')
+    # print(f"Debug--- Called webQuery with prompt: {query}")
+    app_id = os.getenv("WOLFRAM_APP_ID")
     try:
         query = query.replace(" ", "+")
     except AttributeError:
         return f"You entered the query: {query} which is not a valid query. Please try again with the inferred query."
-    url = f'https://www.wolframalpha.com/api/v1/llm-api?input={query}&appid={app_id}'
+    url = f"https://www.wolframalpha.com/api/v1/llm-api?input={query}&appid={app_id}"
     response = requests.get(url)
-    print(f"Debug--- Wolfram response: {response.json()}")
-    return response.json()['output']
+    # print(f"Debug--- Wolfram response: {response.json()}")
+    return response.json()["output"]
 
 
 
@@ -1117,11 +1271,11 @@ from src.agent.agent import Assistant
 DEFAULT_DIR = "agent"
 
 
-class FocusableContainer(Container, can_focus=True):  
+class FocusableContainer(Container, can_focus=True):
     """Focusable container widget."""
 
 
-class MessageBox(Widget, can_focus=True):  
+class MessageBox(Widget, can_focus=True):
     """Box widget for the message."""
 
     def __init__(self, text: str, role: str) -> None:
@@ -1238,6 +1392,7 @@ from src.utils.cli import asst_msg, help_menu, welcome_message
 
 DEFAULT_DIR = "agent"
 
+
 class Cmd:
 
     Quit = "Quit"
@@ -1258,27 +1413,28 @@ class Cmd:
 
         if input_str == "/q":
             return cls.Quit
-        
+
         elif input_str in ["/r", "/ra"]:
             return cls.RefreshAll
-        
+
         elif input_str == "/rc":
             return cls.RefreshConv
-        
+
         elif input_str == "/ri":
             return cls.RefreshInst
-        
+
         elif input_str == "/rf":
             return cls.RefreshFiles
-        
+
         elif input_str == "/h":
             return cls.Help
-        
+
         elif input_str.startswith("/c"):
             return "Clear"
-        
+
         else:
             return f"{cls.Chat}: {input_str}"
+
 
 async def cli():
     assistant = Assistant(DEFAULT_DIR)
@@ -1296,9 +1452,9 @@ async def cli():
             break
 
         elif cmd.startswith(Cmd.Chat):
-            msg = cmd.split(": ", 1)[1]  
+            msg = cmd.split(": ", 1)[1]
             res = await asst.chat(conv, msg)
-            #print(f"{asst_msg(res)}")
+            # print(f"{asst_msg(res)}")
             asst_msg(res)
 
         elif cmd == Cmd.RefreshAll:
@@ -1326,7 +1482,6 @@ async def cli():
 
 
 
-
  # ==== file path: agent\..\src\utils\cli.py ==== 
 
 import shutil
@@ -1345,11 +1500,13 @@ def asst_msg(content):
     panel = Panel(markdown, title="Buranya", expand=False)
     console.print(panel, style="cyan")
 
+
 def red_text(content):
     console = Console()
     text = Text(content)
     text.stylize("red")
     console.print(text)
+
 
 def green_text(content):
     console = Console()
@@ -1357,11 +1514,13 @@ def green_text(content):
     text.stylize("green")
     console.print(text)
 
+
 def yellow_text(content):
     console = Console()
     text = Text(content)
     text.stylize("yellow")
     console.print(text)
+
 
 def help_menu():
     console = Console()
@@ -1420,18 +1579,36 @@ def help_menu():
     help_message_9 = Text("\n    - '/c' : Clear the screen", style="")
     help_message_10 = Text("\n\nHow can I help you today?", style="bold")
 
-    help_message = help_message_1 + help_message_2 + help_message_3 + help_message_4 + help_message_5 + \
-        help_message_6 + help_message_7 + help_message_8 + help_message_9
+    help_message = (
+        help_message_1
+        + help_message_2
+        + help_message_3
+        + help_message_4
+        + help_message_5
+        + help_message_6
+        + help_message_7
+        + help_message_8
+        + help_message_9
+    )
 
     art_panel = Panel(ascii_art, title="Buranya", expand=False)
 
     if term_width < 80:
-        message_panel = Panel(help_message, title="Message", expand=False, border_style="green")
+        message_panel = Panel(
+            help_message, title="Message", expand=False, border_style="green"
+        )
         console.print(Columns([art_panel, message_panel], expand=True, equal=True))
 
     else:
-        message_panel = Panel(help_message, title="Message", expand=False, border_style="green", width=term_width // 2)
+        message_panel = Panel(
+            help_message,
+            title="Message",
+            expand=False,
+            border_style="green",
+            width=term_width // 2,
+        )
         console.print(Columns([art_panel, message_panel], expand=True))
+
 
 def welcome_message():
     console = Console()
@@ -1474,7 +1651,9 @@ def welcome_message():
 
     """
 
-    welcome_message_1 = Text("Hello! I'm Buranya, your personal assistant.\n", style="bold")
+    welcome_message_1 = Text(
+        "Hello! I'm Buranya, your personal assistant.\n", style="bold"
+    )
     welcome_message_2 = Text("\nI can help you with your daily tasks.", style="")
     welcome_message_3 = Text("\nYou can ask me to do things like:", style="")
     welcome_message_4 = Text("\n    - Send an email", style="")
@@ -1485,17 +1664,36 @@ def welcome_message():
     welcome_message_9 = Text("\n\nFor a list of commands, type '/h'")
     welcome_message_10 = Text("\n\nHow can I help you today?", style="bold")
 
-    welcome_message = welcome_message_1 + welcome_message_2 + welcome_message_3 + welcome_message_4 + \
-        welcome_message_5 + welcome_message_6 + welcome_message_7 + welcome_message_8 + welcome_message_9 + welcome_message_10
+    welcome_message = (
+        welcome_message_1
+        + welcome_message_2
+        + welcome_message_3
+        + welcome_message_4
+        + welcome_message_5
+        + welcome_message_6
+        + welcome_message_7
+        + welcome_message_8
+        + welcome_message_9
+        + welcome_message_10
+    )
     art_panel = Panel(ascii_art, title="Buranya", expand=False)
 
     if term_width < 80:
-        message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green")
+        message_panel = Panel(
+            welcome_message, title="Message", expand=False, border_style="green"
+        )
         console.print(Columns([art_panel, message_panel], expand=True, equal=True))
 
     else:
-        message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green", width=term_width // 2)
+        message_panel = Panel(
+            welcome_message,
+            title="Message",
+            expand=False,
+            border_style="green",
+            width=term_width // 2,
+        )
         console.print(Columns([art_panel, message_panel], expand=True))
+
 
 
  # ==== file path: agent\..\src\utils\database.py ==== 
@@ -1503,6 +1701,7 @@ def welcome_message():
 import sqlite3
 import os
 import datetime
+
 
 def create_or_load_db() -> sqlite3.Connection:
     db_path = r"agent\.agent\persistance\memory.db"
@@ -1512,24 +1711,29 @@ def create_or_load_db() -> sqlite3.Connection:
         os.makedirs(db_dir)
 
     con = sqlite3.connect(db_path)
-    cur = con.cursor()    
-    cur.execute("CREATE TABLE IF NOT EXISTS memory (role TEXT, time TEXT, message TEXT)")
+    cur = con.cursor()
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS memory (role TEXT, time TEXT, message TEXT)"
+    )
     con.commit()
 
     return con
+
 
 def write_to_memory(role, val):
 
     con = create_or_load_db()
     cur = con.cursor()
-    cur.execute("INSERT INTO memory (role, time, message) VALUES (?, ?, ?)", (role, datetime.datetime.now(), val))
+    cur.execute(
+        "INSERT INTO memory (role, time, message) VALUES (?, ?, ?)",
+        (role, datetime.datetime.now(), val),
+    )
     con.commit()
     con.close()
 
 
 
  # ==== file path: agent\..\src\utils\files.py ==== 
-
 
 import tomli
 import asyncio
@@ -1541,13 +1745,16 @@ from typing import TypeVar, List, Optional
 
 from src.utils.database import create_or_load_db
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 def load_from_toml(path: str) -> dict:
     if not os.path.exists(path):
         raise FileNotFoundError(f"File '{path}' not found")
-    
-    with open(path, 'rb') as f:  # TOML files should be opened in binary mode for `tomli`
+
+    with open(
+        path, "rb"
+    ) as f:  # TOML files should be opened in binary mode for `tomli`
         data = tomli.load(f)
 
     return data
@@ -1556,19 +1763,22 @@ def load_from_toml(path: str) -> dict:
 def read_to_string(path: str) -> str:
     if not os.path.exists(path):
         raise FileNotFoundError(f"File '{path}' not found")
-    
-    with open(path, 'r') as f:
+
+    with open(path, "r") as f:
         data = f.read()
 
     return data
 
+
 def load_from_json(file: Path) -> T:
-    with open(file, 'r', encoding='utf-8') as f:
+    with open(file, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
 def load_to_json(file: Path, val: T) -> None:
-    with open(file, 'w', encoding='utf-8') as f:
+    with open(file, "w", encoding="utf-8") as f:
         json.dump(val, f, indent=4)
+
 
 def ensure_dir(dir_path: Path) -> bool:
     if dir_path.is_dir():
@@ -1577,10 +1787,12 @@ def ensure_dir(dir_path: Path) -> bool:
         dir_path.mkdir(parents=True, exist_ok=True)
         return True
 
+
 def base_dir_exclude_globs(directory_path: Path, exclude_patterns=None):
     if exclude_patterns is None:
-        exclude_patterns = ['.git*', 'target*']
+        exclude_patterns = [".git*", "target*"]
     return get_glob_set(directory_path, exclude_patterns)
+
 
 def get_glob_set(directory_path: Path, globs):
     matched_files = []
@@ -1591,17 +1803,18 @@ def get_glob_set(directory_path: Path, globs):
                 matched_files.append(full_path)
     return matched_files
 
+
 def bundle_to_file(files, dst_file):
     try:
-        with open(dst_file, 'w', encoding='utf-8') as writer:
+        with open(dst_file, "w", encoding="utf-8") as writer:
 
             for file_path in files:
                 file_path = Path(file_path)
 
                 if not file_path.is_file():
                     raise FileNotFoundError(f"File not found: {file_path}")
-                
-                with open(file_path, 'r', encoding='utf-8') as reader:
+
+                with open(file_path, "r", encoding="utf-8") as reader:
                     writer.write(f"\n # ==== file path: {file_path} ==== \n\n")
 
                     for line in reader:
@@ -1611,10 +1824,15 @@ def bundle_to_file(files, dst_file):
 
     except Exception as e:
         return f"An error occurred: {e}"
-    
+
     return "Success"
 
-def list_files(dir_path: Path, include_globs: Optional[List[str]] = None, exclude_globs: Optional[List[str]] = None) -> List[Path]:
+
+def list_files(
+    dir_path: Path,
+    include_globs: Optional[List[str]] = None,
+    exclude_globs: Optional[List[str]] = None,
+) -> List[Path]:
     def is_match(path: Path, patterns: Optional[List[str]]) -> bool:
         if patterns is None:
             return True
@@ -1640,8 +1858,9 @@ def list_files(dir_path: Path, include_globs: Optional[List[str]] = None, exclud
             # Include files based on include_globs
             if is_match(path, include_globs):
                 matched_files.append(path)
-                
+
     return matched_files
+
 
 def db_to_json():
 
@@ -1664,10 +1883,12 @@ def db_to_json():
     with open(r"agent\.agent\persistance\memory.json", "w") as f:
         json.dump(data, f, indent=4)
 
+
 def find(name, path=os.path.dirname(os.path.abspath(__file__))):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
+
 
 async def get_file_hashmap(client, asst_id: str):
     assts = client.beta.assistants
@@ -1675,9 +1896,14 @@ async def get_file_hashmap(client, asst_id: str):
     asst_file_ids = {file.id for file in assistant_files}
 
     org_files = client.files.list().data
-    file_id_by_name = {org_file.filename: org_file.id for org_file in org_files if org_file.id in asst_file_ids}
-    
+    file_id_by_name = {
+        org_file.filename: org_file.id
+        for org_file in org_files
+        if org_file.id in asst_file_ids
+    }
+
     return file_id_by_name
+
 
 
  # ==== file path: agent\..\src\utils\tools.py ==== 
@@ -1702,42 +1928,45 @@ def get_context(string: str, tokens: list[str]):
         result = " ".join(res)
 
         return result
-    
+
     except:
         return ""
 
+
 def html_to_text(html: str, ignore_script_and_style: bool = True):
     soup = BeautifulSoup(html, "html.parser")
-    
+
     # Optional: Remove script and style elements
     if ignore_script_and_style:
-        for script_or_style in soup(['script', 'style']):
+        for script_or_style in soup(["script", "style"]):
             script_or_style.decompose()
-    
+
     # Get text
     text = soup.get_text()
-    
+
     # Break into lines and remove leading and trailing space on each
     lines = (line.strip() for line in text.splitlines())
     # Break multi-headlines into a line each
     chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
     # Drop blank lines
-    text = '\n'.join(chunk for chunk in chunks if chunk)
-    
+    text = "\n".join(chunk for chunk in chunks if chunk)
+
     return text
+
 
 def web_parser(url: str):
     response = requests.get(url)
     # Check if the request was successful
     if response.status_code == 200:
         # Parse the HTML content
-        soup = BeautifulSoup(response.text, 'lxml')
-        
+        soup = BeautifulSoup(response.text, "lxml")
+
         # Extract and print the text in a readable form
         # This removes HTML tags and leaves plain text
         return soup
     else:
         return f"Failed to retrieve the webpage. Status code: {response.status_code}"
+
 
 
  # ==== file path: agent\..\src\utils\__init__.py ==== 

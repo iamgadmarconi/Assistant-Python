@@ -13,11 +13,11 @@ from src.agent.agent import Assistant
 DEFAULT_DIR = "agent"
 
 
-class FocusableContainer(Container, can_focus=True):  
+class FocusableContainer(Container, can_focus=True):
     """Focusable container widget."""
 
 
-class MessageBox(Widget, can_focus=True):  
+class MessageBox(Widget, can_focus=True):
     """Box widget for the message."""
 
     def __init__(self, text: str, role: str) -> None:

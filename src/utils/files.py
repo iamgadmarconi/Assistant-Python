@@ -1,4 +1,3 @@
-
 import tomli
 import asyncio
 import os
@@ -9,13 +8,16 @@ from typing import TypeVar, List, Optional
 
 from src.utils.database import create_or_load_db
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 def load_from_toml(path: str) -> dict:
     if not os.path.exists(path):
         raise FileNotFoundError(f"File '{path}' not found")
-    
-    with open(path, 'rb') as f:  # TOML files should be opened in binary mode for `tomli`
+
+    with open(
+        path, "rb"
+    ) as f:  # TOML files should be opened in binary mode for `tomli`
         data = tomli.load(f)
 
     return data
@@ -24,19 +26,22 @@ def load_from_toml(path: str) -> dict:
 def read_to_string(path: str) -> str:
     if not os.path.exists(path):
         raise FileNotFoundError(f"File '{path}' not found")
-    
-    with open(path, 'r') as f:
+
+    with open(path, "r") as f:
         data = f.read()
 
     return data
 
+
 def load_from_json(file: Path) -> T:
-    with open(file, 'r', encoding='utf-8') as f:
+    with open(file, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
 def load_to_json(file: Path, val: T) -> None:
-    with open(file, 'w', encoding='utf-8') as f:
+    with open(file, "w", encoding="utf-8") as f:
         json.dump(val, f, indent=4)
+
 
 def ensure_dir(dir_path: Path) -> bool:
     if dir_path.is_dir():
@@ -45,10 +50,12 @@ def ensure_dir(dir_path: Path) -> bool:
         dir_path.mkdir(parents=True, exist_ok=True)
         return True
 
+
 def base_dir_exclude_globs(directory_path: Path, exclude_patterns=None):
     if exclude_patterns is None:
-        exclude_patterns = ['.git*', 'target*']
+        exclude_patterns = [".git*", "target*"]
     return get_glob_set(directory_path, exclude_patterns)
+
 
 def get_glob_set(directory_path: Path, globs):
     matched_files = []
@@ -59,17 +66,18 @@ def get_glob_set(directory_path: Path, globs):
                 matched_files.append(full_path)
     return matched_files
 
+
 def bundle_to_file(files, dst_file):
     try:
-        with open(dst_file, 'w', encoding='utf-8') as writer:
+        with open(dst_file, "w", encoding="utf-8") as writer:
 
             for file_path in files:
                 file_path = Path(file_path)
 
                 if not file_path.is_file():
                     raise FileNotFoundError(f"File not found: {file_path}")
-                
-                with open(file_path, 'r', encoding='utf-8') as reader:
+
+                with open(file_path, "r", encoding="utf-8") as reader:
                     writer.write(f"\n # ==== file path: {file_path} ==== \n\n")
 
                     for line in reader:
@@ -79,10 +87,15 @@ def bundle_to_file(files, dst_file):
 
     except Exception as e:
         return f"An error occurred: {e}"
-    
+
     return "Success"
 
-def list_files(dir_path: Path, include_globs: Optional[List[str]] = None, exclude_globs: Optional[List[str]] = None) -> List[Path]:
+
+def list_files(
+    dir_path: Path,
+    include_globs: Optional[List[str]] = None,
+    exclude_globs: Optional[List[str]] = None,
+) -> List[Path]:
     def is_match(path: Path, patterns: Optional[List[str]]) -> bool:
         if patterns is None:
             return True
@@ -108,8 +121,9 @@ def list_files(dir_path: Path, include_globs: Optional[List[str]] = None, exclud
             # Include files based on include_globs
             if is_match(path, include_globs):
                 matched_files.append(path)
-                
+
     return matched_files
+
 
 def db_to_json():
 
@@ -132,10 +146,12 @@ def db_to_json():
     with open(r"agent\.agent\persistance\memory.json", "w") as f:
         json.dump(data, f, indent=4)
 
+
 def find(name, path=os.path.dirname(os.path.abspath(__file__))):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
+
 
 async def get_file_hashmap(client, asst_id: str):
     assts = client.beta.assistants
@@ -143,6 +159,10 @@ async def get_file_hashmap(client, asst_id: str):
     asst_file_ids = {file.id for file in assistant_files}
 
     org_files = client.files.list().data
-    file_id_by_name = {org_file.filename: org_file.id for org_file in org_files if org_file.id in asst_file_ids}
-    
+    file_id_by_name = {
+        org_file.filename: org_file.id
+        for org_file in org_files
+        if org_file.id in asst_file_ids
+    }
+
     return file_id_by_name

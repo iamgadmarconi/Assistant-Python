@@ -14,11 +14,13 @@ def asst_msg(content):
     panel = Panel(markdown, title="Buranya", expand=False)
     console.print(panel, style="cyan")
 
+
 def red_text(content):
     console = Console()
     text = Text(content)
     text.stylize("red")
     console.print(text)
+
 
 def green_text(content):
     console = Console()
@@ -26,11 +28,13 @@ def green_text(content):
     text.stylize("green")
     console.print(text)
 
+
 def yellow_text(content):
     console = Console()
     text = Text(content)
     text.stylize("yellow")
     console.print(text)
+
 
 def help_menu():
     console = Console()
@@ -89,18 +93,36 @@ def help_menu():
     help_message_9 = Text("\n    - '/c' : Clear the screen", style="")
     help_message_10 = Text("\n\nHow can I help you today?", style="bold")
 
-    help_message = help_message_1 + help_message_2 + help_message_3 + help_message_4 + help_message_5 + \
-        help_message_6 + help_message_7 + help_message_8 + help_message_9
+    help_message = (
+        help_message_1
+        + help_message_2
+        + help_message_3
+        + help_message_4
+        + help_message_5
+        + help_message_6
+        + help_message_7
+        + help_message_8
+        + help_message_9
+    )
 
     art_panel = Panel(ascii_art, title="Buranya", expand=False)
 
     if term_width < 80:
-        message_panel = Panel(help_message, title="Message", expand=False, border_style="green")
+        message_panel = Panel(
+            help_message, title="Message", expand=False, border_style="green"
+        )
         console.print(Columns([art_panel, message_panel], expand=True, equal=True))
 
     else:
-        message_panel = Panel(help_message, title="Message", expand=False, border_style="green", width=term_width // 2)
+        message_panel = Panel(
+            help_message,
+            title="Message",
+            expand=False,
+            border_style="green",
+            width=term_width // 2,
+        )
         console.print(Columns([art_panel, message_panel], expand=True))
+
 
 def welcome_message():
     console = Console()
@@ -143,7 +165,9 @@ def welcome_message():
 
     """
 
-    welcome_message_1 = Text("Hello! I'm Buranya, your personal assistant.\n", style="bold")
+    welcome_message_1 = Text(
+        "Hello! I'm Buranya, your personal assistant.\n", style="bold"
+    )
     welcome_message_2 = Text("\nI can help you with your daily tasks.", style="")
     welcome_message_3 = Text("\nYou can ask me to do things like:", style="")
     welcome_message_4 = Text("\n    - Send an email", style="")
@@ -154,14 +178,32 @@ def welcome_message():
     welcome_message_9 = Text("\n\nFor a list of commands, type '/h'")
     welcome_message_10 = Text("\n\nHow can I help you today?", style="bold")
 
-    welcome_message = welcome_message_1 + welcome_message_2 + welcome_message_3 + welcome_message_4 + \
-        welcome_message_5 + welcome_message_6 + welcome_message_7 + welcome_message_8 + welcome_message_9 + welcome_message_10
+    welcome_message = (
+        welcome_message_1
+        + welcome_message_2
+        + welcome_message_3
+        + welcome_message_4
+        + welcome_message_5
+        + welcome_message_6
+        + welcome_message_7
+        + welcome_message_8
+        + welcome_message_9
+        + welcome_message_10
+    )
     art_panel = Panel(ascii_art, title="Buranya", expand=False)
 
     if term_width < 80:
-        message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green")
+        message_panel = Panel(
+            welcome_message, title="Message", expand=False, border_style="green"
+        )
         console.print(Columns([art_panel, message_panel], expand=True, equal=True))
 
     else:
-        message_panel = Panel(welcome_message, title="Message", expand=False, border_style="green", width=term_width // 2)
+        message_panel = Panel(
+            welcome_message,
+            title="Message",
+            expand=False,
+            border_style="green",
+            width=term_width // 2,
+        )
         console.print(Columns([art_panel, message_panel], expand=True))

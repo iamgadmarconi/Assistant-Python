@@ -5,9 +5,24 @@ from aiofiles import open as aio_open
 from pathlib import Path
 from openai import OpenAI
 
-from src.utils.files import load_from_toml, list_files, bundle_to_file, load_from_json, load_to_json, ensure_dir, db_to_json, find
+from src.utils.files import (
+    load_from_toml,
+    list_files,
+    bundle_to_file,
+    load_from_json,
+    load_to_json,
+    ensure_dir,
+    db_to_json,
+)
 from src.utils.cli import green_text, red_text, yellow_text
-from src.ais.assistant import load_or_create_assistant, upload_instruction, upload_file_by_name, get_thread, create_thread, run_thread_message
+from src.ais.assistant import (
+    load_or_create_assistant,
+    upload_instruction,
+    upload_file_by_name,
+    get_thread,
+    create_thread,
+    run_thread_message,
+)
 
 
 class Assistant:
@@ -24,7 +39,12 @@ class Assistant:
         db_to_json()
 
         try:
-            await upload_file_by_name(self.oac, asst_id=self.asst_id, filename=Path(r"agent\.agent\persistance\memory.json"), force=True)
+            await upload_file_by_name(
+                self.oac,
+                asst_id=self.asst_id,
+                filename=Path(r"agent\.agent\persistance\memory.json"),
+                force=True,
+            )
         except:
             # print("No previous memory")
             yellow_text("No previous memory")
@@ -37,20 +57,20 @@ class Assistant:
     async def upload_instructions(self):
         file_path = os.path.join(self.dir, self.config["instructions_file"])
         if os.path.exists(file_path):
-            async with aio_open(file_path, 'r') as file:
+            async with aio_open(file_path, "r") as file:
                 inst_content = await file.read()
-            await upload_instruction(self.oac, self.config, self.asst_id, inst_content)  
+            await upload_instruction(self.oac, self.config, self.asst_id, inst_content)
             return True
         else:
             return False
-        
+
     async def upload_files(self, recreate: bool) -> int:
         num_uploaded = 0
 
         data_files_dir = self.data_files_dir()
 
         exclude_element = f"*{self.asst_id}*"
-        
+
         for file in list_files(data_files_dir, ["*.rs", "*.md"], [exclude_element]):
 
             if ".agent" not in str(file):
@@ -60,19 +80,18 @@ class Assistant:
 
         for bundle in self.config["file_bundles"]:
             # print(f"\n debug -- bundle: {bundle}\n")
-            src_dir = Path(self.dir).joinpath(bundle['src_dir'])
+            src_dir = Path(self.dir).joinpath(bundle["src_dir"])
             # print(f"\n debug -- src_dir: {src_dir}\n")
             if src_dir.is_dir():
-                src_globs = bundle['src_globs']
+                src_globs = bundle["src_globs"]
 
                 files = list_files(src_dir, src_globs, None)
 
                 # print(f"\n debug -- files: {files}\n")
 
                 if files:
-                    
 
-                    if bundle['bundle_name'] == "source-code":
+                    if bundle["bundle_name"] == "source-code":
                         bundle_file_name = f"{self.name}-{bundle['bundle_name']}-{self.asst_id}.{bundle['dst_ext']}"
                         bundle_file = self.data_files_dir().joinpath(bundle_file_name)
                         force_reupload = recreate or not bundle_file.exists()
@@ -80,22 +99,26 @@ class Assistant:
                         # Assuming bundle_to_file bundles files into the specified bundle_file
                         bundle_to_file(files, bundle_file)
                         # print(f"\n debug -- bundle_file: {type(bundle_file)}\n")
-                        _, uploaded = await upload_file_by_name(self.oac, self.asst_id, bundle_file, force_reupload)
+                        _, uploaded = await upload_file_by_name(
+                            self.oac, self.asst_id, bundle_file, force_reupload
+                        )
 
                         if uploaded:
                             num_uploaded += 1
-                    else:  
+                    else:
                         for file in files:
                             # print(f"\n debug -- type: {type(file)}\n")
                             # print(f"\n debug -- file: {file}\n")
                             # print(f"\n debug -- path str: {str(file.resolve())}\n")
                             if not str(file.name) == "conv.json":
-                                _, uploaded = await upload_file_by_name(self.oac, self.asst_id, file.resolve(), False)
+                                _, uploaded = await upload_file_by_name(
+                                    self.oac, self.asst_id, file.resolve(), False
+                                )
                                 if uploaded:
                                     num_uploaded += 1
 
         return num_uploaded
-    
+
     async def load_or_create_conv(self, recreate: bool):
         conv_file = Path(self.data_dir()).joinpath("conv.json")
 
@@ -104,23 +127,23 @@ class Assistant:
 
         try:
             conv = load_from_json(conv_file)
-            await get_thread(self.oac, conv['thread_id'])
-            # print(f"Conversation loaded")  
+            await get_thread(self.oac, conv["thread_id"])
+            # print(f"Conversation loaded")
             green_text(f"Conversation loaded")
 
         except (FileNotFoundError, json.JSONDecodeError):
             thread_id = await create_thread(self.oac)
-            # print(f"Conversation created")  
+            # print(f"Conversation created")
             green_text(f"Conversation created")
-            conv = {'thread_id': thread_id}
+            conv = {"thread_id": thread_id}
             load_to_json(conv_file, conv)
 
         return conv
-    
+
     async def chat(self, conv, msg: str) -> str:
         res = await run_thread_message(self.oac, self.asst_id, conv["thread_id"], msg)
         return res
-    
+
     def data_dir(self) -> Path:
         """Returns the path to the data directory, ensuring its existence."""
         data_dir = Path(self.dir + r"\.agent")

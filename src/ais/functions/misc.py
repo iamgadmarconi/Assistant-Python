@@ -14,13 +14,15 @@ from src.utils.tools import get_context
 def getDate():
     return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
+
 def getLocation():
-    g = geocoder.ip('me').city
+    g = geocoder.ip("me").city
     geolocator = Nominatim(user_agent="User")
     location = geolocator.geocode(g)
     return location.address
 
-def getWeather(msg: Optional[str]=None):
+
+def getWeather(msg: Optional[str] = None):
     # print(f"Debug--- Called getWeather with parameters: {msg}")
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
@@ -28,7 +30,7 @@ def getWeather(msg: Optional[str]=None):
     location = get_context(msg, ["GPE"])
 
     if not location:
-        g = geocoder.ip('me').city
+        g = geocoder.ip("me").city
         geolocator = Nominatim(user_agent="User")
         location = geolocator.geocode(g)
         lat, lon = location.latitude, location.longitude
@@ -46,7 +48,7 @@ def getWeather(msg: Optional[str]=None):
 
     except:
         time = datetime.now().timestamp()
-        
+
     url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
 
     response = requests.get(url)
@@ -55,18 +57,20 @@ def getWeather(msg: Optional[str]=None):
         # Successful API call
         data = response.json()
 
-        match = min(data['list'], key=lambda x: abs(x['dt'] - int(time)))
-        main = match['main']
+        match = min(data["list"], key=lambda x: abs(x["dt"] - int(time)))
+        main = match["main"]
 
-        temperature = main['temp']
-        humidity = main['humidity']
-        weather_description = match['weather'][0]['description']
-        
-        weather_report = (f"Location: {location}\n"
-                          f"Time: {datetime.fromtimestamp(time)}\n"
-                          f"Temperature: {temperature - 273.15}°C\n"
-                          f"Humidity: {humidity}%\n"
-                          f"Description: {weather_description.capitalize()}")
+        temperature = main["temp"]
+        humidity = main["humidity"]
+        weather_description = match["weather"][0]["description"]
+
+        weather_report = (
+            f"Location: {location}\n"
+            f"Time: {datetime.fromtimestamp(time)}\n"
+            f"Temperature: {temperature - 273.15}°C\n"
+            f"Humidity: {humidity}%\n"
+            f"Description: {weather_description.capitalize()}"
+        )
         return weather_report
     else:
         # API call failed this usually happens if the API key is invalid or not provided

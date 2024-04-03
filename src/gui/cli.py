@@ -8,6 +8,7 @@ from src.utils.cli import asst_msg, help_menu, welcome_message
 
 DEFAULT_DIR = "agent"
 
+
 class Cmd:
 
     Quit = "Quit"
@@ -28,27 +29,28 @@ class Cmd:
 
         if input_str == "/q":
             return cls.Quit
-        
+
         elif input_str in ["/r", "/ra"]:
             return cls.RefreshAll
-        
+
         elif input_str == "/rc":
             return cls.RefreshConv
-        
+
         elif input_str == "/ri":
             return cls.RefreshInst
-        
+
         elif input_str == "/rf":
             return cls.RefreshFiles
-        
+
         elif input_str == "/h":
             return cls.Help
-        
+
         elif input_str.startswith("/c"):
             return "Clear"
-        
+
         else:
             return f"{cls.Chat}: {input_str}"
+
 
 async def cli():
     assistant = Assistant(DEFAULT_DIR)
@@ -66,9 +68,9 @@ async def cli():
             break
 
         elif cmd.startswith(Cmd.Chat):
-            msg = cmd.split(": ", 1)[1]  
+            msg = cmd.split(": ", 1)[1]
             res = await asst.chat(conv, msg)
-            #print(f"{asst_msg(res)}")
+            # print(f"{asst_msg(res)}")
             asst_msg(res)
 
         elif cmd == Cmd.RefreshAll:
@@ -93,4 +95,3 @@ async def cli():
         elif cmd == Cmd.Clear:
             print("\033[H\033[J")
             welcome_message()
-
