@@ -26,11 +26,74 @@ from src.ais.assistant import (
 
 
 class Assistant:
+    """
+    The Assistant class is used to represent an Assistant object.
 
-    def __init__(self, directory) -> None:
+    Attributes
+    ----------
+        dir: str
+            The directory of the Assistant
+        config: dict
+            The configuration of the Assistant
+        oac: OpenAI
+            The OpenAI object
+        asst_id: str
+            The Assistant ID
+        name: str
+            The name of the Assistant
+
+    Methods
+    -------
+        init_from_dir(recreate: bool = False)
+            Initialize an agent from a directory
+        upload_instructions()
+            Upload the instructions file to the assignment
+        upload_files(recreate: bool)
+            Upload the files specified in the config file to the Assistant
+        load_or_create_conv(recreate: bool)
+            Load a conversation from the conv.json file, or create one if it doesn't exist
+        chat(conv: dict, msg: str)
+            Chat with the Assistant
+        data_dir()
+            Get the path to the data directory
+        data_files_dir()
+            Get the path to the data files directory
+    """
+
+    def __init__(self, directory: str) -> None:
+        """
+        Initialize the Assistant object.
+
+        Parameters
+        ----------
+            self: Assistant
+                Represent the instance of the class
+            directory: str
+                Set the value of self
+
+        Returns
+        -------
+
+            None
+        """
         self.dir = directory
 
     async def init_from_dir(self, recreate: bool = False):
+        """
+        The init_from_dir function is used to initialize an agent from a directory.
+
+        Parameters
+        ----------
+            self
+                Refer to the current object
+            recreate: bool
+                Determine whether the agent should be recreated or not
+
+        Returns
+        -------
+
+            The agent object
+        """
         self.config = load_from_toml(f"{self.dir}/agent.toml")
         self.oac = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         self.asst_id = await load_or_create_assistant(self.oac, self.config, recreate)
@@ -42,7 +105,7 @@ class Assistant:
             await upload_file_by_name(
                 self.oac,
                 asst_id=self.asst_id,
-                filename=Path(r"agent\.agent\persistance\memory.json"),
+                filename=str(Path(r"agent\.agent\persistance\memory.json")),
                 force=True,
             )
         except:
@@ -55,6 +118,19 @@ class Assistant:
         return self
 
     async def upload_instructions(self):
+        """
+        The upload_instructions function uploads the instructions file to the assignment.
+
+        Parameters
+        ----------
+            self: Assistant
+                Access the instance of the class
+
+        Returns
+        -------
+
+            True if the file exists, and false otherwise
+        """
         file_path = os.path.join(self.dir, self.config["instructions_file"])
         if os.path.exists(file_path):
             async with aio_open(file_path, "r") as file:
@@ -65,6 +141,21 @@ class Assistant:
             return False
 
     async def upload_files(self, recreate: bool) -> int:
+        """
+        The upload_files function uploads the files specified in the config file to the Assistant.
+
+        Parameters
+        ----------
+            self: Assistant
+                Refer to the object that is calling the method
+            recreate: bool
+                Determine if the file should be reuploaded
+
+        Returns
+        -------
+
+            The number of files uploaded to the Assistant
+        """
         num_uploaded = 0
 
         data_files_dir = self.data_files_dir()
@@ -96,30 +187,42 @@ class Assistant:
                         bundle_file = self.data_files_dir().joinpath(bundle_file_name)
                         force_reupload = recreate or not bundle_file.exists()
 
-                        # Assuming bundle_to_file bundles files into the specified bundle_file
                         bundle_to_file(files, bundle_file)
                         # print(f"\n debug -- bundle_file: {type(bundle_file)}\n")
                         _, uploaded = await upload_file_by_name(
-                            self.oac, self.asst_id, bundle_file, force_reupload
+                            self.oac, self.asst_id, str(bundle_file), force_reupload
                         )
 
                         if uploaded:
                             num_uploaded += 1
                     else:
                         for file in files:
-                            # print(f"\n debug -- type: {type(file)}\n")
-                            # print(f"\n debug -- file: {file}\n")
-                            # print(f"\n debug -- path str: {str(file.resolve())}\n")
                             if not str(file.name) == "conv.json":
                                 _, uploaded = await upload_file_by_name(
-                                    self.oac, self.asst_id, file.resolve(), False
+                                    self.oac, self.asst_id, str(file.resolve()), False
                                 )
                                 if uploaded:
                                     num_uploaded += 1
 
         return num_uploaded
 
-    async def load_or_create_conv(self, recreate: bool):
+    async def load_or_create_conv(self, recreate: bool) -> dict:
+        """
+        The load_or_create_conv function is used to load a conversation from the conv.json file, or create one if it doesn't exist.
+        The function takes in a boolean value called recreate which determines whether or not the conv.json file should be deleted and recreated.
+
+        Parameters
+        ----------
+            self: Assistant
+                Refer to the class itself
+            recreate: bool
+                Determine whether to recreate the conversation or not
+
+        Returns
+        -------
+
+            A dictionary with the key 'thread_id' and a value of thread_id
+        """
         conv_file = Path(self.data_dir()).joinpath("conv.json")
 
         if recreate and conv_file.exists():
@@ -140,18 +243,60 @@ class Assistant:
 
         return conv
 
-    async def chat(self, conv, msg: str) -> str:
+    async def chat(self, conv: dict, msg: str) -> str:
+        """
+        The chat function is a coroutine that takes in a conversation and message,
+        and returns the response from the Assistant.
+
+        Parameters
+        ----------
+            self: Assistant
+                Access the attributes and methods of the class
+            conv: dict:
+                Get the thread_id of the conversation
+            msg: str
+                Pass the message to be sent
+
+        Returns
+        -------
+
+            A string containing the response from the Assistant
+        """
         res = await run_thread_message(self.oac, self.asst_id, conv["thread_id"], msg)
         return res
 
     def data_dir(self) -> Path:
-        """Returns the path to the data directory, ensuring its existence."""
+        """
+        The data_dir function returns the path to the data directory, ensuring its existence.
+
+        Parameters
+        ----------
+            self: Assistant
+                Represent the instance of the class
+
+        Returns
+        -------
+
+            The path to the data directory, ensuring its existence
+        """
         data_dir = Path(self.dir + r"\.agent")
         ensure_dir(data_dir)
         return data_dir
 
     def data_files_dir(self) -> Path:
-        """Returns the path to the data files directory within the data directory, ensuring its existence."""
+        """
+        The data_files_dir function returns the path to the data files directory within the data directory, ensuring its existence.
+
+        Parameters
+        ----------
+            self: Assistant
+                Represent the instance of the class
+
+        Returns
+        -------
+
+            The path to the data files directory within the data directory, ensuring its existence
+        """
         files_dir = self.data_dir().joinpath("files")
         ensure_dir(files_dir)
         return files_dir

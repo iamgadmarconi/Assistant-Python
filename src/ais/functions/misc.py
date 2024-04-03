@@ -11,40 +11,87 @@ from geotext import GeoText
 from src.utils.tools import get_context
 
 
-def getDate():
+def getDate() -> str:
+    """
+    The getDate function returns the current date and time in a string format.
+        The function is called by the main program to print out the current date and time.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+        The current date and time in the format dd/mm/yyyy, hh:mm:ss
+    """
     return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
 
-def getLocation():
+def getLocation() -> str:
+    """
+    The getLocation function uses the geocoder library to get the user's location.
+        It then uses that location to find a more specific address using Nominatim,
+        which is a Python wrapper for OpenStreetMap's API.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+        The city name and country code
+    """
     g = geocoder.ip("me").city
     geolocator = Nominatim(user_agent="User")
     location = geolocator.geocode(g)
-    return location.address
+    if location is not None:
+        return location.address  # type: ignore
+    else:
+        return "Location not found"
 
 
-def getWeather(msg: Optional[str] = None):
-    # print(f"Debug--- Called getWeather with parameters: {msg}")
+def getWeather(msg: Optional[str] = None) -> str:
+    """
+    The getWeather function takes in a message and returns the weather report for that location.
+    If no location is provided, it will return the weather report for your current IP address.
+
+    Parameters
+    ----------
+        msg: Optional[str]
+            Pass in the message that is to be processed
+
+    Returns
+    -------
+
+        A string containing the weather report for a given location
+    """
     api_key = os.environ.get("OPENWEATHER_API_KEY")
 
-    time = get_context(msg, ["TIME", "DATE"])
-    location = get_context(msg, ["GPE"])
+    time = get_context(msg, ["TIME", "DATE"])  # type: ignore
+    location = get_context(msg, ["GPE"])  # type: ignore
 
     if not location:
         g = geocoder.ip("me").city
         geolocator = Nominatim(user_agent="User")
         location = geolocator.geocode(g)
-        lat, lon = location.latitude, location.longitude
+        if location:
+            lat, lon = location.latitude, location.longitude  # type: ignore
+        else:  # If location is not found
+            return "Location not found"
 
     else:
         location = GeoText(location).cities
 
         geolocator = Nominatim(user_agent="User")
         location = geolocator.geocode(location[0])
-        lat = location.latitude
-        lon = location.longitude
+        if location:
+            lat = location.latitude # type: ignore
+            lon = location.longitude # type: ignore
+        else:
+            return "Location not found"
 
     try:
-        time = dateparser.parse(time).timestamp()
+        time = dateparser.parse(time).timestamp() # type: ignore
 
     except:
         time = datetime.now().timestamp()

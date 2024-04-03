@@ -150,4 +150,4 @@ memory.json
 memory.db
 *.db
 .env
-.env
+.vscode

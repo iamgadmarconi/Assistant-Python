@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def get_context(string: str, tokens: list[str]):
+def get_context(string: str, tokens: list[str]) -> str:
     if not set(tokens).issubset({"TIME", "DATE", "GPE"}):
         raise ValueError("Invalid token; must be one of 'TIME', 'DATE', or 'GPE'")
 
@@ -23,7 +23,7 @@ def get_context(string: str, tokens: list[str]):
         return ""
 
 
-def html_to_text(html: str, ignore_script_and_style: bool = True):
+def html_to_text(html: str, ignore_script_and_style: bool = True) -> str:
     soup = BeautifulSoup(html, "html.parser")
 
     # Optional: Remove script and style elements
