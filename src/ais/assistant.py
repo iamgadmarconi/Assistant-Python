@@ -5,7 +5,7 @@ import os
 import re
 import base64
 
-from openai import NotFoundError
+from openai import NotFoundError, OpenAI
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from inspect import signature, Parameter
 
@@ -36,7 +36,23 @@ from src.ais.functions.web import (
 )
 
 
-async def create(client, config):
+
+async def create(client: OpenAI, config: dict):
+    """
+    The create function creates a new assistant.
+
+    Parameters
+    ----------
+        client: OpenAIClient
+            Access the watson assistant service
+        config
+            Pass the assistant name, model and tools
+    
+    Returns
+    -------
+    
+        An assistant object
+    """
     assistant = client.beta.assistants.create(
         name=config["name"],
         model=config["model"],
@@ -46,7 +62,7 @@ async def create(client, config):
     return assistant
 
 
-async def load_or_create_assistant(client, config, recreate: bool = False):
+async def load_or_create_assistant(client: OpenAI, config: dict, recreate: bool = False) -> str:
     asst_obj = await first_by_name(client, config["name"])
 
     asst_id = asst_obj.id if asst_obj is not None else None

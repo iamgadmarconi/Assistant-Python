@@ -44,15 +44,12 @@ def html_to_text(html: str, ignore_script_and_style: bool = True) -> str:
     return text
 
 
-def web_parser(url: str):
+def web_parser(url: str) -> BeautifulSoup:
     response = requests.get(url)
-    # Check if the request was successful
-    if response.status_code == 200:
-        # Parse the HTML content
-        soup = BeautifulSoup(response.text, "lxml")
 
-        # Extract and print the text in a readable form
-        # This removes HTML tags and leaves plain text
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, "lxml")
         return soup
+
     else:
-        return f"Failed to retrieve the webpage. Status code: {response.status_code}"
+        raise ValueError(f"Error: {response.status_code}")
