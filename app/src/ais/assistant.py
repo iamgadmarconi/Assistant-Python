@@ -132,15 +132,17 @@ async def delete(client, asst_id: str, wipe=True):
                 os.remove(path)
 
     try:
-        if os.path.exists(find("memory.json", "agent")):
-            os.remove(find("memory.json", "agent"))
+        if os.path.exists(find("memory.json", r"app/agent")):
+            os.remove(find("memory.json", r"app/agent"))
+            yellow_text("Wiping memory...")
     except:
         pass
 
     try:
         if wipe:
-            if os.path.exists(find("memory.db", "agent")):
-                os.remove(find("memory.db", "agent"))
+            if os.path.exists(find("memory.db", r"app/agent")):
+                os.remove(find("memory.db", r"app/agent"))
+                green_text("Memory wiped")
     except:
         pass
 

@@ -24,7 +24,7 @@ async def findFile(client, asst_id, filename: str) -> str:
 
         The file_id of the file with name filename
     """
-    print(f"Debug--- Called findFile with parameters: {filename}")
+    # print(f"Debug--- Called findFile with parameters: {filename}")
 
     file_id_by_name = await get_file_hashmap(client, asst_id)
 

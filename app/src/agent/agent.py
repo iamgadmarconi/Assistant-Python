@@ -94,7 +94,7 @@ class Assistant:
 
             The agent object
         """
-        self.config = load_from_toml(f"{self.dir}/agent.toml")
+        self.config = load_from_toml(f"app/{self.dir}/agent.toml")
         self.oac = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         self.asst_id = await load_or_create_assistant(self.oac, self.config, recreate)
         self.name = self.config["name"]
@@ -105,7 +105,7 @@ class Assistant:
             await upload_file_by_name(
                 self.oac,
                 asst_id=self.asst_id,
-                filename=str(Path(r"agent\.agent\persistance\memory.json")),
+                filename=str(Path(r"app\agent\.agent\persistance\memory.json")),
                 force=True,
             )
         except:
@@ -131,7 +131,7 @@ class Assistant:
 
             True if the file exists, and false otherwise
         """
-        file_path = os.path.join(self.dir, self.config["instructions_file"])
+        file_path = os.path.join(f'app/{self.dir}', self.config["instructions_file"])
         if os.path.exists(file_path):
             async with aio_open(file_path, "r") as file:
                 inst_content = await file.read()
@@ -171,7 +171,7 @@ class Assistant:
 
         for bundle in self.config["file_bundles"]:
             # print(f"\n debug -- bundle: {bundle}\n")
-            src_dir = Path(self.dir).joinpath(bundle["src_dir"])
+            src_dir = Path(f'app/{self.dir}').joinpath(bundle["src_dir"])
             # print(f"\n debug -- src_dir: {src_dir}\n")
             if src_dir.is_dir():
                 src_globs = bundle["src_globs"]
