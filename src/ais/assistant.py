@@ -390,7 +390,7 @@ async def get_thread_message(client, thread_id: str):
         raise ValueError(f"An error occurred: {str(e)}")
 
 
-async def upload_file_by_name(client, asst_id: str, filename: str, force: bool = False):
+async def upload_file_by_name(client, asst_id: str, filename, force: bool = False):
     assts = client.beta.assistants
     assistant_files = assts.files
 

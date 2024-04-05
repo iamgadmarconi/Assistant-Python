@@ -190,7 +190,7 @@ class Assistant:
                         bundle_to_file(files, bundle_file)
                         # print(f"\n debug -- bundle_file: {type(bundle_file)}\n")
                         _, uploaded = await upload_file_by_name(
-                            self.oac, self.asst_id, str(bundle_file), force_reupload
+                            self.oac, self.asst_id, bundle_file, force_reupload
                         )
 
                         if uploaded:
@@ -199,7 +199,7 @@ class Assistant:
                         for file in files:
                             if not str(file.name) == "conv.json":
                                 _, uploaded = await upload_file_by_name(
-                                    self.oac, self.asst_id, str(file.resolve()), False
+                                    self.oac, self.asst_id, file.resolve(), False
                                 )
                                 if uploaded:
                                     num_uploaded += 1
