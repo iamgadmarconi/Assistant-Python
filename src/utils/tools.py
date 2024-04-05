@@ -13,7 +13,6 @@ from bs4 import BeautifulSoup
 
 
 OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY")
-USER_AGENT = "User"
 
 
 def get_context(string: str, tokens: list[str]) -> str:

@@ -12,6 +12,8 @@ from src.utils.tools import (
     get_context_from_message,
 )
 
+USER_AGENT = "User"
+
 
 def getDate() -> str:
     """
