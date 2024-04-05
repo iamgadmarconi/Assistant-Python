@@ -1,14 +1,16 @@
-import requests
-import os
-import dateparser
 import geocoder
 
 from geopy.geocoders import Nominatim
 from typing import Optional
 from datetime import datetime
-from geotext import GeoText
 
-from src.utils.tools import get_context
+
+from src.utils.tools import (
+    fetch_weather_report,
+    get_current_time,
+    get_lat_lon_from_location,
+    get_context_from_message,
+)
 
 
 def getDate() -> str:
@@ -50,75 +52,25 @@ def getLocation() -> str:
         return "Location not found"
 
 
-def getWeather(msg: Optional[str] = None) -> str:
+def getWeather(location_message: Optional[str] = None) -> str:
     """
-    The getWeather function takes in a message and returns the weather report for that location.
-    If no location is provided, it will return the weather report for your current IP address.
+    Fetches the weather report for a given location. If no location is provided,
+    it uses the current IP address to determine the location.
 
-    Parameters
-    ----------
-        msg: Optional[str]
-            Pass in the message that is to be processed
+    Parameters:
+        location_message (Optional[str]): The location as a string message, if any.
 
-    Returns
-    -------
-
-        A string containing the weather report for a given location
+    Returns:
+        str: A weather report for the specified or derived location.
     """
-    api_key = os.environ.get("OPENWEATHER_API_KEY")
+    geolocator = Nominatim(user_agent=USER_AGENT)
+    time, location = get_context_from_message(location_message)
 
-    time = get_context(msg, ["TIME", "DATE"])  # type: ignore
-    location = get_context(msg, ["GPE"])  # type: ignore
+    lat, lon = get_lat_lon_from_location(location, geolocator)
+    if lat is None or lon is None:
+        return "Location not found"
 
-    if not location:
-        g = geocoder.ip("me").city
-        geolocator = Nominatim(user_agent="User")
-        location = geolocator.geocode(g)
-        if location:
-            lat, lon = location.latitude, location.longitude  # type: ignore
-        else:  # If location is not found
-            return "Location not found"
+    current_time = get_current_time(time)
+    weather_report = fetch_weather_report(lat, lon, current_time)
 
-    else:
-        location = GeoText(location).cities
-
-        geolocator = Nominatim(user_agent="User")
-        location = geolocator.geocode(location[0])
-        if location:
-            lat = location.latitude # type: ignore
-            lon = location.longitude # type: ignore
-        else:
-            return "Location not found"
-
-    try:
-        time = dateparser.parse(time).timestamp() # type: ignore
-
-    except:
-        time = datetime.now().timestamp()
-
-    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}"
-
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        # Successful API call
-        data = response.json()
-
-        match = min(data["list"], key=lambda x: abs(x["dt"] - int(time)))
-        main = match["main"]
-
-        temperature = main["temp"]
-        humidity = main["humidity"]
-        weather_description = match["weather"][0]["description"]
-
-        weather_report = (
-            f"Location: {location}\n"
-            f"Time: {datetime.fromtimestamp(time)}\n"
-            f"Temperature: {temperature - 273.15}°C\n"
-            f"Humidity: {humidity}%\n"
-            f"Description: {weather_description.capitalize()}"
-        )
-        return weather_report
-    else:
-        # API call failed this usually happens if the API key is invalid or not provided
-        return f"Failed to retrieve weather data: {response.status_code}"
+    return weather_report

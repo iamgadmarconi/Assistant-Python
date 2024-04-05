@@ -1725,8 +1725,7 @@ def dataQuery(query: str) -> str:
 
 
 def webQuery(query: str) -> str:
-    # api_key = os.environ.get("You_API_key")
-    api_key = "e3a13a76-10ed-4faf-bc45-12ba9774fa99<__>1P28VqETU8N2v5f41XsP12bC"
+    api_key = os.environ.get("You_API_key")
     headers = {"X-API-Key": api_key}
     params = {"query": query}
     hits = requests.get(

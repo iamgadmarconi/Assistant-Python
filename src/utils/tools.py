@@ -1,7 +1,19 @@
-import spacy
 import requests
+import os
+import spacy
+import dateparser
+import geocoder
+
+from datetime import datetime
+from typing import Optional
+from geotext import GeoText
+
 
 from bs4 import BeautifulSoup
+
+
+OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY")
+USER_AGENT = "User"
 
 
 def get_context(string: str, tokens: list[str]) -> str:
@@ -53,3 +65,62 @@ def web_parser(url: str) -> BeautifulSoup:
 
     else:
         raise ValueError(f"Error: {response.status_code}")
+
+
+def get_context_from_message(message: Optional[str]) -> tuple:
+    """
+    Extracts time and location context from the given message.
+    """
+    # Assuming get_context is a function that extracts certain types of information from text
+    time = get_context(message, ["TIME", "DATE"])
+    location = get_context(message, ["GPE"])
+    return time, location
+
+
+def get_lat_lon_from_location(location: str, geolocator) -> tuple:
+    """
+    Determines the latitude and longitude of the given location.
+    """
+    if not location:
+        location_info = geocoder.ip("me")
+        location = geolocator.geocode(location_info.city)
+    else:
+        location = GeoText(location).cities[0]
+        location = geolocator.geocode(location)
+
+    if location:
+        return location.latitude, location.longitude
+    else:
+        return None, None
+
+
+def get_current_time(time: str) -> float:
+    """
+    Parses the time string to a timestamp. Defaults to current time if parsing fails.
+    """
+    try:
+        return dateparser.parse(time).timestamp()
+    except TypeError:
+        return datetime.now().timestamp()
+
+
+def fetch_weather_report(lat: float, lon: float, time: float) -> str:
+    """
+    Fetches the weather report from the OpenWeatherMap API for the given coordinates and time.
+    """
+    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={OPENWEATHER_API_KEY}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        match = min(data["list"], key=lambda x: abs(x["dt"] - int(time)))
+        main = match["main"]
+
+        return (
+            f"Time: {datetime.fromtimestamp(time)}\n"
+            f"Temperature: {main['temp']}°C\n"
+            f"Humidity: {main['humidity']}%\n"
+            f"Description: {match['weather'][0]['description'].capitalize()}"
+        )
+    else:
+        return f"Failed to retrieve weather data: {response.status_code}"
