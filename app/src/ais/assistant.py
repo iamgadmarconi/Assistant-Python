@@ -122,21 +122,22 @@ async def delete(client, asst_id: str, wipe=True):
         del_res = assistant_files.delete(file_id)
 
         if del_res.deleted:
-            green_text(f"File '{file_id}' deleted")
+            green_text(f"File '{file_id}' removed")
             # print(f"File '{file_id}' deleted")
 
     for key in file_hashmap.keys():
-        path = find(key, "agent")
+        path = find(key, r"app/agent")
         if path:
             if os.path.exists(path):
                 os.remove(path)
+                green_text(f"File '{key}' deleted")
 
     try:
         if os.path.exists(find("memory.json", r"app/agent")):
             os.remove(find("memory.json", r"app/agent"))
             yellow_text("Wiping memory...")
     except:
-        pass
+        yellow_text("Wiping memory...")
 
     try:
         if wipe:
@@ -144,7 +145,7 @@ async def delete(client, asst_id: str, wipe=True):
                 os.remove(find("memory.db", r"app/agent"))
                 green_text("Memory wiped")
     except:
-        pass
+        red_text("Failed to wipe memory")
 
     assts.delete(assistant_id=asst_id)
     # print(f"Assistant deleted")

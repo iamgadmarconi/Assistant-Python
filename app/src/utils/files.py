@@ -143,7 +143,7 @@ def db_to_json():
 
     con.close()
 
-    with open(r"agent\.agent\persistance\memory.json", "w") as f:
+    with open(r"app\agent\.agent\persistance\memory.json", "w") as f:
         json.dump(data, f, indent=4)
 
 

@@ -4,7 +4,7 @@ import datetime
 
 
 def create_or_load_db() -> sqlite3.Connection:
-    db_path = r"agent\.agent\persistance\memory.db"
+    db_path = r"app\agent\.agent\persistance\memory.db"
     db_dir = os.path.dirname(db_path)
 
     if not os.path.exists(db_dir):

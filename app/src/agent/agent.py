@@ -158,7 +158,9 @@ class Assistant:
         """
         num_uploaded = 0
 
-        data_files_dir = self.data_files_dir()
+        data_files_dir = Path('app').joinpath(self.data_files_dir())
+
+        # print(f"\n debug -- data_files_dir: {data_files_dir}\n")
 
         exclude_element = f"*{self.asst_id}*"
 
@@ -279,7 +281,7 @@ class Assistant:
 
             The path to the data directory, ensuring its existence
         """
-        data_dir = Path(self.dir + r"\.agent")
+        data_dir = Path(f'app/{self.dir}' + r"\.agent")
         ensure_dir(data_dir)
         return data_dir
 

@@ -99,7 +99,7 @@ def get_current_time(time: str) -> float:
     """
     try:
         return dateparser.parse(time).timestamp()
-    except TypeError:
+    except (TypeError, AttributeError):
         return datetime.now().timestamp()
 
 
