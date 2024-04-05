@@ -1711,24 +1711,30 @@ def webQuery(query: str) -> str:
 
     Parameters
     ----------
-        query: str
-            Pass in the query string that will be used to make a request to wolfram alpha's api
+    query: str
+        Pass in the query string that will be used to make a request to Wolfram Alpha's API.
 
     Returns
     -------
-
-        A list of the form:
+    str
+        The response text from the Wolfram Alpha query.
     """
-    # print(f"Debug--- Called webQuery with prompt: {query}")
-    app_id = os.getenv("WOLFRAM_APP_ID")
+    app_id = os.environ.get("WOLFRAM_APP_ID")
+
     try:
         query = query.replace(" ", "+")
     except AttributeError:
         return f"You entered the query: {query} which is not a valid query. Please try again with the inferred query."
+
     url = f"https://www.wolframalpha.com/api/v1/llm-api?input={query}&appid={app_id}"
     response = requests.get(url)
-    # print(f"Debug--- Wolfram response: {response.json()}")
-    return response.json()["output"]
+
+    if response.status_code == 200:
+        response_text = response.text
+
+        return response_text
+    else:
+        return f"Failed to get a valid response, status code: {response.status_code}"
 
 
 
