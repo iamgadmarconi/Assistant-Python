@@ -33,6 +33,7 @@ from src.ais.functions.web import (
     webTables,
     webForms,
     webQuery,
+    dataQuery,
 )
 
 
@@ -179,17 +180,18 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             thread_id=thread_id,
             assistant_id=asst_id,
             additional_instructions=""" 
-            ###Additional Instructions###
+            ### Additional Instructions ###
+            Remember to always go throught the **CHECKLIST BEFORE ANSWERING**.
 
-            ##Real-time Data Retrieval##
+            ## Real-time Data Retrieval ##
             URL-based Data Extraction: If a URL is provided by the user, employ web tools (`webText(url: str))`, `webMenus(url: str))`, `webLinks(url: str))`, `webImages(url: str))`, `webTables(url: str))`, `webForms(url: str))`) to extract specific data types as requested. For text extraction from a webpage, use the `webText(url: str))` tool.
             
-            ###!!!IMPORTANT!!!###
+            ###!!! IMPORTANT !!!###
             1. Use the `webQuery(query: str)` tool for queries requiring up-to-date information or data beyond the knowledge-cutoff.
             2. Use `findFile(filename: str)` to locate files for data analysis tasks before performing any analysis with `code_interpreter`
             3. **Use the raw text provided by the user to indicate `start` and `end` dates for calendar events.**
 
-            ###Query-based Data Search###
+            ### Query-based Data Search ###
             For inquiries requiring up-to-date information or data beyond the your knowledge-cutoff, use the `webQuery(query: str)` tool. Follow these steps:
                 1. Understand the user's request to identify the specific information sought.
                 2. Derive a focused query that accurately represents the user's need.
@@ -198,18 +200,18 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
                 5. Present the findings clearly, ensuring relevance and accuracy.
                 6. Revise the query and response based on user feedback if necessary.
 
-            ##Email Composition and Sending##
+            ## Email Composition and Sending ##
                 1. Preparatory Steps:
                     1. Utilize the `writeEmail(recipients: list(str), subject: str, body: str, attachments: Optional(list[str]))` function to draft emails, incorporating details such as recipients, subject, body, and optional attachments.
                     2. For recipient email addresses, use `getContacts(name: Optional(str))` when only a name is provided. Ensure clarity and accuracy in detailing the email's content.
                     3. Preview the drafted email to the user for confirmation or adjustments.
 
-            ###Prerequisite Tool Usage###
+            ### Prerequisite Tool Usage ###
                 1. The `createCalendarEvent(subject: str, start: str, end: Optional(str), location: Optional(str), reccurence: Optional(boolean))` function must precede `saveCalendarEvent(subject: str, start: str, end: Optional(str), location: Optional(str), reccurence: Optional(boolean))` usage. Use `getDate()` optionally to determine the start date if not provided.
                 2. The `writeEmail(recipients: list(str), subject: str, body: str, attachments: Optional(list[str]))` function is a precursor to `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(list[str]))`. If an email address is unspecified, employ `getContacts(name: Optional(str))` to ascertain the recipient's email or seek clarification.
                 3. The `findFile(filename: str)` function is essential before performing any data analysis tasks on files. This tool is activated when file context is mentioned by the user.
 
-            ##User Interaction and Clarification##
+            ## User Interaction and Clarification ##
                 1. Directly interpret user queries to formulate appropriate tool commands, even if the user's request is indirect.
                 2. Seek user confirmation before proceeding with actions that depend on prior tool usage or specific user input, ensuring accuracy and user satisfaction.
             """,
@@ -300,6 +302,7 @@ async def call_required_function(
         "webTables": webTables,
         "webForms": webForms,
         "webQuery": webQuery,
+        "dataQuery": dataQuery,
     }
 
     def filter_args(func, provided_args):

@@ -1945,10 +1945,10 @@ parameters.required = ["url"]
 [[tools]]
 type = "function"
 [tools.function]
-name = "webQuery"
+name = "dataQuery"
 description = """
 ###Function Overview###
-The `webQuery(query: (str))` function is an essential tool for querying the web through Wolfram Alpha's API, providing access to a broad spectrum of real-time data and information that extends beyond the agent's current knowledge. This function is invaluable for answering user queries that demand the latest information or delve into areas requiring up-to-date data, including but not limited to, mathematical solutions, scientific facts, and general knowledge across a variety of domains.
+The `dataQuery(query: (str))` function is an essential tool for querying the web through Wolfram Alpha's API, providing access to a broad spectrum of real-time data and information that extends beyond the agent's current knowledge. This function is invaluable for answering user queries that demand the latest information or delve into areas requiring up-to-date data, including but not limited to, mathematical solutions, scientific facts, and general knowledge across a variety of domains.
 
 ###!!!IMPORTANT NOTE!!!###
 1. This function leverages Wolfram Alpha's extensive knowledge base to retrieve precise and relevant information based on user queries, ensuring that the responses are current and accurate.
@@ -1960,7 +1960,210 @@ The `webQuery(query: (str))` function is an essential tool for querying the web 
 -It is ideal for situations where users require precise, current data on topics such as demographics, scientific concepts, mathematical problems, or any content that necessitates access to Wolfram Alpha's extensive database.
 
 ###Parameters###
-- `query (str)`: A concise, well-formulated query based on the user's request. This should be structured to precisely convey the user's intent to the webQuery function, utilizing English and adhering to best practices for query formulation. If dealing with mathematical or scientific queries, ensure the expression is correctly formatted in Markdown syntax.
+- `query (str)`: A concise, well-formulated query based on the user's request. This should be structured to precisely convey the user's intent to the `dataQuery(query: str)` function, utilizing English and adhering to best practices for query formulation. If dealing with mathematical or scientific queries, ensure the expression is correctly formatted in Markdown syntax.
+
+###Returns###
+- `query_results (str)`: The outcome of the query, articulated in natural language. This response encapsulates the essential information or data requested by the user, formatted to facilitate easy comprehension and direct applicability.
+
+###Example Usage###
+##General Knowledge Query##
+1. User Query: "What are the 1 most recent nations."
+2. System Inference: The user seeks information about the 10 most recent nations.
+    A. This is a general knowledge query.
+    B. The system recognizes the need for up-to-date information.
+    C. The system recognizes that nations might have formed past the agent's knowledge cutoff date.
+    D. The system can obtain up-to-date information using `dataQuery(query: (str))`.
+3. Internal Reasoning:
+    A. The user inquires about the 10 most recent nations.
+    B. The system may attempt to use its internal knowledge base but may not have the most recent information.
+    C. The system recognizes the need to query the web for up-to-date information.
+    D. The system needs to query the web for up to date information on the the 10 most recent nations.
+    E. The system can obtain up-to-date information using `dataQuery(query: (str))`.
+4. Parameter Input:
+    A. `query`: "10 most recent nations"
+5. Function Call: `dataQuery(query="10 most recent nations")`
+6. Example Response: "The 10 most recent nations are..."
+
+##Mathematical Query##
+1. User Query: "Solve the equation x^2 + 4x + 4 = 0."
+2. System Inference: The user requests a solution to the quadratic equation.
+3. Internal Reasoning:
+    A. The user presents a quadratic equation for solution.
+    B. The system recognizes the need for a mathematical solution.
+    C. The system can solve the equation using `dataQuery(query: (str))`.
+    D. The system must convert the equation to Markdown format for accurate processing.
+4. Parameter Input:
+    A. `query`: "$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$"
+5. Function Call: `dataQuery(query="$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$")`
+6. Example Response: "The solution to the equation x^2 + 4x + 4 = 0 is x = -2."
+7. Follow up: `query_results` can be used to provide additional details or steps if needed.
+
+##Scientific Query##
+1. User Query: "Does the derivation of centripetal acceleration from the gravity potential assume an inertial frame of reference?"
+2. System Inference: The user seeks clarification on the derivation of centripetal acceleration.
+    A. This is a highly technical scientific query.
+    B. The system recognizes the need for a scientific explanation.
+    C. The system recognizes it can give the best explanation using `dataQuery(query: (str))`.
+3. Internal Reasoning:
+    A. The user inquires about the derivation of centripetal acceleration.
+    B. The system recognizes the need for a scientific explanation.
+    C. The system can provide an explanation using `dataQuery(query: (str))`.
+    D. The system must ensure the query is accurately formulated in English.
+4. Parameter Input:
+    A. `query`: "Derivation of centripetal acceleration from gravity potential"
+5. Function Call: `dataQuery(query="Derivation of centripetal acceleration from gravity potential")`
+6. Example Response: "The derivation of centripetal acceleration from the gravity potential does not assume an inertial frame of reference."
+
+###Best Practices###
+-**Query Precision**: Craft each query to reflect the user's specific request, ensuring clarity and specificity to obtain the most accurate and relevant results from Wolfram Alpha.
+-**Query Language**: Submit queries in English, translating any user requests from other languages to ensure compatibility with the API.
+-**Formatting**: Adhere strictly to recommended formatting guidelines, especially for mathematical and scientific queries, to enhance the precision of the results.
+-**Assumption Management**: Should the initial results be unsatisfactory or irrelevant, examine provided assumptions for a more targeted query or adjust the query based on available guidance without departing significantly from the user's original request.
+
+###Operational Note###
+Utilizing the `dataQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging Wolfram Alpha's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval and analysis.
+`dataQuery(query:str)` understands natural language queries about entities in chemistry, physics, geography, history, art, astronomy, and more.
+-`dataQuery(query:str)` performs mathematical calculations, date and unit conversions, formula solving, etc.
+-Convert inputs to simplified keyword queries whenever possible (e.g. convert "how many people live in France" to "France population").
+-Send queries in English only; translate non-English queries before sending, then respond in the original language.
+-Display image URLs with Markdown syntax: ![URL]
+-ALWAYS use this exponent notation: `6*10^14`, NEVER `6e14`.
+-`query` must ONLY be a single-line string.
+-ALWAYS use proper Markdown formatting for all math, scientific, and chemical formulas, symbols, etc.:  '$$\\n[expression]\\n$$' for standalone cases and '\\( [expression] \\)' when inline.
+-Never mention your knowledge cutoff date; `dataQuery(query:str)` may return more recent data.
+-Use ONLY single-letter variable names, with or without integer subscript (e.g., n, n1, n_1).
+-Use named physical constants (e.g., 'speed of light') without numerical substitution.
+-Include a space between compound units (e.g., "Ω m" for "ohm*meter").
+-To solve for a variable in an equation with units, consider solving a corresponding equation without units; exclude counting units (e.g., books), include genuine units (e.g., kg).
+-If data for multiple properties is needed, make separate calls for each property.
+-If a `dataQuery(query:str)` result is not relevant to the query:
+    -If `dataQuery(query:str)` provides multiple 'Assumptions' for a query, choose the more relevant one(s) without explaining the initial result. If you are unsure, ask the user to choose.
+    -Re-send the exact same 'input' with NO modifications, and add the 'assumption' parameter, formatted as a list, with the relevant values.
+    -ONLY simplify or rephrase the initial query if a more relevant 'Assumption' or other input suggestions are not provided.
+    -Do not explain each step unless user input is needed. Proceed directly to making a better API call based on the available assumptions.
+
+###Process Flow###
+1. Recognize the user's request for real-time data or information beyond the agent's current knowledge.
+2. Acknowledge the need to access Wolfram Alpha's API for querying the web and retrieving up-to-date data.
+3. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
+4. Submit the query to the `dataQuery(query:str)` function for processing and data retrieval.
+5. Present the query results in a clear and concise manner, focusing on the key details relevant to the user's request.
+6. Provide additional details or steps if necessary based on the user's inquiry or follow-up questions.
+
+###Objective###
+1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging Wolfram Alpha's API for querying the web.
+2. To enhance the agent's responsiveness to user queries requiring up-to-date data, scientific explanations, mathematical solutions, or general knowledge across various domains.
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.query]
+type = "string"
+description = """
+###Parameter###
+`query (str)`: The specific inquiry or request to be sent to Wolfram Alpha via the `dataQuery(query:str)` function.
+
+###Parameter Description###
+The `query` parameter is the centerpiece of the `dataQuery(query:str)` function, representing the user's question or topic of interest that is to be explored using Wolfram Alpha's API. This parameter should encapsulate the essence of the user's request in English, and when applicable, include mathematical expressions formatted in Markdown syntax. The clarity and specificity of the query are paramount in ensuring that the returned data is as relevant and accurate as possible.
+
+###Parameter Usage###
+To utilize this parameter, input should be a concise, well-phrased string that directly translates the user's intent or question into a format understandable by the Wolfram Alpha API. This may involve simplifying or refining the user's original query to meet the API's requirements while retaining the query's original purpose.
+##General Knowledge Query##
+1. User Query: "What is the capital of France?"
+2. System Inference: The user seeks information about the capital of France.
+3. Internal Reasoning:
+    A. The user inquires about the capital of France.
+    B. The system recognizes the need to query the web for this information.
+    C. The system can query the web using `dataQuery(query:str)`.
+4. Parameter Input:
+    A. `query`: "capital of France"
+5. Function Call: `dataQuery(query="capital of France")`
+6. Example Response: "The capital of France is Paris."
+##Mathematical Query##
+1. User Query: "Solve the equation x^2 + 4x + 4 = 0."
+2. System Inference: The user requests a solution to a quadratic equation.
+3. Internal Reasoning:
+    A. The user presents a quadratic equation for solution.
+    B. The system recognizes the need for a mathematical solution.
+    C. The system can solve the equation using `dataQuery(query: (str))`.
+    D. The system must convert the equation to Markdown format for accurate processing.
+4. Parameter Input:
+    A. `query`: "$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$"
+5. Function Call: `dataQuery(query="$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$")`
+6. Example Response: "The solution to the equation x^2 + 4x + 4 = 0 is x = -2."
+7. Follow-up: `query_results` can be used to provide additional details or steps if needed.
+##Scientific Query##
+1. User Query: "What are the 10 densest elemental metals?"
+2. System Inference: The user seeks information about the densest elemental metals.
+3. Internal Reasoning:
+    A. The user requests the 10 densest elemental metals.
+    B. The system recognizes the need for scientific data.
+    C. The system can provide the information using `dataQuery(query: (str))`.
+4. Parameter Input:
+    A. `query`: "10 densest elemental metals"
+5. Function Call: `dataQuery(query="10 densest elemental metals")`
+6. Example Response: "The 10 densest elemental metals are..."
+
+###Process Flow###
+1. Recognize the user's request for real-time data or information beyond the agent's knowledge cutoff date.
+2. Acknowledge the need to access Wolfram Alpha's API for querying the web and retrieving up-to-date data.
+3. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
+4. Submit the query to the `dataQuery(query: (str))` function for processing and data retrieval.
+5. Present the query results in a clear and concise manner, focusing on the key details relevant to the user's request.
+6. Provide additional details or steps if necessary based on the user's inquiry or follow-up questions.
+
+###Best Practices###
+Utilizing the `dataQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging Wolfram Alpha's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval and analysis.
+`dataQuery(query:str)` understands natural language queries about entities in chemistry, physics, geography, history, art, astronomy, and more.
+-`dataQuery(query:str)` performs mathematical calculations, date and unit conversions, formula solving, etc.
+-Convert inputs to simplified keyword queries whenever possible (e.g. convert "how many people live in France" to "France population").
+-Send queries in English only; translate non-English queries before sending, then respond in the original language.
+-Display image URLs with Markdown syntax: ![URL]
+-ALWAYS use this exponent notation: `6*10^14`, NEVER `6e14`.
+-`query` must ONLY be a single-line string.
+-ALWAYS use proper Markdown formatting for all math, scientific, and chemical formulas, symbols, etc.:  '$$\\n[expression]\\n$$' for standalone cases and '\\( [expression] \\)' when inline.
+-Never mention your knowledge cutoff date; `dataQuery(query:str)` may return more recent data.
+-Use ONLY single-letter variable names, with or without integer subscript (e.g., n, n1, n_1).
+-Use named physical constants (e.g., 'speed of light') without numerical substitution.
+-Include a space between compound units (e.g., "Ω m" for "ohm*meter").
+-To solve for a variable in an equation with units, consider solving a corresponding equation without units; exclude counting units (e.g., books), include genuine units (e.g., kg).
+-If data for multiple properties is needed, make separate calls for each property.
+-If a `dataQuery(query:str)` result is not relevant to the query:
+    -If `dataQuery(query:str)` provides multiple 'Assumptions' for a query, choose the more relevant one(s) without explaining the initial result. If you are unsure, ask the user to choose.
+    -Re-send the exact same 'input' with NO modifications, and add the 'assumption' parameter, formatted as a list, with the relevant values.
+    -ONLY simplify or rephrase the initial query if a more relevant 'Assumption' or other input suggestions are not provided.
+    -Do not explain each step unless user input is needed. Proceed directly to making a better API call based on the available assumptions.
+
+###Objective###
+1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging Wolfram Alpha's API for querying the web.
+2. To enhance the agent's responsiveness to user queries requiring up-to-date data, scientific explanations, mathematical solutions, or general knowledge across various domains.
+"""
+parameters.required = ["query"]
+
+
+
+########################################################################################################################################################################################################################
+
+
+
+[[tools]]
+type = "function"
+[tools.function]
+name = "webQuery"
+description = """
+###Function Overview###
+The `webQuery(query: (str))` function is an essential tool for querying the web through You API. It provides real-time data, recent news, and events, and other information that extends beyond the agent's current knowledge. This function is invaluable for answering user queries that demand the latest information or delve into areas requiring up-to-date data related to news and recent events.
+
+###!!!IMPORTANT NOTE!!!###
+1. This function leverages You API's real-time data to retrieve precise and relevant information based on user queries, ensuring that the responses are current and accurate.
+2. The function is designed to facilitate real-time data retrieval and analysis, enabling users to access the latest information available on the web through You API.
+3. It is a powerful tool for addressing user inquiries that necessitate up-to-date data, news, and events beyond the agent's knowledge cutoff date.
+
+###When to Call the Function###
+-This function should be utilized for queries seeking information that is contemporary or beyond the agent's last update.
+-It is ideal for situations where users require precise, current data on topics such as news, recent events, and other real-time information.
+
+###Parameters###
+- `query (str)`: A concise, well-formulated query based on the user's request. This should be structured to precisely convey the user's intent to the `webQuery(query: (str))` function, utilizing English and adhering to best practices for query formulation. If dealing with mathematical or scientific queries, ensure the expression is correctly formatted in Markdown syntax.
 
 ###Returns###
 - `query_results (str)`: The outcome of the query, articulated in natural language. This response encapsulates the essential information or data requested by the user, formatted to facilitate easy comprehension and direct applicability.
@@ -1980,72 +2183,27 @@ The `webQuery(query: (str))` function is an essential tool for querying the web 
 5. Function Call: `webQuery(query="Baltimore Bridge Collapse")`
 6. Example Response: "The Baltimore Bridge collapse occurred on..."
 
-##Mathematical Query##
-1. User Query: "Solve the equation x^2 + 4x + 4 = 0."
-2. System Inference: The user requests a solution to the quadratic equation.
-3. Internal Reasoning:
-    A. The user presents a quadratic equation for solution.
-    B. The system recognizes the need for a mathematical solution.
-    C. The system can solve the equation using `webQuery(query: (str))`.
-    D. The system must convert the equation to Markdown format for accurate processing.
-4. Parameter Input:
-    A. `query`: "$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$"
-5. Function Call: `webQuery(query="$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$")`
-6. Example Response: "The solution to the equation x^2 + 4x + 4 = 0 is x = -2."
-7. Follow up: `query_results` can be used to provide additional details or steps if needed.
-
-##Scientific Query##
-1. User Query: "Does the derivation of centripetal acceleration from the gravity potential assume an inertial frame of reference?"
-2. System Inference: The user seeks clarification on the derivation of centripetal acceleration.
-3. Internal Reasoning:
-    A. The user inquires about the derivation of centripetal acceleration.
-    B. The system recognizes the need for a scientific explanation.
-    C. The system can provide an explanation using `webQuery(query: (str))`.
-    D. The system must ensure the query is accurately formulated in English.
-4. Parameter Input:
-    A. `query`: "Derivation of centripetal acceleration from gravity potential"
-5. Function Call: `webQuery(query="Derivation of centripetal acceleration from gravity potential")`
-6. Example Response: "The derivation of centripetal acceleration from the gravity potential does not assume an inertial frame of reference."
-
 ###Best Practices###
 -**Query Precision**: Craft each query to reflect the user's specific request, ensuring clarity and specificity to obtain the most accurate and relevant results from Wolfram Alpha.
 -**Query Language**: Submit queries in English, translating any user requests from other languages to ensure compatibility with the API.
--**Formatting**: Adhere strictly to recommended formatting guidelines, especially for mathematical and scientific queries, to enhance the precision of the results.
--**Assumption Management**: Should the initial results be unsatisfactory or irrelevant, examine provided assumptions for a more targeted query or adjust the query based on available guidance without departing significantly from the user's original request.
 
 ###Operational Note###
-Utilizing the `webQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging Wolfram Alpha's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval and analysis.
-webQuery understands natural language queries about entities in chemistry, physics, geography, history, art, astronomy, and more.
--webQuery performs mathematical calculations, date and unit conversions, formula solving, etc.
--Convert inputs to simplified keyword queries whenever possible (e.g. convert "how many people live in France" to "France population").
--Send queries in English only; translate non-English queries before sending, then respond in the original language.
--Display image URLs with Markdown syntax: ![URL]
--ALWAYS use this exponent notation: `6*10^14`, NEVER `6e14`.
--`query` must ONLY be a single-line string.
--ALWAYS use proper Markdown formatting for all math, scientific, and chemical formulas, symbols, etc.:  '$$\\n[expression]\\n$$' for standalone cases and '\\( [expression] \\)' when inline.
--Never mention your knowledge cutoff date; webQuery may return more recent data.
--Use ONLY single-letter variable names, with or without integer subscript (e.g., n, n1, n_1).
--Use named physical constants (e.g., 'speed of light') without numerical substitution.
--Include a space between compound units (e.g., "Ω m" for "ohm*meter").
--To solve for a variable in an equation with units, consider solving a corresponding equation without units; exclude counting units (e.g., books), include genuine units (e.g., kg).
--If data for multiple properties is needed, make separate calls for each property.
--If a webQuery result is not relevant to the query:
-    -If webQuery provides multiple 'Assumptions' for a query, choose the more relevant one(s) without explaining the initial result. If you are unsure, ask the user to choose.
-    -Re-send the exact same 'input' with NO modifications, and add the 'assumption' parameter, formatted as a list, with the relevant values.
-    -ONLY simplify or rephrase the initial query if a more relevant 'Assumption' or other input suggestions are not provided.
-    -Do not explain each step unless user input is needed. Proceed directly to making a better API call based on the available assumptions.
+Utilizing the `webQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging You API's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval.
+`webQuery(query: (str))` understands natural language queries about entities in news and recent events.
+-`query: str` must ONLY be a single-line string.
+-Never mention your knowledge cutoff date; `webQuery(query: (str))` may return more recent data.
 
 ###Process Flow###
 1. Recognize the user's request for real-time data or information beyond the agent's current knowledge.
-2. Acknowledge the need to access Wolfram Alpha's API for querying the web and retrieving up-to-date data.
+2. Acknowledge the need to access You API for querying the web and retrieving up-to-date data for news and current events.
 3. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
 4. Submit the query to the `webQuery(query: (str))` function for processing and data retrieval.
 5. Present the query results in a clear and concise manner, focusing on the key details relevant to the user's request.
 6. Provide additional details or steps if necessary based on the user's inquiry or follow-up questions.
 
 ###Objective###
-1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging Wolfram Alpha's API for querying the web.
-2. To enhance the agent's responsiveness to user queries requiring up-to-date data, scientific explanations, mathematical solutions, or general knowledge across various domains.
+1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging You API for querying the web.
+2. To enhance the agent's responsiveness to user queries requiring up-to-date data, news, and events.
 """
 [tools.function.parameters]
 type = "object"
@@ -2056,85 +2214,47 @@ description = """
 `query (str)`: The specific inquiry or request to be sent to Wolfram Alpha via the `webQuery(query: (str))` function.
 
 ###Parameter Description###
-The `query` parameter is the centerpiece of the webQuery function, representing the user's question or topic of interest that is to be explored using Wolfram Alpha's API. This parameter should encapsulate the essence of the user's request in English, and when applicable, include mathematical expressions formatted in Markdown syntax. The clarity and specificity of the query are paramount in ensuring that the returned data is as relevant and accurate as possible.
+The `query` parameter is the centerpiece of the `webQuery(query: (str))` function, representing the user's question or topic of interest that is to be explored using You API. This parameter should encapsulate the essence of the user's request in English, and when applicable.
 
 ###Parameter Usage###
-To utilize this parameter, input should be a concise, well-phrased string that directly translates the user's intent or question into a format understandable by the Wolfram Alpha API. This may involve simplifying or refining the user's original query to meet the API's requirements while retaining the query's original purpose.
+To utilize this parameter, input should be a concise, well-phrased string that directly translates the user's intent.
 ##General Knowledge Query##
-1. User Query: "What is the capital of France?"
-2. System Inference: The user seeks information about the capital of France.
+1. User Query: "What were NVIDIA's earnings in Q1 2024?"
+2. System Inference: The user seeks information about NVIDIA's earnings beyond the agent's knowledge cutoff date.
 3. Internal Reasoning:
-    A. The user inquires about the capital of France.
+    A. The user inquires about NVIDIA's earnings in Q1 2024.
     B. The system recognizes the need to query the web for this information.
     C. The system can query the web using `webQuery(query: (str))`.
 4. Parameter Input:
-    A. `query`: "capital of France"
-5. Function Call: `webQuery(query="capital of France")`
-6. Example Response: "The capital of France is Paris."
-##Mathematical Query##
-1. User Query: "Solve the equation x^2 + 4x + 4 = 0."
-2. System Inference: The user requests a solution to a quadratic equation.
-3. Internal Reasoning:
-    A. The user presents a quadratic equation for solution.
-    B. The system recognizes the need for a mathematical solution.
-    C. The system can solve the equation using `webQuery(query: (str))`.
-    D. The system must convert the equation to Markdown format for accurate processing.
-4. Parameter Input:
-    A. `query`: "$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$"
-5. Function Call: `webQuery(query="$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$")`
-6. Example Response: "The solution to the equation x^2 + 4x + 4 = 0 is x = -2."
-7. Follow-up: `query_results` can be used to provide additional details or steps if needed.
-##Scientific Query##
-1. User Query: "What are the 10 densest elemental metals?"
-2. System Inference: The user seeks information about the densest elemental metals.
-3. Internal Reasoning:
-    A. The user requests the 10 densest elemental metals.
-    B. The system recognizes the need for scientific data.
-    C. The system can provide the information using `webQuery(query: (str))`.
-4. Parameter Input:
-    A. `query`: "10 densest elemental metals"
-5. Function Call: `webQuery(query="10 densest elemental metals")`
-6. Example Response: "The 10 densest elemental metals are..."
+    A. `query`: "NVIDIA earnings Q1 2024"
+5. Function Call: `webQuery(query="NVIDIA earnings Q1 2024")`
+6. Example Response: "NVIDIA reported earnings of $X in Q1 2024."
 
 ###Process Flow###
 1. Recognize the user's request for real-time data or information beyond the agent's knowledge cutoff date.
-2. Acknowledge the need to access Wolfram Alpha's API for querying the web and retrieving up-to-date data.
+2. Acknowledge the need to access You API for querying the web and retrieving up-to-date data.
 3. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
 4. Submit the query to the `webQuery(query: (str))` function for processing and data retrieval.
 5. Present the query results in a clear and concise manner, focusing on the key details relevant to the user's request.
 6. Provide additional details or steps if necessary based on the user's inquiry or follow-up questions.
 
 ###Best Practices###
-Utilizing the `webQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging Wolfram Alpha's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval and analysis.
-webQuery understands natural language queries about entities in chemistry, physics, geography, history, art, astronomy, and more.
--webQuery performs mathematical calculations, date and unit conversions, formula solving, etc.
--Convert inputs to simplified keyword queries whenever possible (e.g. convert "how many people live in France" to "France population").
--Send queries in English only; translate non-English queries before sending, then respond in the original language.
--Display image URLs with Markdown syntax: ![URL]
--ALWAYS use this exponent notation: `6*10^14`, NEVER `6e14`.
--`query` must ONLY be a single-line string.
--ALWAYS use proper Markdown formatting for all math, scientific, and chemical formulas, symbols, etc.:  '$$\\n[expression]\\n$$' for standalone cases and '\\( [expression] \\)' when inline.
--Never mention your knowledge cutoff date; webQuery may return more recent data.
--Use ONLY single-letter variable names, with or without integer subscript (e.g., n, n1, n_1).
--Use named physical constants (e.g., 'speed of light') without numerical substitution.
--Include a space between compound units (e.g., "Ω m" for "ohm*meter").
--To solve for a variable in an equation with units, consider solving a corresponding equation without units; exclude counting units (e.g., books), include genuine units (e.g., kg).
--If data for multiple properties is needed, make separate calls for each property.
--If a webQuery result is not relevant to the query:
-    -If webQuery provides multiple 'Assumptions' for a query, choose the more relevant one(s) without explaining the initial result. If you are unsure, ask the user to choose.
-    -Re-send the exact same 'input' with NO modifications, and add the 'assumption' parameter, formatted as a list, with the relevant values.
-    -ONLY simplify or rephrase the initial query if a more relevant 'Assumption' or other input suggestions are not provided.
-    -Do not explain each step unless user input is needed. Proceed directly to making a better API call based on the available assumptions.
+Utilizing the `webQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging You API's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval.
+`webQuery(query: (str))` understands natural language queries about entities in news and recent events.
+-`query: str` must ONLY be a single-line string.
+-Never mention your knowledge cutoff date; `webQuery(query: (str))` may return more recent data.
 
 ###Objective###
-1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging Wolfram Alpha's API for querying the web.
-2. To enhance the agent's responsiveness to user queries requiring up-to-date data, scientific explanations, mathematical solutions, or general knowledge across various domains.
+1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging You API for querying the web.
+2. To enhance the agent's responsiveness to user queries requiring up-to-date data, news, and events.
 """
 parameters.required = ["query"]
 
 
 
 ########################################################################################################################################################################################################################
+
+
 
 [[file_bundles]]
 bundle_name = "source-code"

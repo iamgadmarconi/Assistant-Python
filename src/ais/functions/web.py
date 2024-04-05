@@ -147,23 +147,7 @@ def webForms(url: str) -> str:
     return "\n".join(form_list)
 
 
-# def menuInteract(url: str, menu: str):
-#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-
-#     driver.get(url)
-#     # Use XPath to find an element by text, this is one example, adjust based on the webpage structure
-#     menu_item = driver.find_element(By.XPATH, f"//*[contains(text(), '{menu}')]")
-#     menu_item_id = menu_item.get_attribute('id')
-#     print(f"The ID of the menu item '{menu}' is: {menu_item_id}")
-#     menu_item.click()
-#     driver.quit()
-#     time.sleep(5)  # Adjust sleep time as necessary
-
-#     new_page_url = driver.current_url
-#     return new_page_url
-
-
-def webQuery(query: str) -> str:
+def dataQuery(query: str) -> str:
     """
     The webQuery function takes a string as an argument and returns the output of that query from Wolfram Alpha.
 
@@ -193,3 +177,20 @@ def webQuery(query: str) -> str:
         return response_text
     else:
         return f"Failed to get a valid response, status code: {response.status_code}"
+
+
+def webQuery(query: str) -> str:
+    # api_key = os.environ.get("You_API_key")
+    api_key = "e3a13a76-10ed-4faf-bc45-12ba9774fa99<__>1P28VqETU8N2v5f41XsP12bC"
+    headers = {"X-API-Key": api_key}
+    params = {"query": query}
+    hits = requests.get(
+        f"https://api.ydc-index.io/search",
+        params=params,
+        headers=headers,
+    ).json()["hits"]
+
+    results = "\n\n\n".join(
+        [f"{hit['title']}\n{hit['description']}\n{hit['url']}" for hit in hits]
+    )
+    return results
