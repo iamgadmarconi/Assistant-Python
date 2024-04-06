@@ -74,5 +74,4 @@ def getWeather(location_message: Optional[str] = None) -> str:
 
     current_time = get_current_time(time)
     weather_report = fetch_weather_report(lat, lon, current_time)
-
     return weather_report

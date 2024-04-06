@@ -12,9 +12,6 @@ from geotext import GeoText
 from bs4 import BeautifulSoup
 
 
-OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY")
-
-
 def get_context(string: str, tokens: list[str]) -> str:
     if not set(tokens).issubset({"TIME", "DATE", "GPE"}):
         raise ValueError("Invalid token; must be one of 'TIME', 'DATE', or 'GPE'")
@@ -107,7 +104,9 @@ def fetch_weather_report(lat: float, lon: float, time: float) -> str:
     """
     Fetches the weather report from the OpenWeatherMap API for the given coordinates and time.
     """
-    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={OPENWEATHER_API_KEY}"
+    
+    api_key = os.environ.get("OPENWEATHER_API_KEY")
+    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}"
     response = requests.get(url)
 
     if response.status_code == 200:
