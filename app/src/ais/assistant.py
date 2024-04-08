@@ -25,7 +25,7 @@ from src.ais.functions.azure import (
 )
 from src.ais.functions.misc import getWeather, getLocation, getDate
 from src.ais.functions.office import findFile
-from src.ais.functions.web import webViewer, webQuery, dataQuery,
+from src.ais.functions.web import webViewer, webQuery, dataQuery
 
 
 
