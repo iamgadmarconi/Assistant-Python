@@ -1489,50 +1489,50 @@ parameters.required = ["filename"]
 [[tools]]
 type = "function"
 [tools.function]
-name = "webText"
+name = "webViewer"
 description = """
 ###Function Overview###
-The `webText(url: (str))` function is a powerful tool designed to fetch and return text content from a specified website URL. Its primary purpose is to facilitate access to real-time data from the web, allowing for the retrieval of information or content summaries directly from websites. This function is invaluable when users request up-to-date information or need a summary of web content, bridging the gap between static data and the dynamic nature of the internet.
+The `webViewer(url: (str))` function is a powerful tool designed to fetch and return content from a specified website URL, including text, images, links, tables, and forms. Its primary purpose is to enable access to real-time data from the web, allowing for the retrieval of information or content summaries directly from websites. This function is invaluable when users request up-to-date information or need a summary of web content, bridging the gap between static data and the dynamic nature of the internet.
 
 ###!!!IMPORTANT NOTE!!!###
-1. This function is intended to extract text content from websites and present it in a concise form for user consumption.
-2. The extracted text should reflect the primary information or content found on the web page, providing a summary or overview of the site's current data.
-3. The function is a valuable resource for addressing user queries that require real-time web content access, enhancing the ability to respond effectively to inquiries involving current events or specific web content.
+1. This function is intended to extract content from websites and present it in a concise form for user consumption.
+2. The extracted content should reflect the primary information or content found on the web page, providing a summary or overview of the site's current data.
+3. The function is a valuable resource for addressing user queries that require real-time web content access, enhancing the ability to respond effectively to inquiries involving current events or specific web content given a URL.
 
 ###When to Call the Function###
--This function should be invoked in situations requiring real-time data from a website, such as when a user seeks the latest news, articles, or specific web-based information.
+-This function should be invoked in situations requiring real-time data from a website, such as when a user seeks the latest news, articles, or specific web-based information given a URL.
 -It serves as the preliminary step in addressing queries that necessitate web content access, ensuring that the response is grounded in the most current information available online.
 -Before concluding that accessing real-time data is not possible, employ this function as an attempt to fulfill the user's request.
 
 ###Parameters###
-- `url (str)`: The full URL of the website from which to extract text content. This parameter must be a valid and complete web address that directs to the intended content.
+- `url (str)`: The full URL of the website from which to extract content. This parameter must be a valid and complete web address that directs to the intended content.
 
 ###Returns###
-- `text (str)`: The textual content retrieved from the specified website, presented in natural language. This output encapsulates the primary information or content found on the web page, offering a direct reflection of the site's current data.
+- `content (str)`: The content retrieved from the specified website, including text, images, links, forms, and menus, presented in natural language. This output encapsulates the primary information or content found on the web page, offering a direct reflection of the site's current data.
 
 ###Example Usage###
 1. User Query: "What is the latest news on 'https://www.cnn.com'?"
 2. System Inference: The user seeks information about the latest news on 'https://www.cnn.com'.
 3. Internal Reasoning:
     A. The user specifies the website URL 'https://www.cnn.com'.
-    B. The system needs to extract the text content from the CNN website.
-    C. The system can extract the text using `webText(url='https://www.cnn.com')`.
+    B. The system needs to extract the content from the CNN website.
+    C. The system can extract the using `webViewer(url='https://www.cnn.com')`.
 4. Parameter Input:
     A. `url`: 'https://www.cnn.com'
-5. Function Call: `webText(url='https://www.cnn.com')`
+5. Function Call: `webViewer(url='https://www.cnn.com')`
 6. Example Response: "The latest news on CNN is..."
 
 
 ###Process Flow###
 1. Recognize the user's request for web content information.
 2. Recognize the need to access real-time data from a website.
-3. Retrieve the text content from the specified website URL.
-4. Present the extracted text content in a clear and concise manner for user consumption.
+3. Retrieve the content from the specified website URL.
+4. Present the extracted content in a clear and concise manner for user consumption.
 
 ###Objectives###
-1. To provide users with real-time web content access, enabling the extraction of text information directly from websites.
+1. To provide users with real-time web content access, enabling the extraction of information directly from websites.
 2. To enhance the responsiveness to user queries involving web-based content, ensuring that the information provided is current and relevant.
-3. To bridge the gap between static data and dynamic web content, facilitating the extraction and presentation of textual information from websites.
+3. To bridge the gap between static data and dynamic web content, facilitating the extraction and presentation of information from websites.
 """
 [tools.function.parameters]
 type = "object"
@@ -1540,7 +1540,7 @@ type = "object"
 type = "string"
 description = """
 ###Parameter###
-`url (str)`: The web address of the site from which text content is to be retrieved.
+`url (str)`: The web address of the site from which content is to be retrieved.
 
 ###Parameter Description###
 The `url` parameter requires a full, valid URL as a string input. This URL should direct to the website or specific web page the user is interested in extracting text from. It is essential for accessing real-time information or summarizing content available on the web, serving as the critical link between the user's request and the data retrieval process.
@@ -1551,388 +1551,22 @@ This parameter is utilized by entering the complete web address of the site in q
 2. System Inference: The user seeks to summarize the content of 'https://www.cnn.com'.
 3. Internal Reasoning:
     A. The user specifies the website URL 'https://www.cnn.com'.
-    B. The system needs to extract the text content from the CNN website.
-    C. The system can extract the text using `webText(url='https://www.cnn.com')`.
+    B. The system needs to extract the content from the CNN website.
+    C. The system can extract the content using `webViewer(url='https://www.cnn.com')`.
 4. Parameter Input:
     A. `url`: 'https://www.cnn.com'
-5. Function Call: `webText(url='https://www.cnn.com')`
+5. Function Call: `webViewer(url='https://www.cnn.com')`
 6. Example Response: "The content of CNN is..."
 
 ###Process Flow###
 1. Recognize the user's request for web content information.
 2. Recognize the need to access real-time data from a website.
-3. Retrieve the text content from the specified website URL.
-4. Present the extracted text content in a clear and concise manner for user consumption.
+3. Retrieve the content from the specified website URL.
+4. Present the extracted content in a clear and concise manner for user consumption.
 
 ###Objective###
-1. To facilitate direct access to specific web content by providing a straightforward method for fetching text from a given URL, thereby enhancing the ability to respond to user queries with up-to-date information from the internet.
+1. To facilitate direct access to specific web content by providing a straightforward method for fetching content from a given URL, thereby enhancing the ability to respond to user queries with up-to-date information from the internet.
 
-"""
-parameters.required = ["url"]
-
-
-
-########################################################################################################################################################################################################################
-
-
-
-[[tools]]
-type = "function"
-[tools.function]
-name = "webImages"
-description = """
-###Function Overview###
-The `webImages(url: (str))` function is engineered to access and retrieve image content from a specified website URL. It is an essential tool for interacting with real-time data on the web, specifically designed to gather images from websites based on user requests. This functionality is incredibly useful for providing visual content or descriptions of websites, catering to users interested in the latest images or visual summaries of web pages.
-
-###!!!IMPORTANT NOTE!!!###
-1. This function is designed to extract images from websites and present them in a descriptive or linked format.
-2. The extracted images should reflect the visual content available on the web page, offering users a glimpse into the site's current imagery.
-3. The function is a critical component in addressing user queries that require real-time access to website images, enhancing the ability to respond effectively to visual content inquiries.
-
-###When to Call the Function###
--Invoke this function in response to requests for real-time visual content from a website or when a user asks for a summary or description that includes images.
--It should be the primary approach for acquiring images that are only available through direct web access, ensuring that users receive the most current and relevant visual data.
-
-###Parameters###
-- `url (str)`: The complete URL of the website from which images are to be extracted. This parameter requires a valid and accessible web address targeting the specific site containing the desired image content.
-
-###Returns###
-- `image (str)`: A string representation of the image(s) retrieved from the website. The output should describe or directly link to the image(s) in natural language, providing a clear indication of the visual content available on the web page.
-
-###Example Usage###
-1. User Inquiry: "Show me the latest image on 'https://www.cnn.com'."
-2. System Inference: The user requests the latest image from 'https://www.cnn.com'.
-3. Internal Reasoning:
-    A. The user specifies the website URL 'https://www.cnn.com'.
-    B. The system needs to extract the image content from the CNN website.
-    C. The system can extract the image using `webImages(url='https://www.cnn.com')`.
-4. Parameter Input:
-    A. `url`: 'https://www.cnn.com'
-5. Function Call: `webImages(url='https://www.cnn.com')`
-6. Example Response: "The latest image on CNN is..."
-
-###Process Flow###
-1. Recognize the user's request for web image content.
-2. Acknowledge the need to access real-time visual data from a website.
-3. Retrieve the image content from the specified website URL.
-4. Present the extracted image content in a descriptive or linked format for user interaction.
-
-###Objectives###
-1. To enable users to access real-time visual content from websites by providing a direct method for extracting images based on user requests.
-2. To enhance the responsiveness to user queries involving visual content, ensuring that the information provided includes the latest and most relevant images available online.
-"""
-[tools.function.parameters]
-type = "object"
-[tools.function.parameters.properties.url]
-type = "string"
-description = """
-###Parameter###
-`url (str)`: The web address of the site from which image content is to be retrieved.
-
-###Parameter Description###
-The `url` parameter is critical for directing the `webImages` function to the specific website containing the images of interest. It requires the full, valid URL as a string, which should point directly to the webpage the user wishes to explore for images. This parameter ensures that the function targets the correct site for image extraction, facilitating access to visual content as per user requests.
-
-###Parameter Usage###
-To utilize this parameter, input the complete URL of the website when invoking the function. The accuracy of the URL is essential for successfully retrieving the desired image content, making it crucial to verify the web address before submission.
-1. User Inquiry: "Show me the latest image on 'https://www.cnn.com'."
-2. System Inference: The user requests the latest image from 'https://www.cnn.com'.
-3. Internal Reasoning:
-    A. The user specifies the website URL 'https://www.cnn.com'.
-    B. The system needs to extract the image content from the CNN website.
-    C. The system can extract the image using `webImages(url='https://www.cnn.com')`.
-4. Parameter Input:
-    A. `url`: 'https://www.cnn.com'
-5. Function Call: `webImages(url='https://www.cnn.com')`
-6. Example Response: "The latest image on CNN is..."
-
-###Process Flow###
-1. Recognize the user's request for web image content.
-2. Acknowledge the need to access real-time visual data from a website.
-3. Retrieve the image content from the specified website URL.
-4. Present the extracted image content in a descriptive or linked format for user interaction.
-
-###Objective###
-1. To enable precise access to specific web content by providing a straightforward mechanism for fetching images from a given URL, thus responding effectively to user queries for visual information.
-"""
-parameters.required = ["url"]
-
-
-
-########################################################################################################################################################################################################################
-
-
-
-[[tools]]
-type = "function"
-[tools.function]
-name = "webLinks"
-description = """
-###Function Overview###
-The `webLinks(url: (str))` function is specifically designed to access and retrieve hyperlink content from a given website URL. This utility is indispensable for gathering real-time data from the web, particularly for obtaining direct links from websites. Whether users are seeking a comprehensive summary that includes hyperlinks or are interested in exploring related information and resources, this function provides a streamlined pathway to fulfilling such requests.
-
-###!!!IMPORTANT NOTE!!!###
-1. This function is tailored to extract hyperlinks from websites and present them in a user-friendly format.
-2. The retrieved hyperlinks should reflect the available links on the web page, offering users actionable links for further exploration.
-3. The function is a vital component in addressing user queries that necessitate real-time hyperlink access, enhancing the ability to respond effectively to inquiries involving web-based links.
-
-###When to Call the Function###
--Utilize this function in response to requests for real-time hyperlink data from websites, or for summaries that incorporate links.
--It is especially pertinent when users seek related information or wish to explore links from a specific website.
--This should be the initial approach for inquiries specifically targeting links that are accessible only through website interaction.
-
-###Parameters###
-- `url (str)`: The complete and valid URL of the website from which links are to be extracted. This parameter is fundamental for directing the function to the appropriate web resource.
-
-###Returns###
-- `links (str)`: A string that articulately presents the hyperlinks found on the specified website, formatted in a manner conducive to natural language comprehension. This output facilitates easy user interaction with the retrieved links.
-
-###Example Usage###
-1. User Inquiry: "What are the latest links on 'https://www.cnn.com'?"
-2. System Inference: The user requests the latest links from 'https://www.cnn.com'.
-3. Internal Reasoning:
-    A. The user specifies the website URL 'https://www.cnn.com'.
-    B. The system needs to extract the hyperlink content from the CNN website.
-    C. The system can extract the links using `webLinks(url='https://www.cnn.com')`.
-4. Parameter Input:
-    A. `url`: 'https://www.cnn.com'
-5. Function Call: `webLinks(url='https://www.cnn.com')`
-6. Example Response: "The latest links on CNN are..."
-
-###Process Flow###
-1. Recognize the user's request for web hyperlink content.
-2. Acknowledge the need to access real-time hyperlink data from a website.
-3. Retrieve the hyperlink content from the specified website URL.
-4. Present the extracted hyperlink content in a user-friendly format for easy interaction.
-
-###Objectives###
-1. To provide users with direct access to real-time hyperlink content from websites, enabling the extraction of actionable links based on user requests.
-2. To enhance the responsiveness to user queries involving web-based links, ensuring that the information provided includes the latest and most relevant hyperlinks available online.
-"""
-[tools.function.parameters]
-type = "object"
-[tools.function.parameters.properties.url]
-type = "string"
-description = """
-###Parameter###
-`url (str)`: The web address of the site from which links are to be extracted.
-
-###Parameter Description###
-The `url` parameter is essential for pinpointing the specific website from which hyperlink data is to be retrieved. It requires the full, valid URL as a string, ensuring the function accurately targets the intended web page for link extraction. This input facilitates access to a broad spectrum of links on the specified site, ranging from related articles and resources to external sites referenced within the webpage's content.
-
-###Parameter Usage###
-To effectively use this parameter, input the complete URL of the website when invoking the function. The precision of the URL is crucial for the successful extraction of relevant links, underscoring the need to verify the web address's validity before submission.
-1. User Inquiry: "What are the latest links on 'https://www.cnn.com'?"
-2. System Inference: The user requests the latest links from 'https://www.cnn.com'.
-3. Internal Reasoning:
-    A. The user specifies the website URL 'https://www.cnn.com'.
-    B. The system needs to extract the hyperlink content from the CNN website.
-    C. The system can extract the links using `webLinks(url='https://www.cnn.com')`.
-4. Parameter Input:
-    A. `url`: 'https://www.cnn.com'
-5. Function Call: `webLinks(url='https://www.cnn.com')`
-6. Example Response: "The latest links on CNN are..."
-
-###Process Flow###
-1. Recognize the user's request for web hyperlink content.
-2. Acknowledge the need to access real-time hyperlink data from a website.
-3. Retrieve the hyperlink content from the specified website URL.
-4. Present the extracted hyperlink content in a user-friendly format for easy interaction.
-
-###Objective###
-1. To provide a direct mechanism for accessing hyperlink content from specified URLs, thus responding effectively to user queries about website links or seeking related information.
-"""
-parameters.required = ["url"]
-
-
-########################################################################################################################################################################################################################
-
-
-
-[[tools]]
-type = "function"
-[tools.function]
-name = "webMenus"
-description = """
-###Function Overview###
-The `webMenus(url: (str))` function is crafted to access and return the menu items from a specified website URL, offering a detailed overview of the site's structure and content categories. It stands as a vital tool for users looking to understand the layout and navigational elements of a website, such as sections for news, about pages, services, or contact information. This functionality is invaluable for summarizing or describing websites, providing users with a concise representation of the site's primary offerings.
-
-###!!!IMPORTANT NOTE!!!###
-1. This function is designed to extract and present the main menu items from websites, offering users a clear understanding of the site's content structure.
-2. The retrieved menu items should reflect the primary sections or categories available on the web page, providing users with a snapshot of the site's content framework.
-3. The function serves as a key resource for addressing user queries related to website organization or content categorization, enhancing the user's comprehension of the site's layout and accessible content.
-
-###When to Call the Function###
--Utilize this function in response to queries about the organization or content categorization of a website.
--It is particularly apt when users express a desire to grasp the main sections or navigational menus of a site, facilitating a quick understanding of the available content types and site architecture.
-
-###Parameters###
-- `url (str)`: The complete URL of the website from which menu items are to be extracted. This parameter is critical for ensuring that the function targets the correct web resource for menu retrieval.
-
-###Returns###
-- `menus (str)`: A descriptive list in natural language, encapsulating the main menu items found on the specified website. This return value aims to provide a clear and organized summary of the site's primary sections, enhancing the user's comprehension of the website's layout and accessible content.
-
-###Example Usage###
-1. User Inquiry: "Describe the CNN website."
-2. System Inference: The user seeks a description of the CNN website.
-3. Internal Reasoning:
-    A. The user requests an overview of the CNN website.
-    B. The system needs to extract the menu items from the CNN site.
-    C. The system can extract the menus using `webMenus(url='https://www.cnn.com')`.
-    D. The system needs to extract the image items from the CNN site.
-    E. The system can extract the images using `webImages(url='https://www.cnn.com')`.
-    F. The system needs to extract the hyperlink items from the CNN site.
-    G. The system can extract the hyperlinks using `webLinks(url='https://www.cnn.com')`.
-    H. The system needs to extract the text items from the CNN site.
-    I. The system can extract the text using `webText(url='https://www.cnn.com')`.
-4. Parameter Input:
-    A. `url`: 'https://www.cnn.com'
-5. Function Call: 
-    A. `webMenus(url='https://www.cnn.com')`
-    B. `webImages(url='https://www.cnn.com')`
-    C. `webLinks(url='https://www.cnn.com')`
-    D. `webText(url='https://www.cnn.com')`
-6. Example Response: "The website contains various news articles, a section for videos, and a section for opinion pieces."
-
-###Process Flow###
-1. Recognize the user's request for website menu items.
-2. Acknowledge the need to access and present the main content categories or sections of a website.
-3. Retrieve the menu items from the specified website URL.
-4. Present the extracted menu items in a descriptive format for user comprehension.
-
-###Objectives###
-1. To provide users with a clear overview of a website's content structure by extracting and presenting the main menu items, enhancing their understanding of the site's layout and accessible content categories. 
-2. To facilitate user comprehension of website organization and content categorization, enabling users to navigate and explore web pages effectively based on the site's primary sections.
-"""
-[tools.function.parameters]
-type = "object"
-[tools.function.parameters.properties.url]
-type = "string"
-description = """
-###Parameter###
-`url (str)`: The web address of the site from which menu information is to be retrieved.
-
-###Parameter Description###
-The `url` parameter necessitates a full, valid URL as a string, pinpointing the specific website whose menu structure the user wishes to explore. This input is critical for guiding the `webMenus` function to the appropriate web resource, ensuring that the resulting menu overview accurately reflects the site's content and organizational layout.
-
-###Parameter Usage###
-To effectively use this parameter, input the complete URL of the website when invoking the function. Accurate URL specification is essential for the successful extraction of menu data, facilitating an insightful summary of the website's navigational schema and primary content areas.
-1. User Inquiry: "Describe the CNN website."
-2. System Inference: The user seeks a description of the CNN website.
-3. Internal Reasoning:
-    A. The user requests an overview of the CNN website.
-    B. The system needs to extract the menu items from the CNN site.
-    C. The system can extract the menus using `webMenus(url='https://www.cnn.com')`.
-    D. The system needs to extract the image items from the CNN site.
-    E. The system can extract the images using `webImages(url='https://www.cnn.com')`.
-    F. The system needs to extract the hyperlink items from the CNN site.
-    G. The system can extract the hyperlinks using `webLinks(url='https://www.cnn.com')`.
-    H. The system needs to extract the text items from the CNN site.
-    I. The system can extract the text using `webText(url='https://www.cnn.com')`.
-4. Parameter Input:
-    A. `url`: 'https://www.cnn.com'
-5. Function Call:
-    A. `webMenus(url='https://www.cnn.com')`
-    B. `webImages(url='https://www.cnn.com')`
-    C. `webLinks(url='https://www.cnn.com')`
-    D. `webText(url='https://www.cnn.com')`
-6. Example Response: "The website contains various news articles, a section for videos, and a section for opinion pieces."
-
-###Process Flow###
-1. Recognize the user's request for website menu items.
-2. Acknowledge the need to access and present the main content categories or sections of a website.
-3. Retrieve the menu items from the specified website URL.
-4. Present the extracted menu items in a descriptive format for user comprehension.
-
-###Objective###
-1. To provide users with a clear and succinct overview of a website's menu structure, enhancing their understanding of the site's organizational scheme and available content.
-
-"""
-parameters.required = ["url"]
-
-
-
-########################################################################################################################################################################################################################
-
-
-
-[[tools]]
-type = "function"
-[tools.function]
-name = "webForms"
-description = """
-###Function Overview###
-The `webForms(url: (str))` function is tailored to identify and return information about forms present on a specified website URL. It plays a pivotal role in summarizing or describing websites, especially when users are interested in understanding the types of interactions available, such as subscriptions, contacts, or feedback opportunities. By fetching details about forms, this function aids in providing a comprehensive overview of a website's engagement and data collection mechanisms.
-
-###!!!IMPORTANT NOTE!!!###
-1. This function is designed to extract and present information about forms available on websites, offering users insights into the interactive elements and data submission opportunities.
-2. The extracted form details should reflect the types of forms present on the web page, providing a clear picture of the site's interactive features.
-3. The function serves as a valuable resource for addressing user queries related to website forms, enhancing user comprehension of the site's functionalities.
-
-###When to Call the Function###
--Invoke this function in response to queries about the presence and types of forms on a website, particularly when a user seeks a descriptive summary of the site.
--It is especially relevant when users wish to know about the interactive elements or data submission opportunities a website offers through its forms.
-
-###Parameters###
-- `url (str)`: The full URL of the website from which information about forms is to be extracted. This parameter must be a valid web address that directs to the intended online resource.
-
-###Returns###
-- `forms (str)`: A natural language summary of the forms found on the specified website. This output should enumerate the different types of forms present, such as subscription, contact, feedback, or any other specialized forms, providing a clear picture of the site's interactive features.
-
-###Example Usage###
-1. User Inquiry: "Are there any forms on 'https://www.cnn.com'?"
-2. System Inference: The user seeks information about forms on 'https://www.cnn.com'.
-3. Internal Reasoning:
-    A. The user specifies the website URL 'https://www.cnn.com'.
-    B. The system needs to extract information about the forms on the CNN website.
-    C. The system can extract the forms using `webForms(url='https://www.cnn.com')`.
-4. Parameter Input:
-    A. `url`: 'https://www.cnn.com'
-5. Function Call: `webForms(url='https://www.cnn.com')`
-6. Example Response: "The website contains subscription forms, contact forms, and feedback forms."
-
-###Process Flow###
-1. Recognize the user's request for website form information.
-2. Acknowledge the need to access and present details about the forms available on a website.
-3. Retrieve the form information from the specified website URL.
-4. Present the extracted form details in a descriptive format for user comprehension.
-
-###Objectives###
-1. To provide users with a comprehensive overview of a website's interactive elements by extracting and presenting information about the forms available, enhancing their understanding of the site's engagement features.
-2. To facilitate user comprehension of website functionalities and data collection mechanisms, enabling users to explore and interact with web pages effectively based on the available forms.
-"""
-[tools.function.parameters]
-type = "object"
-[tools.function.parameters.properties.url]
-type = "string"
-description = """
-###Parameter###
-`url (str)`: The web address of the site from which form information is to be extracted.
-
-###Parameter Description###
-The `url` parameter is crucial for specifying the website to be analyzed for forms. It requires a string input that accurately reflects the full URL of the website in question. This parameter ensures the function targets the correct webpage, facilitating the retrieval of detailed information about any forms present on the site.
-
-###Parameter Usage###
-To use this parameter effectively, input the complete URL of the website when invoking the function. It is vital to ensure the URL is correct and points to an accessible site to successfully extract information about forms available on the webpage.
-1. User Inquiry: "Are there any forms on 'https://www.cnn.com'?"
-2. System Inference: The user seeks information about forms on 'https://www.cnn.com'.
-3. Internal Reasoning:
-    A. The user specifies the website URL 'https://www.cnn.com'.
-    B. The system needs to extract information about the forms on the CNN website.
-    C. The system can extract the forms using `webForms(url='https://www.cnn.com')`.
-4. Parameter Input:
-    A. `url`: 'https://www.cnn.com'
-5. Function Call: `webForms(url='https://www.cnn.com')`
-6. Example Response: "The website contains subscription forms, contact forms, and feedback forms."
-
-###Process Flow###
-1. Recognize the user's request for website form information.
-2. Acknowledge the need to access and present details about the forms available on a website.
-3. Retrieve the form information from the specified website URL.
-4. Present the extracted form details in a descriptive format for user comprehension.
-
-###Objective###
-1. To facilitate the identification and understanding of interactive elements, specifically forms, on a given website, thereby assisting users in navigating webpages and engaging with site content.
-2. To enhance user comprehension of website functionalities and data collection mechanisms by providing detailed insights into the types of forms available on a site.
 """
 parameters.required = ["url"]
 

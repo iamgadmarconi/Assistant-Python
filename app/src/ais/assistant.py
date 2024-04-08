@@ -25,16 +25,7 @@ from src.ais.functions.azure import (
 )
 from src.ais.functions.misc import getWeather, getLocation, getDate
 from src.ais.functions.office import findFile
-from src.ais.functions.web import (
-    webText,
-    webMenus,
-    webLinks,
-    webImages,
-    webTables,
-    webForms,
-    webQuery,
-    dataQuery,
-)
+from src.ais.functions.web import webViewer, webQuery, dataQuery,
 
 
 
@@ -48,10 +39,10 @@ async def create(client: OpenAI, config: dict):
             Access the watson assistant service
         config
             Pass the assistant name, model and tools
-    
+
     Returns
     -------
-    
+
         An assistant object
     """
     assistant = client.beta.assistants.create(
@@ -63,7 +54,9 @@ async def create(client: OpenAI, config: dict):
     return assistant
 
 
-async def load_or_create_assistant(client: OpenAI, config: dict, recreate: bool = False) -> str:
+async def load_or_create_assistant(
+    client: OpenAI, config: dict, recreate: bool = False
+) -> str:
     asst_obj = await first_by_name(client, config["name"])
 
     asst_id = asst_obj.id if asst_obj is not None else None
@@ -298,12 +291,7 @@ async def call_required_function(
         "saveCalendarEvent": saveCalendarEvent,
         "getContacts": getContacts,
         "findFile": findFile,
-        "webText": webText,
-        "webMenus": webMenus,
-        "webLinks": webLinks,
-        "webImages": webImages,
-        "webTables": webTables,
-        "webForms": webForms,
+        "webViewer": webViewer,
         "webQuery": webQuery,
         "dataQuery": dataQuery,
     }
