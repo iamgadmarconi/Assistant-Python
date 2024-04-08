@@ -324,7 +324,7 @@ import base64
 
 from openai import NotFoundError, OpenAI
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from inspect import signature, Parameter
+from inspect import signature, Parameter, iscoroutinefunction
 
 from src.ais.msg import get_text_content, user_msg
 from src.utils.database import write_to_memory
@@ -343,7 +343,6 @@ from src.ais.functions.azure import (
 from src.ais.functions.misc import getWeather, getLocation, getDate
 from src.ais.functions.office import findFile
 from src.ais.functions.web import webViewer, webQuery, dataQuery
-
 
 
 async def create(client: OpenAI, config: dict):
@@ -641,17 +640,17 @@ async def call_required_function(
 
             if func_name in function_map:
                 func = function_map[func_name]
-                if func_name == "findFile":
-                    filtered_args = filter_args(
-                        func, {**args, "client": client, "asst_id": asst_id}
-                    )
-                else:
-                    filtered_args = filter_args(func, args)
+                filtered_args = filter_args(func, args)
 
-                if (
-                    filtered_args is not None
-                ):  # Check if args were successfully filtered
-                    outputs = func(**filtered_args)
+                # Check if args were successfully filtered and function exists
+                if filtered_args is not None:
+                    if iscoroutinefunction(func):
+                        if func_name == "findFile":
+                            outputs = await func(client, asst_id, **filtered_args)
+                        else:
+                            outputs = await func(**filtered_args)
+                    else:
+                        outputs = func(**filtered_args)
 
                     tool_outputs.append(
                         {"tool_call_id": action[1].tool_calls[0].id, "output": outputs}
