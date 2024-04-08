@@ -29,9 +29,11 @@ To get started with Assistant, follow these steps:
 This project requires you to provide several API keys for full functionality. These should be inserted into `.env` in the root directory of the project. You will need:
 
 1. OpenAI API key. (Default model is gpt-4-turbo, change it in `agent.toml` to avoid high costs or if you don't have the model available)
-2. OpenWeather API key
-3. Azure Client_ID
-4. Azure Client_secret
+2. OpenWeather API key (for weather services)
+3. Azure Client_ID (for Azure email / calendar services)
+4. Azure Client_secret (for azure email / calendar services)
+5. WolframAlpha App ID (for complex scientific / mathematical queries)
+6. YouAPI api key (for up-to-date news)
 
 You can copy and paste the following into `.env`
 
@@ -41,9 +43,11 @@ OPENWEATHER_API_KEY=
 CLIENT_ID=
 CLIENT_SECRET=
 CLIENT_SECRET_ID=
+WOLFRAM_APP_ID=
+You_API_key=
 ```
 
-For the last two keys, you have to create an application in Microsoft Azure for the Graph API:
+For the Azure keys, you have to create an application in Microsoft Azure for the Graph API:
 
 ## Oauth Authentication
 
