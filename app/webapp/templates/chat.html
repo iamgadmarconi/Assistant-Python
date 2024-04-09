@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Interface</title>
+    <style>
+        body, html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1928;
+        }
+        #chat-container {
+            width: 100%; /* Adjusted for the overall chat container */
+            max-width: 800px; /* Adjust to suit your needs */
+            margin: auto; /* Center the chat container */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #chat-window {
+            display: block;
+            width: 100%;
+            border: 1px solid #873852;
+            background-color: #95274e;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            min-height: 500px;
+            height: auto;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background-image: url('https://www.transparenttextures.com/patterns/axiom-pattern.png');
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 0 auto 10px;
+            border: 1px solid #873852;
+            border-radius: 4px;
+            padding: 5px;
+            position: relative; /* Needed for absolute positioning of children */
+        }
+
+        .message {
+            display: block;
+            width: auto; /* Adjusting the width of the message boxes to be wider */
+            /* Other properties remain the same */
+            max-width: none; /* You can remove the max-width or adjust it as needed */
+            margin: 5px auto; /* Centering messages within the chat window */
+            padding: 8px;
+            justify-content: center;
+            word-break: break-all;
+            word-wrap: break-word;
+            box-sizing: border-box;
+            border-radius: 4px;
+        }
+
+        .user, .bot {
+            border-radius: 4px;
+            padding: 5px 10px;
+            word-break: break-all;
+        }
+
+        .user {
+            /* align-self: flex-end; /* Aligns user messages to the right */
+            margin-left: auto;
+            text-align: left;
+            width: auto;
+            background-color: #dd2a62; /* Different background for differentiation */
+            color: #1e1928;
+        }
+
+        .bot {
+            /* align-self: flex-start; /* Aligns bot messages to the left */
+            margin-right: auto;
+            text-align: left;
+            width: auto;
+        }
+        
+        #message-input {
+            flex-grow: 1;
+            border: none;
+            background-color: #dd2a62;
+            color: #1e1928;
+            outline: none;
+            padding-right: 5px; /* Adjust based on the send button size */
+            padding-left: 5px; /* Adjust based on the send button size */
+            padding-top: 2px;
+            padding-bottom: 2px;
+            border-radius: 4px;
+            margin: 2px 5px; /* Ensure it doesn't touch the wrapper edges */
+            resize: none; /* Optional: prevents resizing */
+        }
+
+        #send-button {
+            padding: 10px 10px; /* Adjusted padding for better touch experience */
+            position: relative;
+            background-color: #95274e;
+            color: #1e1928;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        #send-button:hover {
+            background-color: #dd2a62;
+        }
+
+        .file-upload-wrapper {
+            display: flex;
+            align-items: center;
+            width: 8%;
+            padding: 5px;
+            position: relative; /* Needed for absolute positioning of children */
+        }
+
+        /* Style adjustments for the file input */
+        .file-upload-input {
+            display: none; /* Hide the default file input */
+        }
+
+        /* Custom button to trigger the hidden file input */
+        .file-upload-button {
+            padding: 10px 10px; /* Adjusted padding for better touch experience */
+            position: relative;
+            background-color: #95274e;
+            color: #1e1928;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .file-upload-button:hover {
+            background-color: #dd2a62;
+        }
+
+        @media (max-width: 768px) {
+            #chat-container {
+                width: auto;
+                max-width: 5px auto;
+            }
+
+            #message-input {
+                padding-left: 40px;
+            }
+
+            #send-button {
+                width: 60px; /* Smaller width on smaller screens */
+                height: 35px; /* Smaller height on smaller screens */
+                padding: 5px 10px; /* Adjusted padding */
+                font-size: 14px; /* Slightly smaller font size */
+            }
+
+            .file-upload-wrapper {
+                width: 8%; /* Adjusted width for smaller screens */
+            }
+
+        }
+
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-window">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="input-wrapper"> <!-- Wrapper for input and button -->
+            <div class="file-upload-wrapper">
+                <input type="file" id="file-upload-input" class="file-upload-input">
+                <label for="file-upload-input" class="file-upload-button">Upload</label>
+            </div>
+            <textarea id="message-input" autocomplete="off"></textarea>
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    <script>
+        // Add event listener for the custom upload button to trigger the hidden file input click
+        document.querySelector('.file-upload-button').addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent any default button action
+            event.stopPropagation(); // Stop the event from bubbling up
+            document.getElementById('file-upload-input').click();
+        });
+        // JavaScript for message handling remains unchanged
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+    
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    displayMessage(message, 'user');
+                    fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `message=${encodeURIComponent(message)}`
+                    })
+                    .then(response => response.text()) // Assuming JSON response
+                    .then(data => {
+                        displayMessage(data, 'bot'); // Display bot response
+                    })
+                    .catch(error => console.error('Error:', error));
+    
+                    // Reset input
+                    messageInput.value = '';
+                    adjustTextareaHeight();
+                }
+            }
+    
+            function displayMessage(message, sender) {
+                const chatWindow = document.getElementById('chat-window');
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender);
+
+                // Regex to find content within triple backticks
+                const regex = /```(.*?)```/gs;
+                let result;
+                let lastIndex = 0;
+                let finalHTML = '';
+
+                while ((result = regex.exec(message)) !== null) {
+                    // Text before code block as plain text
+                    finalHTML += escapeHTML(message.substring(lastIndex, result.index));
+                    // Code block parsed as Markdown
+                    finalHTML += marked.parse(result[1]);
+                    lastIndex = regex.lastIndex;
+                }
+
+                // Remaining text after the last code block as plain text
+                finalHTML += escapeHTML(message.substring(lastIndex));
+
+                messageDiv.innerHTML = finalHTML;
+                chatWindow.appendChild(messageDiv);
+                chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the latest message
+            }
+
+            // Helper function to escape HTML in plain text
+            function escapeHTML(unsafeText) {
+                return unsafeText
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+    
+            function adjustTextareaHeight() {
+                messageInput.style.height = 'auto'; // Reset height to shrink back if needed
+                messageInput.style.height = messageInput.scrollHeight + 'px'; // Adjust height based on content
+            }
+    
+            // Send message on "Enter" and add new line on "Shift+Enter"
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent default form submission
+                    sendMessage();
+                }
+            });
+    
+            sendButton.addEventListener('click', sendMessage);
+    
+            // Adjust textarea height initially and on input
+            messageInput.addEventListener('input', adjustTextareaHeight);
+            adjustTextareaHeight(); // Initial adjustment if needed
+        });
+    </script>
+    
+</body>
+</html>
