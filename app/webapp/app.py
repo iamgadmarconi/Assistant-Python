@@ -2,7 +2,7 @@ from quart import Quart, render_template, request, current_app
 from src.agent.agent import Assistant
 import asyncio
 
-get_bot_response = lambda x: "You said: " + x
+get_bot_response = lambda x: "You said: \n" + x
 
 app = Quart(__name__)
 DEFAULT_DIR = "agent"
@@ -14,9 +14,11 @@ async def home():
 
 @app.before_serving
 async def initialize_agent():
-    assistant = Assistant(DEFAULT_DIR)
-    asst = await assistant.init_from_dir(False)
-    conv = await assistant.load_or_create_conv(False)
+    # assistant = Assistant(DEFAULT_DIR)
+    # asst = await assistant.init_from_dir(False)
+    # conv = await assistant.load_or_create_conv(False)
+    asst = 1
+    conv = 2
     app.asst = asst
     app.conv = conv
 
@@ -27,7 +29,8 @@ async def chat():
         message = form_data['message']
         
         # Process the message and get the response
-        response = await current_app.asst.chat(current_app.conv, message)
+        # response = await current_app.asst.chat(current_app.conv, message)
+        response = get_bot_response(message) #testing
         # Return the response
         return response
 
