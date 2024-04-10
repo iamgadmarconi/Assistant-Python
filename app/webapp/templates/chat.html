@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Highlight.js Styles (Choose a theme that suits your needs) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/default.min.css">
+
+    <!-- Marked.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Highlight.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Interface</title>
+    <style>
+        body, html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1928;
+        }
+        #chat-container {
+            width: 100%; /* Adjusted for the overall chat container */
+            max-width: 800px; /* Adjust to suit your needs */
+            margin: auto; /* Center the chat container */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #chat-window {
+            display: block;
+            width: 100%;
+            border: 1px solid #873852;
+            background-color: #95274e;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            min-height: 500px;
+            height: auto;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background-image: url('https://www.transparenttextures.com/patterns/axiom-pattern.png');
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 0 auto 10px;
+            border: 1px solid #873852;
+            border-radius: 4px;
+            padding: 5px;
+            position: relative; /* Needed for absolute positioning of children */
+        }
+
+        .message {
+            display: block;
+            width: auto; /* Adjusting the width of the message boxes to be wider */
+            /* Other properties remain the same */
+            max-width: none; /* You can remove the max-width or adjust it as needed */
+            margin: 5px auto; /* Centering messages within the chat window */
+            padding: 8px;
+            justify-content: center;
+            word-break: break-all;
+            word-wrap: break-word;
+            box-sizing: border-box;
+            border-radius: 4px;
+        }
+
+        .user, .bot {
+            border-radius: 4px;
+            padding: 5px 10px;
+            word-break: break-all;
+        }
+
+        .user {
+            /* align-self: flex-end; /* Aligns user messages to the right */
+            margin-left: auto;
+            text-align: left;
+            width: auto;
+            background-color: #dd2a62; /* Different background for differentiation */
+            color: #1e1928;
+        }
+
+        .bot {
+            /* align-self: flex-start; /* Aligns bot messages to the left */
+            margin-right: auto;
+            text-align: left;
+            width: auto;
+        }
+        
+        #message-input {
+            flex-grow: 1;
+            border: none;
+            background-color: #dd2a62;
+            color: #1e1928;
+            outline: none;
+            padding-right: 5px; /* Adjust based on the send button size */
+            padding-left: 5px; /* Adjust based on the send button size */
+            padding-top: 2px;
+            padding-bottom: 2px;
+            border-radius: 4px;
+            margin: 2px 5px; /* Ensure it doesn't touch the wrapper edges */
+            resize: none; /* Optional: prevents resizing */
+        }
+
+        #send-button {
+            padding: 10px 10px; /* Adjusted padding for better touch experience */
+            position: relative;
+            background-color: #95274e;
+            color: #1e1928;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        #send-button:hover {
+            background-color: #dd2a62;
+        }
+
+        .file-upload-wrapper {
+            display: flex;
+            align-items: center;
+            width: 8%;
+            padding: 5px;
+            position: relative; /* Needed for absolute positioning of children */
+        }
+
+        /* Style adjustments for the file input */
+        .file-upload-input {
+            display: none; /* Hide the default file input */
+        }
+
+        /* Custom button to trigger the hidden file input */
+        .file-upload-button {
+            padding: 10px 10px; /* Adjusted padding for better touch experience */
+            position: relative;
+            background-color: #95274e;
+            color: #1e1928;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .file-upload-button:hover {
+            background-color: #dd2a62;
+        }
+
+        /* Targeting code blocks within pre elements */
+        pre code {
+            background-color: #000; /* Dark background for better contrast */
+            color: #dd2a62; /* Darker text for better contrast */
+            padding: 10px; /* Add some padding */
+            border-radius: 5px; /* Optional: rounded corners for aesthetics */
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+        }
+
+        pre code.hljs {
+            background-color: transparent; /* Make the background transparent */
+            color: #dd2a62; /* White text for contrast */
+            padding: 10px; /* Reset padding here if it's already applied to <pre> */
+        }
+
+        /* Optional: If you want to make sure your styles are applied, you can add !important */
+        /* However, use !important sparingly as it can make further CSS maintenance difficult */
+        .hljs {
+            background-color: #000 !important; /* Black background for the code */
+            color: #dd2a62 !important; /* White text for contrast */
+        }
+
+        @media (max-width: 768px) {
+            #chat-container {
+                width: auto;
+                max-width: 5px auto;
+            }
+
+            #message-input {
+                padding-left: 40px;
+            }
+
+            #send-button {
+                width: 60px; /* Smaller width on smaller screens */
+                height: 35px; /* Smaller height on smaller screens */
+                padding: 5px 10px; /* Adjusted padding */
+                font-size: 14px; /* Slightly smaller font size */
+            }
+
+            .file-upload-wrapper {
+                width: 8%; /* Adjusted width for smaller screens */
+            }
+
+        }
+
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-window">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="input-wrapper">
+            <!-- Form for file upload -->
+            <form id="file-upload-form" action="/upload" method="post" enctype="multipart/form-data">
+                <div class="file-upload-wrapper">
+                    <input type="file" id="file-upload-input" name="the_file" class="file-upload-input">
+                    <label for="file-upload-input" class="file-upload-button">Upload</label>
+                </div>
+            </form>
+            <textarea id="message-input" autocomplete="off"></textarea>
+            <button id="send-button">Send</button>
+        </div>
+    </div>    
+    <script>
+        // Add event listener for the custom upload button to trigger the hidden file input click
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.file-upload-button').addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent form from submitting normally
+                event.stopPropagation(); // Prevent event from bubbling up
+                document.getElementById('file-upload-input').click();
+            });
+
+            document.getElementById('file-upload-input').addEventListener('change', function(event) {
+                const fileInput = event.target;
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('the_file', fileInput.files[0]);
+
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json(); // Or 'response.text()' if the server returns plain text
+                    })
+                    .then(data => {
+                        console.log(data.filename); // Handle success
+                    })
+                    .catch(error => {
+                        console.error('Error:', error); // Handle errors
+                    });
+                }
+            });
+        });
+
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+
+            hljs.highlightAll();
+
+    // Configure marked to use highlight.js for code blocks
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                }
+            });
+    
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    displayMessage(message, 'user');
+                    fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `message=${encodeURIComponent(message)}`
+                    })
+                    .then(response => response.text()) // Assuming JSON response
+                    .then(data => {
+                        displayMessage(data, 'bot'); // Display bot response
+                    })
+                    .catch(error => console.error('Error:', error));
+    
+                    // Reset input
+                    messageInput.value = '';
+                    adjustTextareaHeight();
+                }
+            }
+
+            function displayMessage(message, sender) {
+                const chatWindow = document.getElementById('chat-window');
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender);
+
+                // Parse the entire message as Markdown, with code blocks highlighted
+                const finalHTML = marked.parse(message);
+
+                messageDiv.innerHTML = finalHTML;
+                chatWindow.appendChild(messageDiv);
+                
+                // Apply syntax highlighting to all <code> elements inside the newly added message
+                messageDiv.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+
+                chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the latest message
+            }
+
+            function adjustTextareaHeight() {
+                messageInput.style.height = 'auto'; // Reset height to shrink back if needed
+                messageInput.style.height = messageInput.scrollHeight + 'px'; // Adjust height based on content
+            }
+    
+            // Send message on "Enter" and add new line on "Shift+Enter"
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent default form submission
+                    sendMessage();
+                }
+            });
+    
+            sendButton.addEventListener('click', function() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    displayMessage(message, 'user');
+                    messageInput.value = ''; // Clear input after sending
+                }
+            });
+            // Adjust textarea height initially and on input
+            messageInput.addEventListener('input', adjustTextareaHeight);
+            adjustTextareaHeight(); // Initial adjustment if needed
+        });
+    </script>
+    
+</body>
+</html>
