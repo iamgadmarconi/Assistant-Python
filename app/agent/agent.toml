@@ -1413,7 +1413,7 @@ type = "function"
 name = "findFile"
 description = """
 ###Function Overview###
-The `findFile(filename: (str))` function is designed to search for and return the unique identifier (file_id) associated with a specified filename. This identifier is critical for accurately locating and accessing files within the system's filesystem before conducting any file manipulations or data analyses. The function plays a key role in ensuring that operations are performed on the correct file by providing a safe and precise method for file identification.
+The `findFile(filename: Optional[str])` function is designed to search for and return the unique identifier (file_id) associated with a specified filename. This identifier is critical for accurately locating and accessing files within the system's filesystem before conducting any file manipulations or data analyses. The function plays a key role in ensuring that operations are performed on the correct file by providing a safe and precise method for file identification.
 
 ###!!!IMPORTANT NOTE!!!###
 1. This function does not open the file but solely returns the file_id, which is essential for subsequent file operations.
@@ -1422,7 +1422,8 @@ The `findFile(filename: (str))` function is designed to search for and return th
 4. The file_id is the only method to locate and access files within the filesystem.
 
 ###Parameters###
-`filename (str)`: The name of the file to locate. This parameter requires the user to specify the exact name of the file they wish to access, facilitating the search for its corresponding file_id within the filesystem.
+`filename Optional(str)`: The name of the file to locate. This parameter requires the user to specify the exact name of the file they wish to access, facilitating the search for its corresponding file_id within the filesystem.
+    A. If the filename is not specified, the most recently uploaded file_id is returned.
 
 ###Returns###
 `file_id (str)`: A unique identifier for the file specified by the filename parameter. This file_id is essential for locating the file within the filesystem for any subsequent file operations. It is crucial to understand that:
@@ -1431,6 +1432,7 @@ The `findFile(filename: (str))` function is designed to search for and return th
 *The returned file_id should not be displayed to the user but used as an intermediate step in the `code_interpreter` for further file operations.*
 
 ###Usage Example###
+##Filename specified by the User##
 Suppose a user wants to perform data analysis on a file named `finance.csv` to calculate the average revenue for the year 2023. The workflow would be as follows:
 1. User Inquiry: "What was the average revenue for the year 2023 in 'finance.csv'?"
 2. System Inference: The user requests data analysis on the file `finance.csv` for revenue calculation.
@@ -1448,6 +1450,21 @@ Suppose a user wants to perform data analysis on a file named `finance.csv` to c
 7. Use `code_interpreter` tool to manipulate and analyze the data within the specified file.
 8. Example Response: The average revenue for the year 2023 in `finance.csv` is $X.
 
+##Filename Not Specified##
+If the user does not specify a filename, the function will return the most recently uploaded file_id. This scenario is useful when the user intends to work with the latest file without explicitly mentioning its name.
+1. User Inquiry: "Describe this image"
+2. System Inference: The user requests a description of the most recently uploaded image.
+3. Internal Reasoning: 
+    A. The user does not specify a filename.
+    B. The system needs to access the most recently uploaded file for description.
+    C. The only way to access files is through their unique file_id.
+    D. The system must call `findFile(filename: str)` to obtain the file_id for `finance.csv`.
+4. Parameter Input: Not applicable (No filename specified).
+5. Function Call: `findFile()`
+6. The function returns the file_id of the most recently uploaded file, enabling the system to describe the image accurately.
+7. Example Response: "The image depicts a serene landscape with a clear blue sky and lush greenery."
+
+
 ###Process Flow###
 1. **Recognize User Request**: Recognize the user wants to know about a specific file.
     A. **Understand that the only way to access files is through their unique file_id**.
@@ -1460,12 +1477,13 @@ type = "object"
 type = "string"
 description = """
 ###Parameter###
-`filename (str)`: This parameter specifies the name of the file that needs to be located within the system, as explicitly mentioned by the user.
+`filename: Optional(str)`: This parameter specifies the name of the file that needs to be located within the system, as explicitly mentioned by the user.
 
 ###Parameter Description###
 The `filename` parameter is essential for identifying and locating a specific file within the filesystem based on the user's request. It requires a string input representing the exact name of the file of interest, excluding any internal file identifiers or paths known to the system. This approach ensures that the search and subsequent operations are aligned with the user's intentions and that the correct file is targeted for any analysis or manipulation.
 
 ###Parameter Usage###
+##Filename specified by the User##
 To utilize this parameter effectively, input must be a string that corresponds to the name of the file as described by the user. It is crucial that this name matches the user's specification to ensure the subsequent retrieval of the correct file_id for the intended file.
 1. User Inquiry: "What was the average revenue for the year 2023 in 'finance.csv'?"
 2. System Inference: The user requests data analysis on the file `finance.csv` for revenue calculation.
@@ -1481,11 +1499,25 @@ To utilize this parameter effectively, input must be a string that corresponds t
 7. Use `code_interpreter` tool to manipulate and analyze the data within the specified file.
 8. Example Response: The average revenue for the year 2023 in `finance.csv` is $X.
 
+##Filename Not Specified##
+If the user does not specify a filename, the function will return the most recently uploaded file_id. This scenario is useful when the user intends to work with the latest file without explicitly mentioning its name.
+1. User Inquiry: "Describe this image"
+2. System Inference: The user requests a description of the most recently uploaded image.
+3. Internal Reasoning: 
+    A. The user does not specify a filename.
+    B. The system needs to access the most recently uploaded file for description.
+    C. The only way to access files is through their unique file_id.
+    D. The system must call `findFile(filename: str)` to obtain the file_id for `finance.csv`.
+4. Parameter Input: Not applicable (No filename specified).
+5. Function Call: `findFile()`
+6. The function returns the file_id of the most recently uploaded file, enabling the system to describe the image accurately.
+7. Example Response: "The image depicts a serene landscape with a clear blue sky and lush greenery."
+
+
 ###Objective###
 1. To accurately map the user's specified file name to its corresponding file_id within the system's filesystem, facilitating targeted and secure file operations.
 2. To ensure that the operations and analyses requested by the user are performed on the correct file, thereby maintaining the integrity and relevance of the process.
 """
-parameters.required = ["filename"]
 
 
 [[tools]]
@@ -1911,7 +1943,7 @@ The `vision(file_id: (str), query: (str))` function is a powerful tool designed 
 
 ###Parameters###
 - `file_id (str)`: The unique identifier associated with the image file to be analyzed. This file_id is crucial for locating and processing the image within the system. 
-    - This parameter can be obtained through the `findFile(filename: (str))` function, ensuring that the correct image is targeted for analysis.
+    - This parameter can be obtained through the `findFile(filename: Optional[str])` function, ensuring that the correct image is targeted for analysis.
 - `query (str)`: A concise, well-formulated query based on the user's request. This should be structured to precisely convey the user's intent to the `vision(file_id: (str), query: (str))` function, utilizing English and adhering to best practices for query formulation.
 
 ###Returns###
@@ -1925,7 +1957,7 @@ The `vision(file_id: (str), query: (str))` function is a powerful tool designed 
     B. The system recognizes the need for image processing and interpretation.
     C. The system can analyze the image using `vision(file_id: (str), query: (str))`.
         i. The `file_id` is essential for locating and processing the image.
-        ii. The system can obtain the `file_id` through the `findFile(filename: (str))` function.
+        ii. The system can obtain the `file_id` through the `findFile(filename: Optional[str])` function.
 4. Parameter Input:
     A. `file_id`: The unique identifier associated with the image file.
         i. This is obtained through the `findFile(filename="image.png")` function.
@@ -1953,7 +1985,7 @@ description = """
 The `file_id` parameter is a critical component of the `vision(file_id: (str), query: (str))` function, serving as the unique identifier associated with the image file targeted for analysis. This identifier enables the system to locate and process the specified image accurately, ensuring that the analysis and interpretation are performed on the correct visual content.
 
 ###Parameter Usage###
-To utilize this parameter effectively, the `file_id` must be obtained through the `findFile(filename: (str))` function, which maps the user-specified image filename to its corresponding unique identifier within the system. This process ensures that the correct image is selected for analysis, providing accurate insights and descriptions based on the visual content.
+To utilize this parameter effectively, the `file_id` must be obtained through the `findFile(filename: Optional[str])` function, which maps the user-specified image filename to its corresponding unique identifier within the system. This process ensures that the correct image is selected for analysis, providing accurate insights and descriptions based on the visual content.
 ##Example##
 1. User Query: "Analyze image.jpg to identify the objects and provide a description."
 2. System Inference: The user requests an analysis of the image to identify objects and provide a description.
@@ -1962,7 +1994,7 @@ To utilize this parameter effectively, the `file_id` must be obtained through th
     B. The system recognizes the need for image processing and interpretation.
     C. The system can analyze the image using `vision(file_id: (str), query: (str))`.
         i. The `file_id` is essential for locating and processing the image.
-        ii. The system can obtain the `file_id` through the `findFile(filename: (str))` function.
+        ii. The system can obtain the `file_id` through the `findFile(filename: Optional[str])` function.
 4. Parameter Input:
     A. `file_id`: The unique identifier associated with the image file.
         i. This is obtained through the `findFile(filename="image.png")` function.
@@ -1973,7 +2005,7 @@ To utilize this parameter effectively, the `file_id` must be obtained through th
 ###Process Flow###
 1. Recognize the user's request for image analysis and interpretation.
 2. Acknowledge the need to access the specified image file for processing.
-3. Obtain the unique identifier (`file_id`) associated with the image through the `findFile(filename: (str))` function.
+3. Obtain the unique identifier (`file_id`) associated with the image through the `findFile(filename: Optional[str])` function.
 4. Utilize the `file_id` to target the correct image for analysis within the `vision(file_id: (str), query: (str))` function.
 5. Analyze the image to identify objects, extract information, and provide descriptions based on the visual content.
 6. Present the analysis results in a clear and concise manner, focusing on the key details relevant to the user's request.
@@ -2001,7 +2033,7 @@ When utilizing this parameter, the `query` should be formulated in English, refl
     B. The system recognizes the need for image processing and interpretation.
     C. The system can analyze the image using `vision(file_id: (str), query: (str))`.
         i. The `file_id` is essential for locating and processing the image.
-        ii. The system can obtain the `file_id` through the `findFile(filename: (str))` function.
+        ii. The system can obtain the `file_id` through the `findFile(filename: Optional[str])` function.
 4. Parameter Input:
     A. `file_id`: The unique identifier associated with the image file.
         i. This is obtained through the `findFile(filename="image.png")` function.
@@ -2013,7 +2045,7 @@ When utilizing this parameter, the `query` should be formulated in English, refl
 1. Recognize the user's request for image analysis and interpretation.
     A. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
 2. Acknowledge the need to access the specified image file for processing.
-3. Obtain the unique identifier (`file_id`) associated with the image through the `findFile(filename: (str))` function.
+3. Obtain the unique identifier (`file_id`) associated with the image through the `findFile(filename: Optional[str])` function.
 4. Utilize the `file_id` to target the correct image for analysis within the `vision(file_id: (str), query: (str))` function.
 5. Analyze the image to identify objects, extract information, and provide descriptions based on the visual content.
 6. Present the analysis results in a clear and concise manner, focusing on the key details relevant to the user's request.
