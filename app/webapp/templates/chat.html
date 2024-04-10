@@ -156,6 +156,28 @@
             background-color: #dd2a62;
         }
 
+        /* Targeting code blocks within pre elements */
+        pre code {
+            background-color: #000; /* Dark background for better contrast */
+            color: #dd2a62; /* Darker text for better contrast */
+            padding: 10px; /* Add some padding */
+            border-radius: 5px; /* Optional: rounded corners for aesthetics */
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+        }
+
+        pre code.hljs {
+            background-color: transparent; /* Make the background transparent */
+            color: #dd2a62; /* White text for contrast */
+            padding: 10px; /* Reset padding here if it's already applied to <pre> */
+        }
+
+        /* Optional: If you want to make sure your styles are applied, you can add !important */
+        /* However, use !important sparingly as it can make further CSS maintenance difficult */
+        .hljs {
+            background-color: #000 !important; /* Black background for the code */
+            color: #dd2a62 !important; /* White text for contrast */
+        }
+
         @media (max-width: 768px) {
             #chat-container {
                 width: auto;
@@ -186,23 +208,53 @@
         <div id="chat-window">
             <!-- Messages will appear here -->
         </div>
-        <div class="input-wrapper"> <!-- Wrapper for input and button -->
-            <div class="file-upload-wrapper">
-                <input type="file" id="file-upload-input" class="file-upload-input">
-                <label for="file-upload-input" class="file-upload-button">Upload</label>
-            </div>
+        <div class="input-wrapper">
+            <!-- Form for file upload -->
+            <form id="file-upload-form" action="/upload" method="post" enctype="multipart/form-data">
+                <div class="file-upload-wrapper">
+                    <input type="file" id="file-upload-input" name="the_file" class="file-upload-input">
+                    <label for="file-upload-input" class="file-upload-button">Upload</label>
+                </div>
+            </form>
             <textarea id="message-input" autocomplete="off"></textarea>
             <button id="send-button">Send</button>
         </div>
-    </div>
+    </div>    
     <script>
         // Add event listener for the custom upload button to trigger the hidden file input click
-        document.querySelector('.file-upload-button').addEventListener('click', function(event) {
-            event.preventDefault(); // Prevent any default button action
-            event.stopPropagation(); // Stop the event from bubbling up
-            document.getElementById('file-upload-input').click();
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.file-upload-button').addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent form from submitting normally
+                event.stopPropagation(); // Prevent event from bubbling up
+                document.getElementById('file-upload-input').click();
+            });
+
+            document.getElementById('file-upload-input').addEventListener('change', function(event) {
+                const fileInput = event.target;
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('the_file', fileInput.files[0]);
+
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json(); // Or 'response.text()' if the server returns plain text
+                    })
+                    .then(data => {
+                        console.log(data.filename); // Handle success
+                    })
+                    .catch(error => {
+                        console.error('Error:', error); // Handle errors
+                    });
+                }
+            });
         });
-        // JavaScript for message handling remains unchanged
+
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -241,6 +293,7 @@
                     adjustTextareaHeight();
                 }
             }
+
             function displayMessage(message, sender) {
                 const chatWindow = document.getElementById('chat-window');
                 const messageDiv = document.createElement('div');
@@ -251,9 +304,14 @@
 
                 messageDiv.innerHTML = finalHTML;
                 chatWindow.appendChild(messageDiv);
+                
+                // Apply syntax highlighting to all <code> elements inside the newly added message
+                messageDiv.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+
                 chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the latest message
             }
-
 
             function adjustTextareaHeight() {
                 messageInput.style.height = 'auto'; // Reset height to shrink back if needed

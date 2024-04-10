@@ -105,12 +105,12 @@ class Assistant:
             await upload_file_by_name(
                 self.oac,
                 asst_id=self.asst_id,
-                filename=str(Path(r"app\agent\.agent\persistance\memory.json")),
+                filename=Path(r"app\agent\.agent\persistance\memory.json"),
                 force=True,
             )
-        except:
-            # print("No previous memory")
-            yellow_text("No previous memory")
+        except Exception as e:
+            yellow_text(str(e))
+            yellow_text("\nNo previous memory\n")
 
         await self.upload_instructions()
         await self.upload_files(recreate)

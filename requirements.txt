@@ -22,4 +22,5 @@ pandas==2.2.1
 python-Levenshtein==0.25.0
 lxml==5.2.1
 quart==0.19.5
+quart-uploads==0.0.2
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz
