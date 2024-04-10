@@ -34,7 +34,7 @@ def user_msg(content):
     )
 
 
-def get_text_content(client, msg):
+def get_msg_content(client, msg):
     if not msg.content:
         raise ValueError("No content found in message")
 

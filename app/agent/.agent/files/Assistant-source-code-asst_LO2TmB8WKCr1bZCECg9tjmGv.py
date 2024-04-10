@@ -322,11 +322,12 @@ import os
 import re
 import base64
 
+from pathlib import Path
 from openai import NotFoundError, OpenAI
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from inspect import signature, Parameter, iscoroutinefunction
 
-from src.ais.msg import get_text_content, user_msg
+from src.ais.msg import get_msg_content, user_msg
 from src.utils.database import write_to_memory
 from src.utils.files import find, get_file_hashmap
 from src.utils.cli import red_text, green_text, yellow_text
@@ -496,11 +497,13 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             Remember to always go throught the **CHECKLIST BEFORE ANSWERING**.
 
             ## Real-time Data Retrieval ##
-            URL-based Data Extraction: If a URL is provided by the user, employ web tools (`webText(url: str))`, `webMenus(url: str))`, `webLinks(url: str))`, `webImages(url: str))`, `webTables(url: str))`, `webForms(url: str))`) to extract specific data types as requested. For text extraction from a webpage, use the `webText(url: str))` tool.
+            URL-based Data Extraction: If a URL is provided by the user, employ web tools (webViewer(url: str))` tool.
+            Query-based Data Extraction: For general queries, use the `webQuery(query: str))` and `dataQuery(query: str)` tools to extract relevant information from the web. For specific data types, utilize the appropriate tools such as `dataQuery(query: str))` for structured data, `vision(file_id: str, query: str))` for image analysis, and `findFile(filename: str))` for file-based data analysis tasks.
             
             ###!!! IMPORTANT !!!###
             1. Use the `webQuery(query: str)` tool for queries requiring up-to-date information or data beyond the knowledge-cutoff.
-            2. Use `findFile(filename: str)` to locate files for data analysis tasks before performing any analysis with `code_interpreter`
+            2. Use `findFile(filename: str)` to locate files for data analysis tasks before performing any analysis with `code_interpreter` or `vision(file_id: str, query: str)` functions.
+                A. Always make **at least** two explicit function calls to `findFile(filename: str)` and `code_interpreter(code: str)` or `vision(file_id: str, query: str)` for file-based tasks.
             3. **Use the raw text provided by the user to indicate `start` and `end` dates for calendar events.**
 
             ### Query-based Data Search ###
@@ -521,7 +524,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             ### Prerequisite Tool Usage ###
                 1. The `createCalendarEvent(subject: str, start: str, end: Optional(str), location: Optional(str), reccurence: Optional(boolean))` function must precede `saveCalendarEvent(subject: str, start: str, end: Optional(str), location: Optional(str), reccurence: Optional(boolean))` usage. Use `getDate()` optionally to determine the start date if not provided.
                 2. The `writeEmail(recipients: list(str), subject: str, body: str, attachments: Optional(list[str]))` function is a precursor to `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(list[str]))`. If an email address is unspecified, employ `getContacts(name: Optional(str))` to ascertain the recipient's email or seek clarification.
-                3. The `findFile(filename: str)` function is essential before performing any data analysis tasks on files. This tool is activated when file context is mentioned by the user.
+                3. The `findFile(filename: str)` function is essential before performing any data analysis tasks on files. This tool is activated when file context is mentioned by the user. Make a unique call to `findFile(filename: str)` for each file-based task.
 
             ## User Interaction and Clarification ##
                 1. Directly interpret user queries to formulate appropriate tool commands, even if the user's request is indirect.
@@ -610,6 +613,7 @@ async def call_required_function(
         "webViewer": webViewer,
         "webQuery": webQuery,
         "dataQuery": dataQuery,
+        "vision": vision,
     }
 
     def filter_args(func, provided_args):
@@ -645,7 +649,7 @@ async def call_required_function(
                 # Check if args were successfully filtered and function exists
                 if filtered_args is not None:
                     if iscoroutinefunction(func):
-                        if func_name == "findFile":
+                        if func_name in ["findFile", "vision"]:
                             outputs = await func(client, asst_id, **filtered_args)
                         else:
                             outputs = await func(**filtered_args)
@@ -690,9 +694,12 @@ async def get_thread_message(client, thread_id: str):
         if msg is None:
             raise ValueError("No message found in thread")
 
-        txt = get_text_content(client, msg)
+        txt = get_msg_content(client, msg)
 
-        write_to_memory("Assistant", txt)
+        if isinstance(txt, str):
+            write_to_memory("Assistant", txt)
+        else:
+            write_to_memory("Assistant", "File received from Assistant")
 
         return txt
 
@@ -700,7 +707,7 @@ async def get_thread_message(client, thread_id: str):
         raise ValueError(f"An error occurred: {str(e)}")
 
 
-async def upload_file_by_name(client, asst_id: str, filename, force: bool = False):
+async def upload_file_by_name(client, asst_id: str, filename: Path, force: bool = False):
     assts = client.beta.assistants
     assistant_files = assts.files
 
@@ -765,6 +772,54 @@ async def upload_file_by_name(client, asst_id: str, filename, force: bool = Fals
         return None, False
 
 
+async def vision(client, asst_id: str, file_id: str, query: str) -> str:
+    print("\n--debug: called vision function with parameters: \n", file_id, query)
+    file_id_by_name = await get_file_hashmap(client, asst_id)
+
+    file_name = next(
+        (name for name, id in file_id_by_name.items() if id == file_id), None
+    )
+
+    print(f"\n--debug: File name: {file_name}\n")
+
+    image_path = find(file_name, r"app/files")
+
+    print(f"\n--debug: Image path: {image_path}\n")
+
+    with open(image_path, "rb") as image_file:
+        image_url_base64 = base64.b64encode(image_file.read()).decode("utf-8")
+
+    image_url = f"data:image/jpeg;base64,{image_url_base64}"
+
+    print(f"\n--debug: Image URL: {image_url[10:]}\n")
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "system", 
+                    "content": [
+                        {"type": "text", "text": "You are an expert at describing images, be as descriptive as possible. Format your answer in a way that is easily digestible for a LLM."}
+                    ],
+
+                "role": "user",
+                    "content": [
+                        {"type": "text", "text": query},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": image_url, "detail": "high"},
+                        },
+                    ],
+
+            },
+        ],
+        model="gpt-4-turbo-2024-04-09",
+    )
+
+    print(f"\n--debug: Chat completion: {chat_completion.choices[0].message.content}\n")
+
+    return chat_completion.choices[0].message.content
+
+
 
  # ==== file path: app\agent\..\src\ais\msg.py ==== 
 
@@ -804,7 +859,7 @@ def user_msg(content):
     )
 
 
-def get_text_content(client, msg):
+def get_msg_content(client, msg):
     if not msg.content:
         raise ValueError("No content found in message")
 
@@ -1468,11 +1523,13 @@ async def findFile(client, asst_id, filename: str) -> str:
 
         The file_id of the file with name filename
     """
-    # print(f"Debug--- Called findFile with parameters: {filename}")
+    print(f"Debug--- Called findFile with parameters: {filename}")
 
     file_id_by_name = await get_file_hashmap(client, asst_id)
 
     file_id = file_id_by_name.get(filename, "File not found")
+
+    print(f"Debug--- File ID: {file_id}")
 
     return file_id
 

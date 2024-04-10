@@ -1426,7 +1426,7 @@ The `findFile(filename: (str))` function is designed to search for and return th
 
 ###Returns###
 `file_id (str)`: A unique identifier for the file specified by the filename parameter. This file_id is essential for locating the file within the filesystem for any subsequent file operations. It is crucial to understand that:
-*The file_id is the only method to accurately locate the file in the filesystem.*
+**The file_id is the only method to accurately locate the file in the filesystem.**
 *The function does not open the file; it merely returns the file_id.*
 *The returned file_id should not be displayed to the user but used as an intermediate step in the `code_interpreter` for further file operations.*
 
@@ -1437,6 +1437,8 @@ Suppose a user wants to perform data analysis on a file named `finance.csv` to c
 3. Internal Reasoning: 
     A. The user specifies the filename `finance.csv`.
     B. The system needs to locate the file to extract the necessary data.
+    C. The only way to access files is through their unique file_id.
+    D. The system must call `findFile(filename: str)` to obtain the file_id for `finance.csv`.
 4. Parameter Input:
     A. `filename`: 'finance.csv'
 5. Function Call: `findFile(filename='finance.csv')`
@@ -1889,6 +1891,138 @@ parameters.required = ["query"]
 ########################################################################################################################################################################################################################
 
 
+
+[[tools]]
+type = "function"
+[tools.function]
+name = "vision"
+description = """
+###Function Overview###
+The `vision(file_id: (str), query: (str))` function is a powerful tool designed to analyze and interpret images, providing insights, descriptions, and relevant information based on visual content. This function leverages advanced image recognition and processing capabilities to extract valuable data from images, enabling users to gain a deeper understanding of visual content and facilitating informed decision-making.
+
+###!!!IMPORTANT NOTE!!!###
+1. This function is intended to analyze images and extract meaningful information, descriptions, and insights based on visual content.
+2. The function utilizes advanced image recognition technologies to interpret images and provide relevant data to users, enhancing their understanding of visual content.
+3. It is a valuable tool for addressing user inquiries that involve image analysis, object recognition, and content interpretation, bridging the gap between visual data and actionable insights.
+
+###When to Call the Function###
+-This function should be invoked when users require detailed analysis, descriptions, or insights based on visual content within images.
+-It is ideal for situations where users seek to extract information, identify objects, or gain insights from images that may contain relevant data or content.
+
+###Parameters###
+- `file_id (str)`: The unique identifier associated with the image file to be analyzed. This file_id is crucial for locating and processing the image within the system. 
+    - This parameter can be obtained through the `findFile(filename: (str))` function, ensuring that the correct image is targeted for analysis.
+- `query (str)`: A concise, well-formulated query based on the user's request. This should be structured to precisely convey the user's intent to the `vision(file_id: (str), query: (str))` function, utilizing English and adhering to best practices for query formulation.
+
+###Returns###
+- `query_results (str)`: The outcome of the image analysis, articulated in natural language. This response encapsulates the essential information, descriptions, or insights extracted from the image, formatted to facilitate easy comprehension and direct applicability.
+
+###Example Usage###
+1. User Query: "Analyze image.jpg to identify the objects and provide a description."
+2. System Inference: The user requests an analysis of the image to identify objects and provide a description.
+3. Internal Reasoning:
+    A. The user seeks to analyze the image for object identification and description.
+    B. The system recognizes the need for image processing and interpretation.
+    C. The system can analyze the image using `vision(file_id: (str), query: (str))`.
+        i. The `file_id` is essential for locating and processing the image.
+        ii. The system can obtain the `file_id` through the `findFile(filename: (str))` function.
+4. Parameter Input:
+    A. `file_id`: The unique identifier associated with the image file.
+        i. This is obtained through the `findFile(filename="image.png")` function.
+    B. `query`: "Identify objects and provide a description."
+5. Function Call: `vision(file_id=`file_id`, query="Identify objects and provide a description.")`
+6. Example Response: "The image contains a car, a tree, and a building. The scene appears to be a city street with traffic."
+
+###Best Practices###
+-**Query Precision**: Craft each query to reflect the user's specific request, ensuring clarity and specificity to obtain the most accurate and relevant results from the image analysis.
+-**Image Analysis**: Utilize the function to identify objects, extract information, and provide descriptions based on visual content within images.
+-**User Guidance**: Offer additional insights or details based on the image analysis results to enhance user understanding and engagement.
+
+###Operational Note###
+Utilizing the `vision(file_id: (str), query: (str))` function effectively broadens the agent's capability to analyze and interpret images, providing valuable insights and descriptions based on visual content. This function is instrumental in addressing user inquiries that involve image analysis, object recognition, and content interpretation, enhancing the user experience and facilitating informed decision-making.
+"""
+[tools.function.parameters]
+type = "object"
+[tools.function.parameters.properties.file_id]
+type = "string"
+description = """
+###Parameter###
+`file_id (str)`: The unique identifier associated with the image file to be analyzed.
+
+###Parameter Description###
+The `file_id` parameter is a critical component of the `vision(file_id: (str), query: (str))` function, serving as the unique identifier associated with the image file targeted for analysis. This identifier enables the system to locate and process the specified image accurately, ensuring that the analysis and interpretation are performed on the correct visual content.
+
+###Parameter Usage###
+To utilize this parameter effectively, the `file_id` must be obtained through the `findFile(filename: (str))` function, which maps the user-specified image filename to its corresponding unique identifier within the system. This process ensures that the correct image is selected for analysis, providing accurate insights and descriptions based on the visual content.
+##Example##
+1. User Query: "Analyze image.jpg to identify the objects and provide a description."
+2. System Inference: The user requests an analysis of the image to identify objects and provide a description.
+3. Internal Reasoning:
+    A. The user seeks to analyze the image for object identification and description.
+    B. The system recognizes the need for image processing and interpretation.
+    C. The system can analyze the image using `vision(file_id: (str), query: (str))`.
+        i. The `file_id` is essential for locating and processing the image.
+        ii. The system can obtain the `file_id` through the `findFile(filename: (str))` function.
+4. Parameter Input:
+    A. `file_id`: The unique identifier associated with the image file.
+        i. This is obtained through the `findFile(filename="image.png")` function.
+    B. `query`: "Identify objects and provide a description."
+5. Function Call: `vision(file_id=`file_id`, query="Identify objects and provide a description.")`
+6. Example Response: "The image contains a car, a tree, and a building. The scene appears to be a city street with traffic."
+
+###Process Flow###
+1. Recognize the user's request for image analysis and interpretation.
+2. Acknowledge the need to access the specified image file for processing.
+3. Obtain the unique identifier (`file_id`) associated with the image through the `findFile(filename: (str))` function.
+4. Utilize the `file_id` to target the correct image for analysis within the `vision(file_id: (str), query: (str))` function.
+5. Analyze the image to identify objects, extract information, and provide descriptions based on the visual content.
+6. Present the analysis results in a clear and concise manner, focusing on the key details relevant to the user's request.
+
+###Objective###
+1. To enable users to gain insights, descriptions, and relevant information based on visual content within images through advanced image recognition and processing capabilities.
+2. To enhance the agent's ability to analyze and interpret images, providing valuable data and insights to users seeking detailed information or object identification from visual content.
+"""
+[tools.function.parameters.properties.query]
+type = "string"
+description = """
+###Parameter###
+`query (str)`: A concise, well-formulated query based on the user's request.
+
+###Parameter Description###
+The `query` parameter is an essential element of the `vision(file_id: (str), query: (str))` function, representing the user's specific inquiry or request related to the image analysis. This query should be structured to convey the user's intent clearly and precisely, enabling the system to extract relevant information, identify objects, and provide descriptions based on the visual content within the image.
+
+###Parameter Usage###
+When utilizing this parameter, the `query` should be formulated in English, reflecting the user's request for object identification, information extraction, or detailed descriptions based on the visual content within the image. The query serves as the guiding directive for the image analysis process, ensuring that the results align with the user's expectations and requirements.
+##Example##
+1. User Query: "Analyze image.jpg to identify the objects and provide a description."
+2. System Inference: The user requests an analysis of the image to identify objects and provide a description.
+3. Internal Reasoning:
+    A. The user seeks to analyze the image for object identification and description.
+    B. The system recognizes the need for image processing and interpretation.
+    C. The system can analyze the image using `vision(file_id: (str), query: (str))`.
+        i. The `file_id` is essential for locating and processing the image.
+        ii. The system can obtain the `file_id` through the `findFile(filename: (str))` function.
+4. Parameter Input:
+    A. `file_id`: The unique identifier associated with the image file.
+        i. This is obtained through the `findFile(filename="image.png")` function.
+    B. `query`: "Identify objects and provide a description."
+5. Function Call: `vision(file_id=`file_id`, query="Identify objects and provide a description.")`
+6. Example Response: "The image contains a car, a tree, and a building. The scene appears to be a city street with traffic."
+
+###Process Flow###
+1. Recognize the user's request for image analysis and interpretation.
+    A. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
+2. Acknowledge the need to access the specified image file for processing.
+3. Obtain the unique identifier (`file_id`) associated with the image through the `findFile(filename: (str))` function.
+4. Utilize the `file_id` to target the correct image for analysis within the `vision(file_id: (str), query: (str))` function.
+5. Analyze the image to identify objects, extract information, and provide descriptions based on the visual content.
+6. Present the analysis results in a clear and concise manner, focusing on the key details relevant to the user's request.
+
+###Objective###
+1. To enable users to gain insights, descriptions, and relevant information based on visual content within images through advanced image recognition and processing capabilities.
+2. To enhance the agent's ability to analyze and interpret images, providing valuable data and insights to users seeking detailed information or object identification from visual content.
+"""
+parameters.required = ["file_id", "query"]
 
 [[file_bundles]]
 bundle_name = "source-code"

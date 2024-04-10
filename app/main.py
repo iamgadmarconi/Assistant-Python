@@ -6,7 +6,7 @@ from src.gui.cli import cli
 from webapp.app import webapp
 
 
-def main(mode="Web"):
+def main(mode="web"):
     if mode.lower() not in ["web", "terminal", "cli"]:
         raise ValueError(
             "Invalid mode. Please choose either 'Web', 'Terminal', or 'CLI'."
@@ -26,4 +26,4 @@ def main(mode="Web"):
 
 
 if __name__ == "__main__":
-    main()
+    main("cli")
