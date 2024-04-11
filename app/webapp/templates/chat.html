@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/png" href="/static/icon.png">
     <!-- Highlight.js Styles (Choose a theme that suits your needs) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/default.min.css">
 
@@ -69,23 +70,18 @@
         }
 
         .message {
-            display: block;
-            width: auto; /* Adjusting the width of the message boxes to be wider */
             /* Other properties remain the same */
             max-width: none; /* You can remove the max-width or adjust it as needed */
             margin: 5px auto; /* Centering messages within the chat window */
-            padding: 8px;
             justify-content: center;
-            word-break: break-all;
-            word-wrap: break-word;
+            word-wrap: normal;
             box-sizing: border-box;
-            border-radius: 4px;
         }
 
         .user, .bot {
             border-radius: 4px;
             padding: 5px 10px;
-            word-break: break-all;
+            word-break: normal;
         }
 
         .user {
@@ -100,10 +96,25 @@
 
         .bot {
             /* align-self: flex-start; /* Aligns bot messages to the left */
+            display: flex;
+            align-items: center;
+            justify-items: flex-end;
             margin-right: auto;
             text-align: left;
             width: auto;
             color: #95274e;
+            background-color: #1e1928;
+            opacity: 0.7; /* Slightly transparent for better contrast */
+        }
+
+        .bot-span {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+
+        .bot-icon {
+            width: 40px;
+            height: 40px;
         }
         
         #message-input {
@@ -382,20 +393,23 @@
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('message', sender);
 
-                // Parse the entire message as Markdown, with code blocks highlighted
-                const finalHTML = marked.parse(message);
+                // Adjusted HTML structure for bot messages
+                if (sender === 'bot') {
+                    messageDiv.innerHTML = `<img src="/static/icon.png" class="bot-icon" alt="Bot"><span>${message}</span>`;
+                } else {
+                    messageDiv.innerHTML = `<span>${message}</span>`;
+                }
 
-                messageDiv.innerHTML = finalHTML;
                 chatWindow.appendChild(messageDiv);
-
+                // Scroll to the bottom and other existing logic
                 scrollToBottom();
-                
-                // Apply syntax highlighting to all <code> elements inside the newly added message
+
+                // Apply syntax highlighting to code elements if any
                 messageDiv.querySelectorAll('pre code').forEach((block) => {
                     hljs.highlightElement(block);
                 });
 
-                chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the latest message
+                chatWindow.scrollTop = chatWindow.scrollHeight;
             }
 
             function adjustTextareaHeight() {
