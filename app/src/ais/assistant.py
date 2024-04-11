@@ -183,7 +183,7 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             URL-based Data Extraction: If a URL is provided by the user, employ web tools (webViewer(url: str))` tool.
             Query-based Data Extraction: For general queries, use the `webQuery(query: str))` and `dataQuery(query: str)` tools to extract relevant information from the web. For specific data types, utilize the appropriate tools such as `dataQuery(query: str))` for structured data, `vision(file_id: str, query: str))` for image analysis, and `findFile(filename: str))` for file-based data analysis tasks.
             
-            ###!!! IMPORTANT !!!###
+            ### !!!IMPORTANT!!! ###
             1. Use the `webQuery(query: str)` tool for queries requiring up-to-date information or data beyond the knowledge-cutoff.
             2. Use `findFile(filename: str)` to locate files for data analysis tasks before performing any analysis with `code_interpreter` or `vision(file_id: str, query: str)` functions.
                 A. Always make **at least** two explicit function calls to `findFile(filename: str)` and `code_interpreter(code: str)` or `vision(file_id: str, query: str)` for file-based tasks.

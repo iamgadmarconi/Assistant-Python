@@ -25,38 +25,38 @@ type = "function"
 [tools.function]
 name = "getWeather"
 description = """
-###Function Purpose###
+### Function Purpose ###
 This function is designed to provide weather reports tailored to user inquiries. Since users might pose their questions in various indirect forms, it's essential for the system to interpret the underlying intent. For instance, a question about the necessity of carrying an umbrella is indirectly inquiring about precipitation chances or weather conditions.
 
-###Parameters###
+### Parameters ###
 `msg (Optional[str])`: Input the specifics (location and time) related to the weather inquiry here, if mentioned by the user. Absence of this information defaults to the current location and time.
 
-###Returns###
+### Returns ###
 `weather_report (str)`: A concise and user-friendly weather report including essential information and answering the user query. Ensure temperatures are rounded to the nearest whole number. The depth of detail provided should be tailored to the context of the user's query.
 
-###Usage Examples###
-##Indirect Query##
+### Usage Examples ###
+## Indirect Query ##
 1. User Inquiry: "Should I take an umbrella today?"
 2. System Inference: The user is inquiring about rain chances for the current day and location.
 3. Function Call: `getWeather()` (defaulting to the current location and time)
 4. Example Response: "Today, expect some rain showers with a high of 15 degrees. It would be wise to carry an umbrella."
 
-##Direct Query##
+## Direct Query ##
 1. User Inquiry: "Will it rain tomorrow in Paris?"
 2. System Inference: Direct inquiry about rain in Paris for the next day.
 3. Function Call: `getWeather(msg='tomorrow Paris')`
 4. Example Response: "Tomorrow in Paris, anticipate rainy conditions with temperatures around 12 degrees. An umbrella is recommended."
 
-###Using the Function###
+### Using the Function ###
 1. Infer the Weather Inquiry: Recognize if the user's question pertains to weather conditions, whether directly or indirectly.
 2. Determine the Details: Derive specific details (time and location) from the user's query. Default to the current location and time if unspecified.
 3. Execute the Query: Utilize the determined details to call the function, for example, `getWeather(msg='tomorrow at 12:00 Paris')`, or default to getWeather() if no specifics are provided.
 
-###Presenting Results###
+### Presenting Results ###
 1. Understand the Report: The returned weather report will include temperature (rounded) and a succinct description of the conditions.
 2. Reply Appropriately: Craft your response to align with the context of the user's inquiry, especially focusing on elements like precipitation if that was the implicit concern.
 
-###Objectives###
+### Objectives ###
 Your primary objective is to deliver weather information that directly addresses the user's needs, adjusting your response to fit the available data and the specific context of their query.
 """
 
@@ -65,32 +65,32 @@ type = "object"
 [tools.function.parameters.properties.msg]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `msg (Optional[str])`: Use this parameter to input specific details about the desired weather report's location and time, as mentioned by the user. In the absence of explicit information, the system defaults to the user's current location and time.
 
-###Parameter Examples###
-##Indirect Inquiry##
+### Parameter Examples ###
+## Indirect Inquiry ##
 1. User Inquiry: "Should I take an umbrella today?"
 2. System Inference: The question suggests a need to know about precipitation chances for the current day and location.
 3. Usage: In such cases, details about the current day and location are inferred and used by default since none are explicitly provided.
 
-##Direct Inquiry##
+## Direct Inquiry ##
 1. User Inquiry: "Will it rain tomorrow in Paris?"
 2. System Inference: This is a straightforward request for precipitation chances in Paris for the following day.
 3. Usage: For such direct inquiries, use specific details like "tomorrow in Paris" as the parameter.
 
-###Using the `msg` Parameter###
-##For Specified Inquiries##
+### Using the `msg` Parameter ###
+## For Specified Inquiries ##
 When a user specifies a time and location in their question, encapsulate these details into a string and pass it as the parameter.
 1. User Inquiry: "I wonder if it's going to be cloudy tomorrow at 12:00 in Amsterdam."
 2. Function Call: `getWeather(msg='tomorrow at 12:00 Amsterdam')`
 
-##For General Inquiries##
+## For General Inquiries ##
 If the user's question does not specify a location or time, the function should utilize the default setting, which is the user's current location and time.
 1. User Inquiry: "How's the weather?"
 2. Function Call: `getWeather()`
 
-###Guidance###
+### Guidance ###
 When utilizing the `msg` parameter, ensure to accurately interpret the user's query, distinguishing between direct and indirect weather-related questions. This nuanced approach allows the function to provide a personalized and contextually relevant weather report, enhancing the user experience.
 """
 
@@ -103,42 +103,42 @@ type = "function"
 [tools.function]
 name = "getCalendar"
 description = """
-###Function Overview###
+### Function Overview ###
 This tool is crafted to retrieve and present calendar events based on direct and indirect user inquiries about their schedule. Whether the user is contemplating dinner plans without knowing their availability or querying about upcoming weekend plans, this function aims to deliver pertinent schedule information succinctly and contextually.
 
-###Parameters###
+### Parameters ###
 `upto (Optional[str])`: Input here any mentioned time specifics by the user, such as "this evening" or "next week." Absence of a specified time frame will lead the function to consider the forthcoming 7 days as the default period.
 
-###Returns###
+### Returns ###
 `calendar_reports (list[str])`: A list of natural language statements summarizing calendar events within the specified or default time frame. The delivery of information will tactically omit irrelevant details to maintain clarity and relevance.
 
-###Usage Examples###
-##Vague or nonspecific inquiry##
+### Usage Examples ###
+## Vague or nonspecific inquiry ##
 1. User Inquiry: "Am I free this weekend?"
 2. System Inference: The user seeks information about their weekend schedule.
 3. Function Call: `getCalendar(upto='this weekend')`
 4. Example Response: "This weekend, your schedule is clear. Enjoy your free time!"
 
-##General Inquiry##
+## General Inquiry ##
 1. User Inquiry: "What's my schedule looking like?"
 2. System Inference: The user seeks an overview of their upcoming events.
 3. Function Call: `getCalendar()`
 4. Example Response: "You have 3 events lined up this week: an English exam, dinner with Bob, and ticket purchasing for your upcoming trip. It's a week full of varied activities. Do you need help preparing for any of these?"
 
-###Using the Function###
+### Using the Function ###
 1. Interpret the Inquiry: Ascertain whether the query is about the user's schedule or specific plans.
 2. Extract Specifics: Determine any specific time frame mentioned. Default to the next 7 days if no timeframe is provided.
 3. Function Call: Utilize the extracted details to perform a query, such as `getCalendar(upto='next weekend')`, or resort to `getCalendar()` for general inquiries.
 
-###Presenting Results###
+### Presenting Results ###
 1. Understand the Report: The function outputs a list of calendar events for the mentioned or default time period.
 2. Craft Your Response: Adjust your reply to directly address the user's question. Emphasize schedule insights that most closely align with the user's implied or expressed interest.
 
-###Example Responses###
+### Example Responses ###
 1. For queries on availability: "This weekend you're all set with no plans. How about exploring something new?"
 2. For schedule overviews: "Next week is quite packed for you, with appointments and social engagements. Would you like help organizing or reminders set for any of these events?"
 
-###Objective###
+### Objective ###
 The value of your response extends beyond mere information relay. Enhancing user interaction through offers of further assistance, like setting reminders or helping with event preparations, marks a superior service experience.
 """
 [tools.function.parameters]
@@ -146,16 +146,16 @@ type = "object"
 [tools.function.parameters.properties.upto]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `upto (Optional[str])`: Enter any specific time details mentioned by the user, like "this evening" or "next week". In cases where the user hasn't specified a timeframe, the function automatically assumes the upcoming 7 days as the default period to retrieve calendar events.
 
-###Parameter Usage Examples###
-##Indirect Time Inquiry##
+### Parameter Usage Examples ###
+## Indirect Time Inquiry ##
 Scenario: A user hints at wanting to know their availability for a specific time without directly asking for their schedule, e.g., "Should I plan something for Saturday?"
 1. Parameter Input: In response, you would input "Saturday" into the `upto` parameter to focus the query on the weekend's schedule.
 2. Function Call: `getCalendar(upto='Saturday')`
 
-##General Time Inquiry##
+## General Time Inquiry ##
 Scenario: A user poses a broad question about their schedule, such as "What's my schedule like?"
 1. User Inquiry: "What's my schedule like?"
 2. System Inference: The user seeks an overview of their upcoming events without specifying a timeframe.
@@ -163,8 +163,8 @@ Scenario: A user poses a broad question about their schedule, such as "What's my
 4. Function Call: `getCalendar()`
 5. Example Response: "Your schedule for the next week includes a meeting, a doctor's appointment, and a dinner with friends. It's a busy week ahead!"
 
-###Using the `upto` Parameter###
-##Specified Time Frame##
+### Using the `upto` Parameter ###
+## Specified Time Frame ##
 When a user provides a clear indication of the time frame they're interested in, encapsulate this detail into a string and pass it to the function.
 1. User Inquiry: "Am I free this weekend?"
 2. System Inference: The user is seeking information about their weekend schedule.
@@ -172,7 +172,7 @@ When a user provides a clear indication of the time frame they're interested in,
 4. Function Call: getCalendar(upto='this weekend')
 5. Example Response: "This weekend, your schedule is clear. Enjoy your free time!"
 
-##Unspecified Time Frame##
+## Unspecified Time Frame ##
 If the user's question lacks specific timing details, the function defaults to pulling calendar events for the forthcoming 7 days.
 1. User Inquiry: "How's my schedule looking?"
 2. System Inference: The user is interested in an overview of their upcoming events without specifying a timeframe.
@@ -180,7 +180,7 @@ If the user's question lacks specific timing details, the function defaults to p
 4. Function Call: getCalendar()
 5. Example Response: "You have 3 events lined up this week: an English exam, dinner with Bob, and ticket purchasing for your upcoming trip. It's a week full of varied activities. Do you need help preparing for any of these?"
 
-###Objectives###
+### Objectives ###
 When leveraging the `upto` parameter, it's crucial to interpret the user's input accurately—distinguishing between specific and general schedule inquiries. This approach ensures the calendar event retrieval tool provides meaningful, user-centered information, enhancing the overall user experience."""
 
 
@@ -193,16 +193,16 @@ type = "function"
 [tools.function]
 name = "readEmail"
 description = """
-###Function Overview###
+### Function Overview ###
 This tool is designed for retrieving the 5 most recent emails in a user's mailbox. It adeptly handles both straightforward inquiries about new emails and subtler expressions of interest in the latest messages, ensuring user-friendly and efficient access to email information.
 
-###Parameters###
+### Parameters ###
 None required. The function is built to streamline the access to recent emails without necessitating any user input parameters, making it straightforward and accessible.
 
-###Returns###
+### Returns ###
 `email_reports (list[str])`: Provides a concise email report listing the subjects of the 5 latest emails in natural language, thoughtfully omitting excessive details to maintain simplicity and relevance.
 
-###Usage Examples###
+### Usage Examples ###
 1. User Inquiry: "Do I have any new mail?"
 2. System Inference: The user wants to know about their most recent emails.
 3. Parameter Input: No parameters are needed for this function.
@@ -211,19 +211,19 @@ None required. The function is built to streamline the access to recent emails w
 
 *Note: Maintain simplicity in the initial response but offer to provide more details upon request. If a user expresses interest in a specific email, suggest further actions such as replying or offering insights based on the email content.*
 
-###Using the Function###
+### Using the Function ###
 1. Detect the Cue: Identify when a user is indicating an interest in their emails, whether through direct queries like "What are my new emails?" or indirectly, e.g., "I wonder if I got the newsletter."
 2. Execute the Command: Recognizing the user's intent to check their recent emails, proceed to call the function with `readEmails()`.
 
-###Presenting Results###
+### Presenting Results ###
 1. Summarize Concisely: Present a brief overview of the subjects of the 5 newest emails, ensuring clarity and respect for the user's time.
 2. Inquiry about Specifics: Should the user express curiosity about a particular email, be ready to offer more detailed information about it, fostering an engaging and interactive dialogue.
 3. Offer Further Assistance: Based on the contents of the emails, suggest practical follow-up actions. This proactive approach significantly enhances the user experience.
 
-###Example Response###
+### Example Response ###
 "Here are the subjects of your 5 most recent emails: 'Weekly Newsletter', 'Special Offer', 'Meeting Schedule', 'Holiday Plans', 'Invoice Details'. Would you like to delve into any of these further?"
 
-###Objective###
+### Objective ###
 1. Flexibility: Be adaptable in recognizing both explicit and implicit email-related inquiries.
 2. Clarity and Brevity: Aim for succinct delivery of email subjects to prevent information overload.
 3. Engagement: Invite further interaction by inquiring if the user wishes more detailed insights or assistance with any emails.
@@ -244,16 +244,16 @@ type = "function"
 [tools.function]
 name = "writeEmail"
 description = """
-###Function Overview###
+### Function Overview ###
 This function facilitates the composition of emails, adeptly responding to both direct commands and inferred user needs. It prepares the content of an email for review and approval before it's sent, serving as a crucial precursor to the sendEmail function.
 
-###!!!IMPORTANT NOTE!!!###:
+### !!!IMPORTANT NOTE!!! ###:
 This function must be utilized prior to sending an email. It is designed to prepare the email content, ensuring accuracy and user consent before dispatch.
 
-###Parameters###
+### Parameters ###
 `recipients (list[str])`: Specify the email recipient(s). Utilize `getContacts(name: (str))` for converting names to email addresses to ensure correct recipient identification.
-##Example Usage##
-#Email address specified#: 
+## Example Usage ##
+# Email address specified #: 
 1. User Inquiry: "Email <alex@example.com> about the meeting tomorrow."
 2. System Inference: The user intends to contact <alex@example.com> regarding a meeting.
 3. Internal Reasoning: 
@@ -266,7 +266,7 @@ This function must be utilized prior to sending an email. It is designed to prep
 4. Function Call: `writeEmail(recipients=['alex@example.com'], subject=f'{Subject}', body=f'{Body}')`
 5. Example Response: "Here is your draft email to Alex: Subject: Meeting Tomorrow. Body: Hello Alex, I am writing to confirm the meeting scheduled for tomorrow. Would you like to send it now?"
 
-#Email address not specified#: 
+# Email address not specified #: 
 If only a name is mentioned, ascertain the email address via contact lookup with `getContacts(name: (str))`.
 1. User Inquiry: "Email Alex about the meeting tomorrow."
 2. System Inference: The user intends to contact Alex regarding a meeting.
@@ -282,15 +282,15 @@ If only a name is mentioned, ascertain the email address via contact lookup with
 5. Example Response: "Here is your draft email to Alex: Subject: Meeting Tomorrow. Body: Hello Alex, I am writing to confirm the meeting scheduled for tomorrow. Would you like to send it now?"
 `subject (str)`: Define the email's subject line, succinctly reflecting the purpose of the email.
 `body (str)`: Compose the email's main content, ensuring clarity, conciseness, and appropriate politeness. The tone should be adjusted based on context or user preference.
-#Example Tone#
+# Example Tone #
 Formal: "Dear [Name], I hope this message finds you well. Regarding our upcoming project..."
 Informal: "Hi [Name], hope you're doing great! About the project we discussed..."
 `attachments (Optional[list[str]])`: Include any requested files as attachments, specifying paths or descriptions as provided by the user.
 
-###Returns###
+### Returns ###
 `email_reports (list[str])`: A string detailing the email's recipient, subject, body, and attachment paths, formatted for user confirmation and prepared exactly as it will be passed to the `sendEmail(recipients: (list[str]), subject: (str), body: (str), attachments: (list[str]))` function. The draft email is kept in memory for future actions.
 
-###Example Usage###
+### Example Usage ###
 1. User Inquiry: "Write an email to John.Doe@outlook.com about the project, asking if he has any updates, and attach the project plan: project_plan.pdf"
 2. System Inference: The user wants to contact 'John.Doe@outlook.com' regarding the project, inquiring about updates and attaching 'project_plan.pdf'.
 3. Internal Reasoning: 
@@ -306,17 +306,17 @@ Informal: "Hi [Name], hope you're doing great! About the project we discussed...
 6. Example Response: "Your email to John.Doe@outlook.com has been composed: Subject: Action Plan for Project. Body: Hello John, I hope this message finds you well. I am writing to inquire if you have any updates on the project. I have attached the project plan for your reference. Attachments: project_plan.pdf. Would you like to send it now?"
 7. **Listen for user confirmation before proceeding to send the email.**
 
-###Process Flow###
+### Process Flow ###
 1. Understanding the Task: Identify if the user's request involves composing and potentially sending an email.
 2. Gathering Information: Extract details about the recipients, subject, body, and attachments from the user's input, employing `getContacts(name: (str))` as needed.
 3. Composing the Email: Use the gathered details to craft the email, aligning with the user's requirements and intentions. Ask for more information if necessary.
 
-###!!!Feedback and Confirmation!!!###
+### !!!Feedback and Confirmation!!! ###
 1. Provide a preview of the email draft to the user, asking for their review and confirmation.
 2. Inquire if the user wishes to send the email as drafted or requires adjustments, ensuring clear communication and user satisfaction.
 3. If the user requires adjustements, call this function again with the updated details.
 
-###Objectives###
+### Objectives ###
 1. Prioritize accurate understanding of both direct and indirect user intentions.
 2. Ensure the email draft is clear, appropriate, and aligned with the user's preferences.
 3. Facilitate a review and confirmation process with the user, promoting an interactive and error-free emailing experience.
@@ -331,11 +331,11 @@ type = "object"
 [tools.function.parameters.properties.recipients]
 type = "array"
 description = """
-###Parameter###
+### Parameter ###
 `recipients (list[str])`: This parameter requires the email addresses of the intended recipients. It accommodates direct email addresses. When a user specifies a recipient by name rather than email, employ the `getContacts(name: (str))` function to ascertain the correct email address. Ensuring the accuracy of the recipient's email is paramount for successful email delivery.
 
-###Parameter Usage###
-##Direct Email Address##
+### Parameter Usage ###
+## Direct Email Address ##
 1. User Inquiry: "Email alex@example.com about the meeting tomorrow."
 2. System Inference: The user directly requests emailing 'alex@example.com' about an upcoming meeting.
 3. Internal Reasoning: 
@@ -346,7 +346,7 @@ description = """
 5. Function Call: writeEmail(recipients=['alex@example.com'], subject='Meeting Tomorrow', body='Here are the details...')
 6. Example Response: The email composition tool would then proceed to draft the email with the provided details. Provide the response exactly as recieved, and display it to the user, asking for confirmation or if there are any changes they would like to make.
 
-##Email Address NOT Provied##
+## Email Address NOT Provied ##
 1. User Inquiry: "Can you send an update to Jordan?"
 2. System Inference: The user wishes to send an email to 'Jordan', but only provides a name, necessitating a lookup for the email address.
 3. Internal Reasoning: 
@@ -365,7 +365,7 @@ description = """
     A. Display the draft email to the user, seeking confirmation or any necessary modifications before proceeding to send.
     B. If the user requests changes, update the email draft accordingly by calling `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` and repeat the confirmation process.
 
-###Process flow###
+### Process flow ###
 1. Identify Recipient(s): Extract recipient information from the user's request, noting if it is provided as a direct email address or requires lookup.
 2. Convert Names to Emails: For names without email addresses, invoke `getContacts(name: (str))` with the provided name to find the correct email address.
     A. If the email address is not found, inform the user and request alternative contact details.
@@ -373,7 +373,7 @@ description = """
 3. Prepare Recipient List: Formulate a list of email addresses, now validated or retrieved, as the input for the recipients parameter.
 4. Compose and Review: Proceed with the email composition, readying it for user review and subsequent actions.
 
-###Objectives###
+### Objectives ###
 1. Prioritize accurate recipient identification to ensure email delivery to the intended party.
 2. Facilitate user involvement in the composition process, confirming recipient details as part of drafting the email.
 3. This refined instruction set emphasizes clarity and precision in handling recipients for email composition, ensuring the process is both user-friendly and secure.
@@ -383,14 +383,14 @@ type = "string"
 [tools.function.parameters.properties.subject]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `subject (str)`: This parameter specifies the subject line of an email, encapsulating the essence and primary purpose of the message. The subject line should be concise yet descriptive enough to give the recipient a clear understanding of the email's content and importance at a glance.
 
-###Parameter Description###
+### Parameter Description ###
 The subject of an email is crucial for first impressions and can influence whether the email is opened promptly, deferred, or overlooked. It acts as a summary or title for the email content.
 
-###Parameter Usage###
-##Subject Provided##
+### Parameter Usage ###
+## Subject Provided ##
 1. User Inquiry: "Email John Doe about the project. The subject should be 'Action Plan for Project'."
 2. System Inference: The user intends to contact 'John Doe' regarding a project, specifying the subject as 'Action Plan for Project'.
 3. Internal Reasoning: 
@@ -420,7 +420,7 @@ The subject of an email is crucial for first impressions and can influence wheth
     A. Display the draft email to the user, seeking confirmation or any necessary modifications before proceeding to send.
     B. If the user requests changes, update the email draft accordingly by calling `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` and repeat the confirmation process.
 
-##Subject not Provided##
+## Subject not Provided ##
 1. User Inquiry: "Email John Doe about the project."
 2. System Inference: The user intends to contact 'John Doe' regarding a project.
 3. Internal Reasoning: 
@@ -450,13 +450,13 @@ The subject of an email is crucial for first impressions and can influence wheth
     A. Display the draft email to the user, seeking confirmation or any necessary modifications before proceeding to send.
     B. If the user requests changes, update the email draft accordingly by calling `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` and repeat the confirmation process.
 
-###Process flow###
+### Process flow ###
 1. Identify Subject Relevance: Determine if the user has provided a subject line for the email.
 2. Generate Subject: If the subject is not provided, generate a relevant subject based on the context of the email.
 3. Compose the Email: Utilize the subject line and other details to craft the email body, aligning with the user's intentions and tone preferences.
 4. Seek User Confirmation: Present the email draft to the user for review and approval before proceeding to send, ensuring accuracy and user consent.
 
-###Objectives###
+### Objectives ###
 1. Subject Clarity: Ensure the subject line is clear, concise, and relevant to the email's content.
 2. User-Centric: Tailor the subject to the recipient's needs or interests, enhancing engagement.
 3. Action-Oriented: Use actionable language in the subject to prompt the recipient to open and respond to the email.
@@ -465,16 +465,16 @@ The subject of an email is crucial for first impressions and can influence wheth
 [tools.function.parameters.properties.body]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `body (str)`: Draft the message body to convey the email's main content. It should be concise, clear, and polite. Adjust the tone based on user preference or context. 
 
-###Parameter Description###
+### Parameter Description ###
 The body parameter is a string that forms the core message of your email. It's essential to articulate the main points clearly, concisely, and with the appropriate level of formality or informality, depending on the recipient and the context of the email. This parameter is versatile, allowing for customization in tone to suit various scenarios—from professional communications to more casual exchanges. It's vital to maintain a polite and respectful tone throughout, ensuring the message is both engaging and professional. While brevity is appreciated, the length and detail of the body can be adjusted according to user specifications or the complexity of the subject matter.
 
-###Parameter Usage###
+### Parameter Usage ###
 When utilizing this parameter, input a well-constructed string that effectively communicates your message, keeping in mind the desired tone and the audience's expectations. The body should include all necessary information, structured in a way that is easy to read and understand. Use paragraphs to separate thoughts or topics, and consider including a call to action or a conclusion as appropriate.
 
-##Formal Tone Example##
+## Formal Tone Example ##
 For professional or official correspondence, use a respectful greeting, clear language, and a structured layout. Example: "Dear [Recipient Name], I am writing to discuss...".
 1. User Inquiry: "Email John Doe to confirm tomorrow's meeting."
 2. System Inference: The user intends to contact 'John Doe' to confirm tomorrow's meeting.
@@ -494,7 +494,7 @@ For professional or official correspondence, use a respectful greeting, clear la
     A. Display the draft email to the user, seeking confirmation or any necessary modifications before proceeding to send.
     B. If the user requests changes, update the email draft accordingly by calling `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` and repeat the confirmation process.
 
-##Informal Tone Example##
+## Informal Tone Example ##
 For emails to friends or colleagues you have a casual relationship with, a more relaxed greeting and conversational language can be used. Example: "Hey [Recipient Name], just wanted to chat about...".
 1. User Inquiry: "Email Alex asking if he wants to get lunch this weekend."
 2. System Inference: The user intends to contact 'Alex' to inquire about lunch plans for the weekend.
@@ -525,28 +525,28 @@ For emails to friends or colleagues you have a casual relationship with, a more 
     A. If the user confirms, proceed to send the email using the `sendEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` function.
     B. Specific plans are provided, suggest to add the event to the Users' calendar with `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
 
-###Process Flow###
+### Process Flow ###
 1. Identify the email's purpose and the recipient's relationship to you.
 2. Decide on the appropriate tone (formal or informal) based on the context.
 3. Draft the message, ensuring clarity, conciseness, and politeness, while adjusting the level of detail as needed.
 4. Review the message for tone consistency, grammatical accuracy, and completeness before sending.
 
-###Objectives###
+### Objectives ###
 1. To convey the intended message effectively and appropriately, respecting the recipient's time and potential sensitivities.
 2. To adapt the tone and detail of the email body according to the specific context, ensuring optimal communication and response.
 """
 [tools.function.parameters.properties.attachments]
 type = "array"
 description = """
-###Parameter###
+### Parameter ###
 `attachments (Optional[list[str]])`: Include files as email attachments by specifying their paths. Useful for sending documents, images, or other files alongside your message.
 
-###Parameter Description###
+### Parameter Description ###
 The `attachments` parameter allows users to attach files to an email. This list should contain the paths (as strings) to each file you wish to attach. It's designed to enhance communication by enabling the sharing of documents, images, presentations, or other relevant files directly within the email. When specifying attachments, ensure the paths are accurate and accessible to prevent errors during the email sending process.
 
-###Parameter Usage###
+### Parameter Usage ###
 To use the `attachments` parameter, provide a list of strings, each representing the path to a file you intend to attach to the email. This enables the inclusion of multiple attachments in a single email, supporting a wide range of file types to accommodate various needs and contexts.
-##Example Usage## 
+## Example Usage ## 
 1. User Inquiry: "Email John Doe about the project, asking for feedback on the action plan, and attach the project plan: project_plan.pdf."
 2. System Inference: The user wants to contact 'John Doe' regarding the project, seeking feedback on the action plan and attaching 'project_plan.pdf'.
 3. Internal Reasoning: 
@@ -565,13 +565,13 @@ To use the `attachments` parameter, provide a list of strings, each representing
     B. If the user requests changes, update the email draft accordingly by calling `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` and repeat the confirmation process.
 
 
-###Process Flow###
+### Process Flow ###
 1. Determine the files to attach and ensure they're accessible.
 2. Create a list of file paths.
 3. Include this list when calling the function to compose the email, ensuring each path is a string.
 4. Confirm the attachments with the user before sending the email.
 
-###Objectives###
+### Objectives ###
 1. Enhance the email's informational value by enabling the inclusion of relevant files.
 2. Provide a flexible method for attaching various file types to accommodate different user needs.
 3. Simplify the process of attaching multiple files to an email, improving communication efficiency.
@@ -590,24 +590,24 @@ type = "function"
 [tools.function]
 name = "sendEmail"
 description = """
-###Function Overview###
+### Function Overview ###
 The `sendEmail` function is designed to send an email after the draft has been reviewed and confirmed by the user. This function plays a pivotal role in the email communication workflow, transforming the approved draft into an actual email that is delivered to the recipient's inbox. It is the conclusive step in the email preparation process, necessitating prior usage of the `writeEmail` function for drafting.
 
-###!!!Important Note!!!###
+### !!!Important Note!!! ###
 Before executing the `sendEmail` function, ensure that the email draft has been reviewed and approved by the user. This confirmation step is crucial to prevent inadvertent or erroneous email dispatches. The `sendEmail` function should only be called after the user has explicitly consented to send the email.
 
-##CHECK USER CONFIRMATION BEFORE CALLING `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(str))##
+## CHECK USER CONFIRMATION BEFORE CALLING `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(str)) ##
 
-###Parameters###
+### Parameters ###
 - `recipients (list[str])`: The email addresses of the recipients **EXACTLY**, as confirmed in the `writeEmail` step. 
 - `subject (str)`: The subject line of the email, **EXACTLY** as finalized during the `writeEmail` process.
 - `body (str)`: The body of the email, **EXACTLY** as reviewed and approved by the user in the `writeEmail` phase.
 - `attachments (Optional[list[str]])`: Files or documents to be attached with the email, **EXACTLY** as specified by the user during the `writeEmail` process.
 
-###Returns###
+### Returns ###
 - `email_report (str)`: A confirmation message stating the outcome of the email sending process. This report provides feedback on whether the email was sent successfully or if any issues were encountered.
 
-###Usage Example###
+### Usage Example ###
 1. User Inquiry: "Yes, looks good."
 2. System Inference: The user has reviewed the email draft and confirmed it for sending.
 3. Internal Reasoning: 
@@ -622,13 +622,13 @@ Before executing the `sendEmail` function, ensure that the email draft has been 
 6. Example Response: "Your email to [Recipient] about [Subject] has been successfully sent."
 
 
-###Procedure###
+### Procedure ###
 1. **Verify User Confirmation**: Ensure there is explicit approval from the user to send the email. This step is critical and usually follows the user's review of the provided email draft.
     A. If the user does not confirm, call `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))`.
 2. **Executing the Send Command**: Once user confirmation is obtained, proceed with sending the email, employing the details (recipients, subject, body, attachments) as **EXACTLY** as prepared in the `writeEmail` step.
 3. Upon successful dispatch of the email, communicate this to the user with a clear confirmation message, e.g., "Your email to [Recipient] about [Subject] has been successfully sent."
 
-###Objectives###
+### Objectives ###
 - **Accuracy Is Key**: Double-check that all details—recipients, subject, body, and attachments—correspond with the user's last review and approval to minimize errors.
 - **Clear Confirmation Protocol**: Always obtain and verify user consent before sending an email. This practice reinforces trust and ensures user control over communication.
 - **Prompt and Clear Communication**: Quickly inform the user about the status of their email, providing a succinct and affirmative confirmation message upon successful sending.
@@ -672,16 +672,16 @@ type = "function"
 [tools.function]
 name = "getLocation"
 description = """
-###Function Overview###
+### Function Overview ###
 The `getLocation` function identifies and provides the user's current geographical location. It is specifically designed to address queries about the user's whereabouts, catering to both direct and indirect inquiries about location. This function is instrumental in offering location-based services or information, making it a valuable tool for enhancing user experience in various applications.
 
-###Parameters###
+### Parameters ###
 This function does not require any input parameters. Its operation is straightforward—aimed solely at determining and relaying the user's current location.
 
-###Returns###
+### Returns ###
 `location (str)`: A string detailing the user's current location. The function is designed to deliver this information in an easily understandable format.
 
-###Example Usage###
+### Example Usage ###
 User Inquiry: "Where am I right now?"
 System Inference: The user seeks information about their current location.
 Internal Reasoning: 
@@ -691,7 +691,7 @@ Parameter Input: No input parameters are required for this function.
 Function Call: `getLocation()`
 Example Response: "You are currently at [Location]."
 
-###Process Flow###
+### Process Flow ###
 1. **User Location Inquiry**: Identify user queries related to their current location, whether direct or indirect.
 2. **Invoke the `getLocation()` Function**: Call the `getLocation()` function to determine and retrieve the user's current geographical coordinates.
 3. **Communicate the Location**: Present the user's location in a clear and user-friendly format, ensuring the information is easily understood and relevant to the user's query.
@@ -710,16 +710,16 @@ type = "function"
 [tools.function]
 name = "getDate"
 description = """
-###Function Overview###
+### Function Overview ###
 The `getDate` function is designed to retrieve the current date and time, providing users with real-time information about the present moment. This function serves as a foundational tool for various applications, enabling accurate time-based operations and enhancing user interactions with time-sensitive services.
 
-###Parameters###
+### Parameters ###
 This function does not require any input parameters. Its primary objective is to ascertain and relay the current date and time to the user.
 
-###Returns###
+### Returns ###
 `current_date (str)`: A string representing the current date and time. The function delivers this information in a standardized format for user comprehension and application.
 
-###Example Usage###
+### Example Usage ###
 1. User Inquiry: "What is the current date and time?"
 2. System Inference: The user seeks real-time information about the current date and time.
 3. Internal Reasoning: 
@@ -729,7 +729,7 @@ This function does not require any input parameters. Its primary objective is to
 5. Function Call: `getDate()`
 6. Example Response: "The current date and time is [Date and Time]."
 
-###Process Flow###
+### Process Flow ###
 1. **User Time Inquiry**: Identify user queries related to the current date and time.
     A. Recognize you have access to real-time data.
 2. **Invoke the `getDate()` Function**: Call the `getDate()` function to retrieve the current date and time information.
@@ -750,26 +750,26 @@ type = "function"
 [tools.function]
 name = "createCalendarEvent"
 description = """
-###Function Overview###
+### Function Overview ###
 The `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function enables the composition of calendar events based on user queries. This function is adaptable to both direct and indirect user instructions regarding event creation. It serves as a foundational step before employing the `saveCalendarEvent` function to finalize and save the event. This function is capable of handling date and time inputs as directly provided by the user, including ambiguous terms like "tomorrow" or "next week," without modification.
 
-###!!!Important Note!!!###
+### !!!Important Note!!! ###
 1. **Prerequisite Function**: The `createCalendarEvent` function is a preparatory step for event creation and requires user confirmation before proceeding to save the event.
 2. **Suggest Event Creation**: If the user makes related queries, for example in an email, suggest to create an event using this function.
 3. **Iterative Process**: If the user requests changes to the event details, adjust the parameters accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the user confirms.
 
-###Parameters###
+### Parameters ###
 - `subject: (str)`: The title or subject of the event. This string should succinctly encapsulate the essence of the event.
 - `start: (str)`: The start of the event, provided as a string. If the user specifies a date, use it **EXACTLY** as stated, even if it is ambiguous.
 - `end: Optional(str)`: An optional parameter specifying the end of the event, if provided by the user.
 - `location: Optional[str]`: An optional parameter for specifying the event's location, if mentioned by the user.
 - `recurrence: Optional[boolean]`: An optional boolean indicating whether the event is recurring, as requested by the user.
 
-###Returns###
+### Returns ###
 - `calendar_report: (str)`: A natural language summary of the event details, including the title, start, end, location, and recurrence status. This report is prepared for user confirmation and is intended to mirror the format in which attributes will be passed to the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(bool))` function.
 
-###Usage Example###
-##Vague Date and Time Provided##
+### Usage Example ###
+## Vague Date and Time Provided ##
 1. User Inquiry: "Create an event for the English exam next week."
 2. System Inference: The user requests an event creation for the English exam next week without specifying a precise date or time.
 3. Internal Reasoning: 
@@ -793,7 +793,7 @@ The `createCalendarEvent(subject: (str), start: (str), end: Optional(str), locat
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena)) until the User confirms.
-##Explicit Date and Time Provided##
+## Explicit Date and Time Provided ##
 1. User Inquiry: "Create an event for the English exam on December 12th 2024 at 12:00 lasting 2 hours."
 2. System Inference: The user requests an event creation for the English exam on December 12th at 12:00 lasting 2 hours.
 3. Internal Reasoning: 
@@ -809,18 +809,18 @@ The `createCalendarEvent(subject: (str), start: (str), end: Optional(str), locat
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena))` until the User confirms.
 
-###Process Flow###
+### Process Flow ###
 1. **Interpret User Query**: Analyze the user's request to extract details such as the event subject, start, end, location, and recurrence.
 2. **Apply User-Specified Dates**: Incorporate unchanged dates / times into the event details, even if vague.
 3. **Fallback for Missing Dates**: For events without a start, use the `getDate()` function to obtain the current date and time as the default start.
 4. **Construct Event Details**: Assemble the event information based on extracted or default values for submission to the calendar.
 
-###!!!Feedback and Confirmation!!!###
+### !!!Feedback and Confirmation!!! ###
 1. Provide a preview of the event draft to the user, asking for their review and confirmation.
 2. Inquire if the user wishes to save the event as drafted or requires adjustments, ensuring clear communication and user satisfaction.
 3. If the user requires adjustements, call this function again with the updated details.
 
-###Objectives###
+### Objectives ###
 1. **Unaltered User Input**: Preserve the user's specified dates and times, even if ambiguous, to maintain the integrity of the event details.
 2. **Default Date Handling**: Implement fallback mechanisms to address missing or vague date/time inputs, ensuring event creation is not impeded by incomplete information.
 3. **User Confirmation**: Prompt the user to confirm the event details before proceeding to save the event, ensuring accuracy and user consent.
@@ -830,14 +830,14 @@ type = "object"
 [tools.function.parameters.properties.subject]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `subject (str)`: Specify the event's title or main purpose, as indicated by the user. This parameter is essential for creating the event and must be clearly defined to accurately reflect the event's focus.
 
-###Parameter Description###
+### Parameter Description ###
 The `subject` parameter is a critical component for event creation, serving as the identifying title or purpose of the event. It should be a concise, descriptive string that encapsulates the essence of the event, provided directly by the user. In instances where the user has not specified a subject, you may need to request additional information or infer the subject based on the context of the user's request.
 
-###Parameter Usage###
-##Direct Request##
+### Parameter Usage ###
+## Direct Request ##
 The user explicitly states the event subject.
 1. User Inquiry: "Create an event with subject 'Team Meeting' on December 12th, 2024 at 9:00 AM."
 2. System Inference: The user requests an event creation for a 'Team Meeting' on December 12th, 2024 at 9:00 AM.
@@ -853,7 +853,7 @@ The user explicitly states the event subject.
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-##Indirect Request##
+## Indirect Request ##
 The user's request implies the event subject without explicitly stating it.
 1. User Inquiry: "I need to schedule a meeting with the team on December 12th, 2024 at 9:00 AM."
 2. System Inference: The user discusses scheduling a meeting with the team on December 12th, 2024 at 9:00 AM.
@@ -871,14 +871,13 @@ The user's request implies the event subject without explicitly stating it.
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-
-###Process Flow###
+### Process Flow ###
 1. **Identification**: Extract or identify the event's subject from the user's request.
 2. **Verification**: Ensure the subject is adequately descriptive for event creation. If the subject is not provided, engage the user for clarification.
 3. **Implementation**: Pass the identified or clarified subject into the `createCalendarEvent` function as a string.
 4. **Confirmation**: Present the event draft to the user for review and confirmation before proceeding to save the event.
 
-###Objectives###
+### Objectives ###
 1. To clearly define the event's focus, ensuring it is accurately represented in the calendar.
 2. To facilitate the creation of a meaningful and identifiable event, enhancing the user's schedule management.
 3. To adaptively handle instances where the user has not specified a subject, thereby maintaining the effectiveness of the event creation process.
@@ -887,17 +886,17 @@ The user's request implies the event subject without explicitly stating it.
 [tools.function.parameters.properties.start]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `start (str)`: Determine the event's start, based on the user's input. This critical parameter sets the event's beginning in the calendar.
 
-###Parameter Description###
+### Parameter Description ###
 The `start` parameter is essential for scheduling the event, representing the time when the event is set to begin. It requires a string input provided by the user.
 
-###!!!Important Note!!!###
+### !!!Important Note!!! ###
 **ENTER THE START EXACTLY AS PROVIDED BY THE USER, EVEN IF AMBIGUOUS.**
 
-###Parameter Usage###
-##Start Explicitly Mentioned##
+### Parameter Usage ###
+## Start Explicitly Mentioned ##
 1. User Inquiry: "Create an event for the English exam next monday at 9:00 AM."
 2. System Inference: The user requests an event creation for the English exam next Monday at 9:00 AM.
 3. Internal Reasoning: 
@@ -912,7 +911,7 @@ The `start` parameter is essential for scheduling the event, representing the ti
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-##Start Ambiguously Mentioned##
+## Start Ambiguously Mentioned ##
 1. User Inquiry: "Create an event for the English exam next week."
 2. System Inference: The user requests an event creation for the English exam next week without specifying a precise date or time.
 3. Internal Reasoning: 
@@ -927,7 +926,7 @@ The `start` parameter is essential for scheduling the event, representing the ti
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-##No Start Mentioned##
+## No Start Mentioned ##
 1. User Inquiry: "Create an event for the English exam."
 2. System Inference: The user requests an event creation for the English exam without specifying a precise date or time.
 3. Internal Reasoning: 
@@ -944,12 +943,12 @@ The `start` parameter is essential for scheduling the event, representing the ti
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-###Process Flow###
+### Process Flow ###
 1. **Collect Input**: Extract or deduce the start from the user's request.
 2. **Handle Ambiguity**: If the user specifies an ambiguous start, such as "tomorrow" or "next week," use the term as provided without alteration.
 3. **Fallback Procedure**: In cases where no start is specified, utilize `getDate()` to determine the current date and time, serving as the default start.
 
-###Objectives###
+### Objectives ###
 1. To accurately schedule events according to the user's provided or inferred timing, ensuring the event's start meets their expectations.
 2. To respect the user's language and terms when specifying the event's start, even if vague or ambiguous.
 3. To provide a reliable fallback mechanism for determining the event's start when not explicitly stated by the user, maintaining the functionality of the event creation process.
@@ -957,18 +956,18 @@ The `start` parameter is essential for scheduling the event, representing the ti
 [tools.function.parameters.properties.end]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `end: Optional(str)`: Specify the conclusion time of the event. This parameter is utilized to mark the event's end in the calendar and is optional based on user input.
 
-###Parameter Description###
+### Parameter Description ###
 The `end` parameter is crucial for defining the duration of an event by indicating when it concludes. It accepts a string that represents the end, which can be explicitly provided by the user or deduced from context. If the user does not specify an end, it may be beneficial to request further clarification or apply a reasonable estimation based on typical event lengths or similar past events.
 
-###!!!Important Note!!!###
+### !!!Important Note!!! ###
 **ENTER THE START EXACTLY AS PROVIDED BY THE USER, EVEN IF AMBIGUOUS.**
 
-###Parameter Usage###
+### Parameter Usage ###
 This parameter is employed by passing a string that denotes the end of the event into the function call. The input should either directly reflect the user's indication or be an informed estimate in the absence of specific details from the user.
-##End Explicitly Mentioned##
+## End Explicitly Mentioned ##
 1. User Inquiry: "Create an event for the English exam on December 12th, 2024 from 12:00 to 14:00."
 2. System Inference: The user requests an event creation for the English exam on December 12th, 2024 from 12:00 to 14:00.
 3. Internal Reasoning: 
@@ -983,7 +982,7 @@ This parameter is employed by passing a string that denotes the end of the event
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-##End Not Mentioned but can be Inferred##
+## End Not Mentioned but can be Inferred ##
 1. User Inquiry: "Create an event for the English exam on December 12th, 2024 at 12:00."
 2. System Inference: The user requests an event creation for the English exam on December 12th, 2024 at 12:00 without specifying an end.
 3. Internal Reasoning: 
@@ -1001,7 +1000,7 @@ This parameter is employed by passing a string that denotes the end of the event
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-##End Not Mentioned and Cannot be Inferred##
+## End Not Mentioned and Cannot be Inferred ##
 1. User Inquiry: "Create an event for the Marathon."
 2. System Inference: The user requests an event creation for the Marathon without specifying a precise date, time, or end.
 3. Internal Reasoning: 
@@ -1022,13 +1021,13 @@ This parameter is employed by passing a string that denotes the end of the event
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-###Process Flow###
+### Process Flow ###
 1. **Extraction**: Identify the event's end from the user's instructions.
 2. **Inference**: If the end is not specified, either seek additional information from the user or estimate based on the event type and standard durations.
 3. **Application**: Integrate the determined end into the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function as a parameter.
 
 
-###Objectives###
+### Objectives ###
 1. To accurately capture the event's duration by defining a specific end, enhancing the calendar's usefulness and precision.
 2. To maintain flexibility in handling user inputs by allowing for estimation or follow-up questions when end details are lacking.
 3. To ensure the event creation process is as informative and user-centric as possible, resulting in a calendar entry that meets or exceeds the user's expectations.
@@ -1036,15 +1035,16 @@ This parameter is employed by passing a string that denotes the end of the event
 [tools.function.parameters.properties.location]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `location (Optional[str])`: Denote the venue or place where the event is scheduled to occur. This parameter, while optional, enriches the event details by providing spatial context.
 
-###Parameter Description###
+### Parameter Description ###
 The `location` parameter is intended to specify the geographical or virtual location of an event, adding significant value to the event's description within a calendar. It accepts a string input detailing the event's venue, which could range from a physical address to a digital platform link. Incorporating the location is particularly useful for events that require attendees to be at a certain place or to access a specific online meeting room.
 
-###Parameter Usage###
+### Parameter Usage ###
 This parameter should be included in the function call if the user has provided information about where the event will take place. It is utilized by passing a string that represents the event's location, as specified by the user or as can be reasonably determined from the context of their request.
-##Location Explicitly Provided##
+
+## Location Explicitly Provided ##
 1. User Inquiry: "Create an event for the English exam on December 12th, 2024 at 12:00 at the University of Amsterdam."
 2. System Inference: The user requests an event creation for the English exam on December 12th, 2024 at 12:00 at the University of Amsterdam.
 3. Internal Reasoning: 
@@ -1061,7 +1061,8 @@ This parameter should be included in the function call if the user has provided 
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-##Location Not Provided##
+
+## Location Not Provided ##
 1. User Inquiry: "Create an event for the Team Meeting on December 12th, 2024 at 9:00 AM."
 2. System Inference: The user requests an event creation for the Team Meeting on December 12th, 2024 at 9:00 AM without specifying a location.
 3. Internal Reasoning: 
@@ -1079,7 +1080,8 @@ This parameter should be included in the function call if the user has provided 
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-##Virtual Location Provided##
+
+## Virtual Location Provided ##
 1. User Inquiry: "Create an event for the Team Meeting on December 12th, 2024 at 9:00 AM on Zoom: https//:zoom.com/109435h."
 2. System Inference: The user requests an event creation for the Team Meeting on December 12th, 2024 at 9:00 AM on Zoom.
 3. Internal Reasoning: 
@@ -1099,12 +1101,12 @@ This parameter should be included in the function call if the user has provided 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-###Process Flow###
+### Process Flow ###
 1. **Capture Location Detail**: Extract the location information from the user's request.
 2. **Inclusion in Event Details**: Incorporate this detail into the event creation process by including it as a parameter in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
 3. **Adapt to Context**: Adjust the event details based on the presence or absence of location information, ensuring the event is accurately represented in the calendar.
 
-###Objectives###
+### Objectives ###
 1. To provide complete and detailed event information by including the location, thereby enhancing the event's accessibility and clarity for attendees.
 2. To ensure that the calendar entry is as informative and useful as possible, facilitating efficient planning and preparation for the event participants.
 3. To maintain adaptability in the event creation process, accommodating the inclusion of location details when available and proceeding effectively even when such details are absent.
@@ -1112,13 +1114,13 @@ This parameter should be included in the function call if the user has provided 
 [tools.function.parameters.properties.recurrence]
 type = "boolean"
 description = """
-###Parameter###
+### Parameter ###
 `recurrence (Optional[bool])`: Specify whether the event recurs on a regular basis. This parameter, optional but vital for certain types of events, indicates if an event, such as a meeting, class, or routine commitment, repeats periodically.
 
-###Parameter Description###
+### Parameter Description ###
 The `recurrence` parameter plays a key role in defining the cyclical nature of an event. When set to `True`, it signifies that the event occurs repeatedly according to a defined pattern (e.g., daily, weekly, monthly). This setting is essential for automating the scheduling of regular events, ensuring consistency and reliability in event planning. The parameter accepts a boolean value, with `True` indicating recurrence and `False` or the absence of the parameter indicating a one-time event.
 
-###Parameter Usage###
+### Parameter Usage ###
 Incorporate this parameter into the function call if the user specifies or implies that the event should recur. Utilize a boolean value (`True` or `False`) to reflect the event's recurring status as described by the user.
 1. User Inquiry: "Schedule a weekly team meeting every Wednesday at 9:00 AM."
 2. System Inference: The user requests the creation of a recurring event for a weekly team meeting.
@@ -1140,11 +1142,11 @@ Incorporate this parameter into the function call if the user specifies or impli
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-###Process Flow###
+### Process Flow ###
 1. **Determine Recurrence**: Ascertain from the user's request whether the event is intended to repeat on a regular schedule.
 2. **Parameter Integration**: Apply the boolean value to the `createCalendarEvent` function, accurately representing the event's recurrence as intended by the user.
 
-###Objectives###
+### Objectives ###
 1. To ensure the calendar reflects the true nature of the event, accurately scheduling recurring events to facilitate regular attendance or participation.
 2. To provide flexibility in event scheduling, allowing users to designate events as recurring or one-time as per their requirements.
 3. To enhance the calendar's utility by automating the scheduling of routine commitments, reducing the need for manual entry of each occurrence.
@@ -1161,26 +1163,27 @@ type = "function"
 [tools.function]
 name = "saveCalendarEvent"
 description = """
-###Function Overview###
+### Function Overview ###
 The `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function is crucial for integrating and finalizing events within the user's calendar. It serves as the concluding step in the event creation process, activated after the user has confirmed the details prepared by the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function. This function securely stores the event, ensuring it is reflected accurately in the user's calendar.
 
-###!!!IMPORTANT NOTE!!!###
+### !!!IMPORTANT NOTE!!! ###
 **This function is intended as a follow-up to `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))`, and should only be invoked after receiving user confirmation of the event details.**
 
-##CHECK FOR USER CONFIRMATION BEFORE CALLING saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean)).##
+## CHECK FOR USER CONFIRMATION BEFORE CALLING saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean)). ##
 
-###Parameters###
+### Parameters ###
 - `subject (str)`: The event's title, **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
 - `start (str)`: The start **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
 - `end (Optional[str])`: The event's end, **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
 - `location (Optional[str])`: The specified location for the event **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
 - `recurrence (Optional[bool])`: The recurrence status **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
 
-###Returns###
+### Returns ###
 - `calendar_reports (str)`: A confirmation message that provides feedback to the user about the successful creation and saving of the event in their calendar.
 
-###Usage Example###
-##User Approval##
+### Usage Example ###
+
+## User Approval ##
 1. User Inquiry: "Looks good! Please save the event."
 2. System Inference: The user confirms the event details and requests to save the event.
 3. Internal Reasoning: 
@@ -1195,7 +1198,7 @@ The `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), locatio
 4. Function Call: `saveCalendarEvent(subject='Team Meeting', start='Wednesday at 9:00 AM')`
 5. Example Response: "Your event for the Team Meeting has been successfully saved in your calendar."
 
-##User Request for Modification##
+## User Request for Modification ##
 1. User Inquiry: "Can you change the location to the conference room?"
 2. System Inference: The user requests a modification to the event details.
 3. Internal Reasoning: 
@@ -1212,11 +1215,11 @@ The `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), locatio
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests further changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
 
-###Process Flow###
+### Process Flow ###
 1. **User Confirmation**: Await the user's approval to save the event in their calendar.
 2. **Feedback Delivery**: Provide a confirmation message to the user, acknowledging the successful saving of the event.
 
-###Objectives###
+### Objectives ###
 1. To finalize the event creation process by securely storing the event in the user's calendar upon their confirmation.
 2. To deliver clear and concise feedback to the user, confirming the successful saving of the event.
 3. To ensure the event is accurately reflected in the calendar, maintaining consistency and reliability in scheduling and planning.
@@ -1261,17 +1264,18 @@ type = "function"
 [tools.function]
 name = "getContacts"
 description = """
-###Function Overview###
+### Function Overview ###
 The `getContacts(name: (str))` function serves as a comprehensive tool for accessing a user's contact list, enabling queries both broad and specific. Its utility is especially highlighted in scenarios requiring the identification of contact details based on names rather than email addresses, such as when preparing to send an email. This function can fetch an entire contact list or pinpoint specific contacts, providing vital support for email communication and other contact-related inquiries.
 
-###Parameters###
+### Parameters ###
 - `name (Optional[str])`: An optional parameter to specify the name of a contact. This is particularly useful when the user intends to send an email to a named recipient or is seeking information about a specific person in their contact list. Utilizing this parameter helps in accurately retrieving the required contact details.
 
-###Returns###
+### Returns ###
 - `contacts (list[str])`: Outputs a list of contact names or email addresses in natural language. If a specific contact is requested, the function will return the best matches (with over 80% similarity) to the provided name. This ensures users can easily identify and utilize the correct contact information for their needs.
 
-###Example Usage###
-##Retrieve Full Contact List##
+### Example Usage ###
+
+## Retrieve Full Contact List ##
 1. User Inquiry: "Show me my contacts."
 2. System Inference: The user requests an overview of their contact list.
 3. Internal Reasoning: 
@@ -1284,7 +1288,7 @@ The `getContacts(name: (str))` function serves as a comprehensive tool for acces
 7. Listen for Further User Actions: 
     A. If the user requests specific details, proceed with the `getContacts(name: (str))` function.
     B. If the user requires additional actions, respond accordingly based on their inquiries.
-##Retrieve Specific Contact Details##
+## Retrieve Specific Contact Details ##
 1. User Inquiry: "Get me the contact details for John Doe."
 2. System Inference: The user requests specific contact details for John Doe.
 3. Internal Reasoning: 
@@ -1299,7 +1303,7 @@ The `getContacts(name: (str))` function serves as a comprehensive tool for acces
     A. If the user intends to send an email, proceed with the email composition process.
     B. If the user requires additional information or actions, respond accordingly based on their inquiries.
 
-##Implicit Contact Retrieval for Email Composition##
+## Implicit Contact Retrieval for Email Composition ##
 1. User Inquiry: "Send an email to John Doe."
 2. System Inference: The user requests to send an email to John Doe.
 3. Internal Reasoning: 
@@ -1311,13 +1315,13 @@ The `getContacts(name: (str))` function serves as a comprehensive tool for acces
 5. Function Call: `getContacts(name='John Doe')`
 6. Continue with the email composition process using the obtained contact details.
 
-###Process Flow###
+### Process Flow ###
 1. **Contact Retrieval**: Access the user's contact list to provide the requested information.
 2. **Specific Inquiry Handling**: If a name is provided, retrieve the corresponding contact details.
 3. **Email Composition Support**: Assist in email preparation by fetching the necessary contact information.
 4. **User Confirmation**: Seek user validation for the retrieved contact details before proceeding with further actions.
 
-###Integration with User Actions: Email Composition###
+### Integration with User Actions: Email Composition ###
 - For email tasks, follow a structured approach:
     1. Retrieve the desired contact's email by specifying their name.
     2. Use the obtained email address in the email composition step.
@@ -1333,17 +1337,18 @@ type = "object"
 [tools.function.parameters.properties.name]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `name (Optional[str])`: This parameter is utilized to specify the name of a contact when the user seeks information about a specific individual or intends to send an email to a named recipient. It plays a crucial role in precisely identifying and retrieving contact details from the user's contact list.
 
-###Parameter Description###
+### Parameter Description ###
 The `name` parameter assists in narrowing down the search within the user's contact list to find specific contact details, especially useful in email communication scenarios. When a user mentions a specific name, this parameter helps fetch the exact contact information, such as an email address, corresponding to the provided name. It is designed to ensure that actions like sending emails are directed to the correct recipient. In situations where multiple contacts match the provided name, the system may prompt the user for further specification or automatically select the most relevant match.
 
-###Parameter Usage###
+### Parameter Usage ###
 To utilize this parameter effectively, input the contact's name as a string when invoking the function. This is particularly important when the user's request involves a specific individual, either for gathering contact information or for targeting email communication.
 
-###Examples###
-##Direct Request for a Specific Contact##
+### Examples ###
+
+## Direct Request for a Specific Contact ##
 1. User Inquiry: "Get me the contact details for John Doe."
 2. System Inference: The user requests specific contact details for John Doe.
 3. Internal Reasoning:
@@ -1357,7 +1362,8 @@ To utilize this parameter effectively, input the contact's name as a string when
 7. Listen for Further User Actions:
     A. If the user intends to send an email, proceed with the email composition process.
     B. If the user requires additional information or actions, respond accordingly based on their inquiries.
-##Implicit Contact Retrieval for Email Composition##
+
+## Implicit Contact Retrieval for Email Composition ##
 1. User Inquiry: "Send an email to John Doe."
 2. System Inference: The user requests to send an email to John Doe.
 3. Internal Reasoning:
@@ -1369,7 +1375,7 @@ To utilize this parameter effectively, input the contact's name as a string when
 5. Function Call: `getContacts(name='John Doe')`
 6. Continue with the email composition process using the obtained contact details.
 
-##Handling Multiple Matches##
+## Handling Multiple Matches ##
 1. User Inquiry: "Send an email to Bob."
 2. System Inference: The user intends to send an email to a contact named Bob.
 3. Internal Reasoning:
@@ -1391,12 +1397,12 @@ To utilize this parameter effectively, input the contact's name as a string when
     ```
     In this scenario, the function would retrieve the email address associated with "John Doe" from the user's contact list, facilitating the subsequent email composition and sending process.
 
-###Process Flow###
+### Process Flow ###
 1. **Contact Identification**: Locate the contact details based on the provided name.
 2. **Email Preparation Support**: Assist in email composition by retrieving the necessary contact information.
 3. **User Interaction**: Engage with the user to confirm the retrieved contact details and proceed with the desired actions.
 
-###Objectives###
+### Objectives ###
 1. To accurately identify and retrieve specific contact information from the user's contact list based on the provided name, ensuring that communication efforts, such as email sending, are accurately directed.
 2. To facilitate seamless communication by providing the correct contact details, thereby enhancing the efficiency of email-related tasks.
 3. To offer a user-friendly approach in cases of multiple matches by either seeking further clarification from the user or selecting the most appropriate contact based on available data.
@@ -1412,27 +1418,27 @@ type = "function"
 [tools.function]
 name = "findFile"
 description = """
-###Function Overview###
+### Function Overview ###
 The `findFile(filename: Optional[str])` function is designed to search for and return the unique identifier (file_id) associated with a specified filename. This identifier is critical for accurately locating and accessing files within the system's filesystem before conducting any file manipulations or data analyses. The function plays a key role in ensuring that operations are performed on the correct file by providing a safe and precise method for file identification.
 
-###!!!IMPORTANT NOTE!!!###
+### !!!IMPORTANT NOTE!!! ###
 1. This function does not open the file but solely returns the file_id, which is essential for subsequent file operations.
 2. The file_id should not be displayed to the user but used internally by the `code_interpreter` for file handling tasks.
 3. The function is a preliminary step in file operations, ensuring that file-related actions are executed on the intended file.
 4. The file_id is the only method to locate and access files within the filesystem.
 
-###Parameters###
+### Parameters ###
 `filename Optional(str)`: The name of the file to locate. This parameter requires the user to specify the exact name of the file they wish to access, facilitating the search for its corresponding file_id within the filesystem.
     A. If the filename is not specified, the most recently uploaded file_id is returned.
 
-###Returns###
+### Returns ###
 `file_id (str)`: A unique identifier for the file specified by the filename parameter. This file_id is essential for locating the file within the filesystem for any subsequent file operations. It is crucial to understand that:
 **The file_id is the only method to accurately locate the file in the filesystem.**
 *The function does not open the file; it merely returns the file_id.*
 *The returned file_id should not be displayed to the user but used as an intermediate step in the `code_interpreter` for further file operations.*
 
-###Usage Example###
-##Filename specified by the User##
+### Usage Example ###
+## Filename specified by the User ##
 Suppose a user wants to perform data analysis on a file named `finance.csv` to calculate the average revenue for the year 2023. The workflow would be as follows:
 1. User Inquiry: "What was the average revenue for the year 2023 in 'finance.csv'?"
 2. System Inference: The user requests data analysis on the file `finance.csv` for revenue calculation.
@@ -1450,7 +1456,7 @@ Suppose a user wants to perform data analysis on a file named `finance.csv` to c
 7. Use `code_interpreter` tool to manipulate and analyze the data within the specified file.
 8. Example Response: The average revenue for the year 2023 in `finance.csv` is $X.
 
-##Filename Not Specified##
+## Filename Not Specified ##
 If the user does not specify a filename, the function will return the most recently uploaded file_id. This scenario is useful when the user intends to work with the latest file without explicitly mentioning its name.
 1. User Inquiry: "Describe this image"
 2. System Inference: The user requests a description of the most recently uploaded image.
@@ -1465,7 +1471,7 @@ If the user does not specify a filename, the function will return the most recen
 7. Example Response: "The image depicts a serene landscape with a clear blue sky and lush greenery."
 
 
-###Process Flow###
+### Process Flow ###
 1. **Recognize User Request**: Recognize the user wants to know about a specific file.
     A. **Understand that the only way to access files is through their unique file_id**.
 2. **File Identification**: Locate the file within the filesystem based on the provided filename.
@@ -1476,14 +1482,14 @@ type = "object"
 [tools.function.parameters.properties.filename]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `filename: Optional(str)`: This parameter specifies the name of the file that needs to be located within the system, as explicitly mentioned by the user.
 
-###Parameter Description###
+### Parameter Description ###
 The `filename` parameter is essential for identifying and locating a specific file within the filesystem based on the user's request. It requires a string input representing the exact name of the file of interest, excluding any internal file identifiers or paths known to the system. This approach ensures that the search and subsequent operations are aligned with the user's intentions and that the correct file is targeted for any analysis or manipulation.
 
-###Parameter Usage###
-##Filename specified by the User##
+### Parameter Usage ###
+## Filename specified by the User ##
 To utilize this parameter effectively, input must be a string that corresponds to the name of the file as described by the user. It is crucial that this name matches the user's specification to ensure the subsequent retrieval of the correct file_id for the intended file.
 1. User Inquiry: "What was the average revenue for the year 2023 in 'finance.csv'?"
 2. System Inference: The user requests data analysis on the file `finance.csv` for revenue calculation.
@@ -1499,7 +1505,7 @@ To utilize this parameter effectively, input must be a string that corresponds t
 7. Use `code_interpreter` tool to manipulate and analyze the data within the specified file.
 8. Example Response: The average revenue for the year 2023 in `finance.csv` is $X.
 
-##Filename Not Specified##
+## Filename Not Specified ##
 If the user does not specify a filename, the function will return the most recently uploaded file_id. This scenario is useful when the user intends to work with the latest file without explicitly mentioning its name.
 1. User Inquiry: "Describe this image"
 2. System Inference: The user requests a description of the most recently uploaded image.
@@ -1514,7 +1520,7 @@ If the user does not specify a filename, the function will return the most recen
 7. Example Response: "The image depicts a serene landscape with a clear blue sky and lush greenery."
 
 
-###Objective###
+### Objective ###
 1. To accurately map the user's specified file name to its corresponding file_id within the system's filesystem, facilitating targeted and secure file operations.
 2. To ensure that the operations and analyses requested by the user are performed on the correct file, thereby maintaining the integrity and relevance of the process.
 """
@@ -1525,26 +1531,26 @@ type = "function"
 [tools.function]
 name = "webViewer"
 description = """
-###Function Overview###
+### Function Overview ###
 The `webViewer(url: (str))` function is a powerful tool designed to fetch and return content from a specified website URL, including text, images, links, tables, and forms. Its primary purpose is to enable access to real-time data from the web, allowing for the retrieval of information or content summaries directly from websites. This function is invaluable when users request up-to-date information or need a summary of web content, bridging the gap between static data and the dynamic nature of the internet.
 
-###!!!IMPORTANT NOTE!!!###
+### !!!IMPORTANT NOTE!!! ###
 1. This function is intended to extract content from websites and present it in a concise form for user consumption.
 2. The extracted content should reflect the primary information or content found on the web page, providing a summary or overview of the site's current data.
 3. The function is a valuable resource for addressing user queries that require real-time web content access, enhancing the ability to respond effectively to inquiries involving current events or specific web content given a URL.
 
-###When to Call the Function###
+### When to Call the Function ###
 -This function should be invoked in situations requiring real-time data from a website, such as when a user seeks the latest news, articles, or specific web-based information given a URL.
 -It serves as the preliminary step in addressing queries that necessitate web content access, ensuring that the response is grounded in the most current information available online.
 -Before concluding that accessing real-time data is not possible, employ this function as an attempt to fulfill the user's request.
 
-###Parameters###
+### Parameters ###
 - `url (str)`: The full URL of the website from which to extract content. This parameter must be a valid and complete web address that directs to the intended content.
 
-###Returns###
+### Returns ###
 - `content (str)`: The content retrieved from the specified website, including text, images, links, forms, and menus, presented in natural language. This output encapsulates the primary information or content found on the web page, offering a direct reflection of the site's current data.
 
-###Example Usage###
+### Example Usage ###
 1. User Query: "What is the latest news on 'https://www.cnn.com'?"
 2. System Inference: The user seeks information about the latest news on 'https://www.cnn.com'.
 3. Internal Reasoning:
@@ -1557,13 +1563,13 @@ The `webViewer(url: (str))` function is a powerful tool designed to fetch and re
 6. Example Response: "The latest news on CNN is..."
 
 
-###Process Flow###
+### Process Flow ###
 1. Recognize the user's request for web content information.
 2. Recognize the need to access real-time data from a website.
 3. Retrieve the content from the specified website URL.
 4. Present the extracted content in a clear and concise manner for user consumption.
 
-###Objectives###
+### Objectives ###
 1. To provide users with real-time web content access, enabling the extraction of information directly from websites.
 2. To enhance the responsiveness to user queries involving web-based content, ensuring that the information provided is current and relevant.
 3. To bridge the gap between static data and dynamic web content, facilitating the extraction and presentation of information from websites.
@@ -1573,13 +1579,13 @@ type = "object"
 [tools.function.parameters.properties.url]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `url (str)`: The web address of the site from which content is to be retrieved.
 
-###Parameter Description###
+### Parameter Description ###
 The `url` parameter requires a full, valid URL as a string input. This URL should direct to the website or specific web page the user is interested in extracting text from. It is essential for accessing real-time information or summarizing content available on the web, serving as the critical link between the user's request and the data retrieval process.
 
-###Parameter Usage###
+### Parameter Usage ###
 This parameter is utilized by entering the complete web address of the site in question when invoking the function. It enables the function to accurately locate and access the desired web page, ensuring that the retrieved text content matches the user's request for information or summary.
 1. User Query: "Summarize the content of 'https://www.cnn.com'?"
 2. System Inference: The user seeks to summarize the content of 'https://www.cnn.com'.
@@ -1592,13 +1598,13 @@ This parameter is utilized by entering the complete web address of the site in q
 5. Function Call: `webViewer(url='https://www.cnn.com')`
 6. Example Response: "The content of CNN is..."
 
-###Process Flow###
+### Process Flow ###
 1. Recognize the user's request for web content information.
 2. Recognize the need to access real-time data from a website.
 3. Retrieve the content from the specified website URL.
 4. Present the extracted content in a clear and concise manner for user consumption.
 
-###Objective###
+### Objective ###
 1. To facilitate direct access to specific web content by providing a straightforward method for fetching content from a given URL, thereby enhancing the ability to respond to user queries with up-to-date information from the internet.
 
 """
@@ -1615,26 +1621,26 @@ type = "function"
 [tools.function]
 name = "dataQuery"
 description = """
-###Function Overview###
+### Function Overview ###
 The `dataQuery(query: (str))` function is an essential tool for querying the web through Wolfram Alpha's API, providing access to a broad spectrum of real-time data and information that extends beyond the agent's current knowledge. This function is invaluable for answering user queries that demand the latest information or delve into areas requiring up-to-date data, including but not limited to, mathematical solutions, scientific facts, and general knowledge across a variety of domains.
 
-###!!!IMPORTANT NOTE!!!###
+### !!!IMPORTANT NOTE!!! ###
 1. This function leverages Wolfram Alpha's extensive knowledge base to retrieve precise and relevant information based on user queries, ensuring that the responses are current and accurate.
 2. The function is designed to facilitate real-time data retrieval and analysis, enabling users to access the latest information available on the web through Wolfram Alpha's API.
 3. It is a powerful tool for addressing user inquiries that necessitate up-to-date data, scientific explanations, mathematical solutions, or general knowledge beyond the agent's knowledge cutoff date.
 
-###When to Call the Function###
+### When to Call the Function ###
 -This function should be utilized for queries seeking information that is contemporary or beyond the agent's last update.
 -It is ideal for situations where users require precise, current data on topics such as demographics, scientific concepts, mathematical problems, or any content that necessitates access to Wolfram Alpha's extensive database.
 
-###Parameters###
+### Parameters ###
 - `query (str)`: A concise, well-formulated query based on the user's request. This should be structured to precisely convey the user's intent to the `dataQuery(query: str)` function, utilizing English and adhering to best practices for query formulation. If dealing with mathematical or scientific queries, ensure the expression is correctly formatted in Markdown syntax.
 
-###Returns###
+### Returns ###
 - `query_results (str)`: The outcome of the query, articulated in natural language. This response encapsulates the essential information or data requested by the user, formatted to facilitate easy comprehension and direct applicability.
 
-###Example Usage###
-##General Knowledge Query##
+### Example Usage ###
+## General Knowledge Query ##
 1. User Query: "What are the 1 most recent nations."
 2. System Inference: The user seeks information about the 10 most recent nations.
     A. This is a general knowledge query.
@@ -1652,7 +1658,7 @@ The `dataQuery(query: (str))` function is an essential tool for querying the web
 5. Function Call: `dataQuery(query="10 most recent nations")`
 6. Example Response: "The 10 most recent nations are..."
 
-##Mathematical Query##
+## Mathematical Query ##
 1. User Query: "Solve the equation x^2 + 4x + 4 = 0."
 2. System Inference: The user requests a solution to the quadratic equation.
 3. Internal Reasoning:
@@ -1666,7 +1672,7 @@ The `dataQuery(query: (str))` function is an essential tool for querying the web
 6. Example Response: "The solution to the equation x^2 + 4x + 4 = 0 is x = -2."
 7. Follow up: `query_results` can be used to provide additional details or steps if needed.
 
-##Scientific Query##
+## Scientific Query ##
 1. User Query: "Does the derivation of centripetal acceleration from the gravity potential assume an inertial frame of reference?"
 2. System Inference: The user seeks clarification on the derivation of centripetal acceleration.
     A. This is a highly technical scientific query.
@@ -1682,13 +1688,13 @@ The `dataQuery(query: (str))` function is an essential tool for querying the web
 5. Function Call: `dataQuery(query="Derivation of centripetal acceleration from gravity potential")`
 6. Example Response: "The derivation of centripetal acceleration from the gravity potential does not assume an inertial frame of reference."
 
-###Best Practices###
+### Best Practices ###
 -**Query Precision**: Craft each query to reflect the user's specific request, ensuring clarity and specificity to obtain the most accurate and relevant results from Wolfram Alpha.
 -**Query Language**: Submit queries in English, translating any user requests from other languages to ensure compatibility with the API.
 -**Formatting**: Adhere strictly to recommended formatting guidelines, especially for mathematical and scientific queries, to enhance the precision of the results.
 -**Assumption Management**: Should the initial results be unsatisfactory or irrelevant, examine provided assumptions for a more targeted query or adjust the query based on available guidance without departing significantly from the user's original request.
 
-###Operational Note###
+### Operational Note ###
 Utilizing the `dataQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging Wolfram Alpha's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval and analysis.
 `dataQuery(query:str)` understands natural language queries about entities in chemistry, physics, geography, history, art, astronomy, and more.
 -`dataQuery(query:str)` performs mathematical calculations, date and unit conversions, formula solving, etc.
@@ -1710,7 +1716,7 @@ Utilizing the `dataQuery(query: (str))` function effectively broadens the agent'
     -ONLY simplify or rephrase the initial query if a more relevant 'Assumption' or other input suggestions are not provided.
     -Do not explain each step unless user input is needed. Proceed directly to making a better API call based on the available assumptions.
 
-###Process Flow###
+### Process Flow ###
 1. Recognize the user's request for real-time data or information beyond the agent's current knowledge.
 2. Acknowledge the need to access Wolfram Alpha's API for querying the web and retrieving up-to-date data.
 3. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
@@ -1718,7 +1724,7 @@ Utilizing the `dataQuery(query: (str))` function effectively broadens the agent'
 5. Present the query results in a clear and concise manner, focusing on the key details relevant to the user's request.
 6. Provide additional details or steps if necessary based on the user's inquiry or follow-up questions.
 
-###Objective###
+### Objective ###
 1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging Wolfram Alpha's API for querying the web.
 2. To enhance the agent's responsiveness to user queries requiring up-to-date data, scientific explanations, mathematical solutions, or general knowledge across various domains.
 """
@@ -1727,15 +1733,15 @@ type = "object"
 [tools.function.parameters.properties.query]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `query (str)`: The specific inquiry or request to be sent to Wolfram Alpha via the `dataQuery(query:str)` function.
 
-###Parameter Description###
+### Parameter Description ###
 The `query` parameter is the centerpiece of the `dataQuery(query:str)` function, representing the user's question or topic of interest that is to be explored using Wolfram Alpha's API. This parameter should encapsulate the essence of the user's request in English, and when applicable, include mathematical expressions formatted in Markdown syntax. The clarity and specificity of the query are paramount in ensuring that the returned data is as relevant and accurate as possible.
 
-###Parameter Usage###
+### Parameter Usage ###
 To utilize this parameter, input should be a concise, well-phrased string that directly translates the user's intent or question into a format understandable by the Wolfram Alpha API. This may involve simplifying or refining the user's original query to meet the API's requirements while retaining the query's original purpose.
-##General Knowledge Query##
+## General Knowledge Query ##
 1. User Query: "What is the capital of France?"
 2. System Inference: The user seeks information about the capital of France.
 3. Internal Reasoning:
@@ -1746,7 +1752,7 @@ To utilize this parameter, input should be a concise, well-phrased string that d
     A. `query`: "capital of France"
 5. Function Call: `dataQuery(query="capital of France")`
 6. Example Response: "The capital of France is Paris."
-##Mathematical Query##
+## Mathematical Query ##
 1. User Query: "Solve the equation x^2 + 4x + 4 = 0."
 2. System Inference: The user requests a solution to a quadratic equation.
 3. Internal Reasoning:
@@ -1759,7 +1765,7 @@ To utilize this parameter, input should be a concise, well-phrased string that d
 5. Function Call: `dataQuery(query="$$\\nSolve the equation x^2 + 4x + 4 = 0.\\n$$")`
 6. Example Response: "The solution to the equation x^2 + 4x + 4 = 0 is x = -2."
 7. Follow-up: `query_results` can be used to provide additional details or steps if needed.
-##Scientific Query##
+## Scientific Query ##
 1. User Query: "What are the 10 densest elemental metals?"
 2. System Inference: The user seeks information about the densest elemental metals.
 3. Internal Reasoning:
@@ -1771,7 +1777,7 @@ To utilize this parameter, input should be a concise, well-phrased string that d
 5. Function Call: `dataQuery(query="10 densest elemental metals")`
 6. Example Response: "The 10 densest elemental metals are..."
 
-###Process Flow###
+### Process Flow ###
 1. Recognize the user's request for real-time data or information beyond the agent's knowledge cutoff date.
 2. Acknowledge the need to access Wolfram Alpha's API for querying the web and retrieving up-to-date data.
 3. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
@@ -1779,7 +1785,7 @@ To utilize this parameter, input should be a concise, well-phrased string that d
 5. Present the query results in a clear and concise manner, focusing on the key details relevant to the user's request.
 6. Provide additional details or steps if necessary based on the user's inquiry or follow-up questions.
 
-###Best Practices###
+### Best Practices ###
 Utilizing the `dataQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging Wolfram Alpha's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval and analysis.
 `dataQuery(query:str)` understands natural language queries about entities in chemistry, physics, geography, history, art, astronomy, and more.
 -`dataQuery(query:str)` performs mathematical calculations, date and unit conversions, formula solving, etc.
@@ -1801,7 +1807,7 @@ Utilizing the `dataQuery(query: (str))` function effectively broadens the agent'
     -ONLY simplify or rephrase the initial query if a more relevant 'Assumption' or other input suggestions are not provided.
     -Do not explain each step unless user input is needed. Proceed directly to making a better API call based on the available assumptions.
 
-###Objective###
+### Objective ###
 1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging Wolfram Alpha's API for querying the web.
 2. To enhance the agent's responsiveness to user queries requiring up-to-date data, scientific explanations, mathematical solutions, or general knowledge across various domains.
 """
@@ -1818,26 +1824,27 @@ type = "function"
 [tools.function]
 name = "webQuery"
 description = """
-###Function Overview###
+### Function Overview ###
 The `webQuery(query: (str))` function is an essential tool for querying the web through You API. It provides real-time data, recent news, and events, and other information that extends beyond the agent's current knowledge. This function is invaluable for answering user queries that demand the latest information or delve into areas requiring up-to-date data related to news and recent events.
 
-###!!!IMPORTANT NOTE!!!###
+### !!!IMPORTANT NOTE!!! ###
 1. This function leverages You API's real-time data to retrieve precise and relevant information based on user queries, ensuring that the responses are current and accurate.
 2. The function is designed to facilitate real-time data retrieval and analysis, enabling users to access the latest information available on the web through You API.
 3. It is a powerful tool for addressing user inquiries that necessitate up-to-date data, news, and events beyond the agent's knowledge cutoff date.
 
-###When to Call the Function###
+### When to Call the Function ###
 -This function should be utilized for queries seeking information that is contemporary or beyond the agent's last update.
 -It is ideal for situations where users require precise, current data on topics such as news, recent events, and other real-time information.
 
-###Parameters###
+### Parameters ###
 - `query (str)`: A concise, well-formulated query based on the user's request. This should be structured to precisely convey the user's intent to the `webQuery(query: (str))` function, utilizing English and adhering to best practices for query formulation. If dealing with mathematical or scientific queries, ensure the expression is correctly formatted in Markdown syntax.
 
-###Returns###
+### Returns ###
 - `query_results (str)`: The outcome of the query, articulated in natural language. This response encapsulates the essential information or data requested by the user, formatted to facilitate easy comprehension and direct applicability.
 
-###Example Usage###
-##General Knowledge Query##
+### Example Usage ###
+
+## General Knowledge Query ##
 1. User Query: "When was the Baltimore Bridge Collapse?"
 2. System Inference: The user seeks information about Baltimore Bridge collapse.
 3. Internal Reasoning:
@@ -1851,17 +1858,17 @@ The `webQuery(query: (str))` function is an essential tool for querying the web 
 5. Function Call: `webQuery(query="Baltimore Bridge Collapse")`
 6. Example Response: "The Baltimore Bridge collapse occurred on..."
 
-###Best Practices###
+### Best Practices ###
 -**Query Precision**: Craft each query to reflect the user's specific request, ensuring clarity and specificity to obtain the most accurate and relevant results from Wolfram Alpha.
 -**Query Language**: Submit queries in English, translating any user requests from other languages to ensure compatibility with the API.
 
-###Operational Note###
+### Operational Note ###
 Utilizing the `webQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging You API's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval.
 `webQuery(query: (str))` understands natural language queries about entities in news and recent events.
 -`query: str` must ONLY be a single-line string.
 -Never mention your knowledge cutoff date; `webQuery(query: (str))` may return more recent data.
 
-###Process Flow###
+### Process Flow ###
 1. Recognize the user's request for real-time data or information beyond the agent's current knowledge.
 2. Acknowledge the need to access You API for querying the web and retrieving up-to-date data for news and current events.
 3. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
@@ -1869,7 +1876,7 @@ Utilizing the `webQuery(query: (str))` function effectively broadens the agent's
 5. Present the query results in a clear and concise manner, focusing on the key details relevant to the user's request.
 6. Provide additional details or steps if necessary based on the user's inquiry or follow-up questions.
 
-###Objective###
+### Objective ###
 1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging You API for querying the web.
 2. To enhance the agent's responsiveness to user queries requiring up-to-date data, news, and events.
 """
@@ -1878,15 +1885,15 @@ type = "object"
 [tools.function.parameters.properties.query]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `query (str)`: The specific inquiry or request to be sent to Wolfram Alpha via the `webQuery(query: (str))` function.
 
-###Parameter Description###
+### Parameter Description ###
 The `query` parameter is the centerpiece of the `webQuery(query: (str))` function, representing the user's question or topic of interest that is to be explored using You API. This parameter should encapsulate the essence of the user's request in English, and when applicable.
 
-###Parameter Usage###
+### Parameter Usage ###
 To utilize this parameter, input should be a concise, well-phrased string that directly translates the user's intent.
-##General Knowledge Query##
+## General Knowledge Query ##
 1. User Query: "What were NVIDIA's earnings in Q1 2024?"
 2. System Inference: The user seeks information about NVIDIA's earnings beyond the agent's knowledge cutoff date.
 3. Internal Reasoning:
@@ -1898,7 +1905,7 @@ To utilize this parameter, input should be a concise, well-phrased string that d
 5. Function Call: `webQuery(query="NVIDIA earnings Q1 2024")`
 6. Example Response: "NVIDIA reported earnings of $X in Q1 2024."
 
-###Process Flow###
+### Process Flow ###
 1. Recognize the user's request for real-time data or information beyond the agent's knowledge cutoff date.
 2. Acknowledge the need to access You API for querying the web and retrieving up-to-date data.
 3. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
@@ -1906,13 +1913,13 @@ To utilize this parameter, input should be a concise, well-phrased string that d
 5. Present the query results in a clear and concise manner, focusing on the key details relevant to the user's request.
 6. Provide additional details or steps if necessary based on the user's inquiry or follow-up questions.
 
-###Best Practices###
+### Best Practices ###
 Utilizing the `webQuery(query: (str))` function effectively broadens the agent's capability to furnish users with accurate, up-to-date information, leveraging You API's comprehensive knowledge base to meet and exceed user expectations in real-time data retrieval.
 `webQuery(query: (str))` understands natural language queries about entities in news and recent events.
 -`query: str` must ONLY be a single-line string.
 -Never mention your knowledge cutoff date; `webQuery(query: (str))` may return more recent data.
 
-###Objective###
+### Objective ###
 1. To enable users to access real-time data and information beyond the agent's knowledge cutoff date by leveraging You API for querying the web.
 2. To enhance the agent's responsiveness to user queries requiring up-to-date data, news, and events.
 """
@@ -1929,27 +1936,27 @@ type = "function"
 [tools.function]
 name = "vision"
 description = """
-###Function Overview###
+### Function Overview ###
 The `vision(file_id: (str), query: (str))` function is a powerful tool designed to analyze and interpret images, providing insights, descriptions, and relevant information based on visual content. This function leverages advanced image recognition and processing capabilities to extract valuable data from images, enabling users to gain a deeper understanding of visual content and facilitating informed decision-making.
 
-###!!!IMPORTANT NOTE!!!###
+### !!!IMPORTANT NOTE!!! ###
 1. This function is intended to analyze images and extract meaningful information, descriptions, and insights based on visual content.
 2. The function utilizes advanced image recognition technologies to interpret images and provide relevant data to users, enhancing their understanding of visual content.
 3. It is a valuable tool for addressing user inquiries that involve image analysis, object recognition, and content interpretation, bridging the gap between visual data and actionable insights.
 
-###When to Call the Function###
+### When to Call the Function ###
 -This function should be invoked when users require detailed analysis, descriptions, or insights based on visual content within images.
 -It is ideal for situations where users seek to extract information, identify objects, or gain insights from images that may contain relevant data or content.
 
-###Parameters###
+### Parameters ###
 - `file_id (str)`: The unique identifier associated with the image file to be analyzed. This file_id is crucial for locating and processing the image within the system. 
     - This parameter can be obtained through the `findFile(filename: Optional[str])` function, ensuring that the correct image is targeted for analysis.
 - `query (str)`: A concise, well-formulated query based on the user's request. This should be structured to precisely convey the user's intent to the `vision(file_id: (str), query: (str))` function, utilizing English and adhering to best practices for query formulation.
 
-###Returns###
+### Returns ###
 - `query_results (str)`: The outcome of the image analysis, articulated in natural language. This response encapsulates the essential information, descriptions, or insights extracted from the image, formatted to facilitate easy comprehension and direct applicability.
 
-###Example Usage###
+### Example Usage ###
 1. User Query: "Analyze image.jpg to identify the objects and provide a description."
 2. System Inference: The user requests an analysis of the image to identify objects and provide a description.
 3. Internal Reasoning:
@@ -1965,12 +1972,12 @@ The `vision(file_id: (str), query: (str))` function is a powerful tool designed 
 5. Function Call: `vision(file_id=`file_id`, query="Identify objects and provide a description.")`
 6. Example Response: "The image contains a car, a tree, and a building. The scene appears to be a city street with traffic."
 
-###Best Practices###
+### Best Practices ###
 -**Query Precision**: Craft each query to reflect the user's specific request, ensuring clarity and specificity to obtain the most accurate and relevant results from the image analysis.
 -**Image Analysis**: Utilize the function to identify objects, extract information, and provide descriptions based on visual content within images.
 -**User Guidance**: Offer additional insights or details based on the image analysis results to enhance user understanding and engagement.
 
-###Operational Note###
+### Operational Note ###
 Utilizing the `vision(file_id: (str), query: (str))` function effectively broadens the agent's capability to analyze and interpret images, providing valuable insights and descriptions based on visual content. This function is instrumental in addressing user inquiries that involve image analysis, object recognition, and content interpretation, enhancing the user experience and facilitating informed decision-making.
 """
 [tools.function.parameters]
@@ -1978,15 +1985,16 @@ type = "object"
 [tools.function.parameters.properties.file_id]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `file_id (str)`: The unique identifier associated with the image file to be analyzed.
 
-###Parameter Description###
+### Parameter Description ###
 The `file_id` parameter is a critical component of the `vision(file_id: (str), query: (str))` function, serving as the unique identifier associated with the image file targeted for analysis. This identifier enables the system to locate and process the specified image accurately, ensuring that the analysis and interpretation are performed on the correct visual content.
 
-###Parameter Usage###
+### Parameter Usage ###
 To utilize this parameter effectively, the `file_id` must be obtained through the `findFile(filename: Optional[str])` function, which maps the user-specified image filename to its corresponding unique identifier within the system. This process ensures that the correct image is selected for analysis, providing accurate insights and descriptions based on the visual content.
-##Example##
+
+## Example ##
 1. User Query: "Analyze image.jpg to identify the objects and provide a description."
 2. System Inference: The user requests an analysis of the image to identify objects and provide a description.
 3. Internal Reasoning:
@@ -2002,7 +2010,7 @@ To utilize this parameter effectively, the `file_id` must be obtained through th
 5. Function Call: `vision(file_id=`file_id`, query="Identify objects and provide a description.")`
 6. Example Response: "The image contains a car, a tree, and a building. The scene appears to be a city street with traffic."
 
-###Process Flow###
+### Process Flow ###
 1. Recognize the user's request for image analysis and interpretation.
 2. Acknowledge the need to access the specified image file for processing.
 3. Obtain the unique identifier (`file_id`) associated with the image through the `findFile(filename: Optional[str])` function.
@@ -2010,22 +2018,23 @@ To utilize this parameter effectively, the `file_id` must be obtained through th
 5. Analyze the image to identify objects, extract information, and provide descriptions based on the visual content.
 6. Present the analysis results in a clear and concise manner, focusing on the key details relevant to the user's request.
 
-###Objective###
+### Objective ###
 1. To enable users to gain insights, descriptions, and relevant information based on visual content within images through advanced image recognition and processing capabilities.
 2. To enhance the agent's ability to analyze and interpret images, providing valuable data and insights to users seeking detailed information or object identification from visual content.
 """
 [tools.function.parameters.properties.query]
 type = "string"
 description = """
-###Parameter###
+### Parameter ###
 `query (str)`: A concise, well-formulated query based on the user's request.
 
-###Parameter Description###
+### Parameter Description ###
 The `query` parameter is an essential element of the `vision(file_id: (str), query: (str))` function, representing the user's specific inquiry or request related to the image analysis. This query should be structured to convey the user's intent clearly and precisely, enabling the system to extract relevant information, identify objects, and provide descriptions based on the visual content within the image.
 
-###Parameter Usage###
+### Parameter Usage ###
 When utilizing this parameter, the `query` should be formulated in English, reflecting the user's request for object identification, information extraction, or detailed descriptions based on the visual content within the image. The query serves as the guiding directive for the image analysis process, ensuring that the results align with the user's expectations and requirements.
-##Example##
+
+## Example ##
 1. User Query: "Analyze image.jpg to identify the objects and provide a description."
 2. System Inference: The user requests an analysis of the image to identify objects and provide a description.
 3. Internal Reasoning:
@@ -2041,7 +2050,7 @@ When utilizing this parameter, the `query` should be formulated in English, refl
 5. Function Call: `vision(file_id=`file_id`, query="Identify objects and provide a description.")`
 6. Example Response: "The image contains a car, a tree, and a building. The scene appears to be a city street with traffic."
 
-###Process Flow###
+### Process Flow ###
 1. Recognize the user's request for image analysis and interpretation.
     A. Formulate the user's query in English, ensuring precision and adherence to formatting guidelines.
 2. Acknowledge the need to access the specified image file for processing.
@@ -2050,7 +2059,7 @@ When utilizing this parameter, the `query` should be formulated in English, refl
 5. Analyze the image to identify objects, extract information, and provide descriptions based on the visual content.
 6. Present the analysis results in a clear and concise manner, focusing on the key details relevant to the user's request.
 
-###Objective###
+### Objective ###
 1. To enable users to gain insights, descriptions, and relevant information based on visual content within images through advanced image recognition and processing capabilities.
 2. To enhance the agent's ability to analyze and interpret images, providing valuable data and insights to users seeking detailed information or object identification from visual content.
 """
