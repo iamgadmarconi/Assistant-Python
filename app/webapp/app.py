@@ -7,8 +7,6 @@ import asyncio
 import os
 
 
-get_bot_response = lambda x: "You said: \n" + x
-
 app = Quart(__name__)
 DEFAULT_DIR = "agent"
 SAVE_DIRECTORY = r"app/files/documents"
@@ -26,7 +24,6 @@ async def initialize_agent():
     app.conv = await current_app.assistant.load_or_create_conv(False)
 
 
-
 @app.route("/chat", methods=["POST"])
 async def chat():
     if request.method == "POST":
@@ -38,11 +35,6 @@ async def chat():
         # response = get_bot_response(message)  # testing
         # Return the response
         return response
-
-
-def process_message(message):
-    response = get_bot_response(message)
-    return response
 
 
 @app.route("/upload", methods=["GET", "POST"])

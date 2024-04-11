@@ -45,7 +45,8 @@
             border-radius: 8px;
             padding: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            background-image: url('https://www.transparenttextures.com/patterns/axiom-pattern.png');
+            /* Update the URL to the correct path */
+            background-image: url('/static/background.png');
         }
 
         .input-wrapper {
@@ -85,6 +86,7 @@
             text-align: left;
             width: auto;
             background-color: #dd2a62; /* Different background for differentiation */
+            opacity: 0.7; /* Slightly transparent for better contrast */
             color: #1e1928;
         }
 
@@ -93,6 +95,7 @@
             margin-right: auto;
             text-align: left;
             width: auto;
+            color: #95274e;
         }
         
         #message-input {
@@ -178,6 +181,40 @@
             color: #dd2a62 !important; /* White text for contrast */
         }
 
+        #loading-bar-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            position: relative;
+            margin: 0 auto;
+            margin-top: 20px;
+        }
+
+        #loading-bar-spinner.spinner {
+            left: 50%;
+            margin-left: -20px;
+            top: 50%;
+            margin-top: -20px;
+            position: absolute;
+            z-index: 19 !important;
+            animation: loading-bar-spinner 400ms linear infinite;
+        }
+
+        #loading-bar-spinner.spinner .spinner-icon {
+            width: 40px;
+            height: 40px;
+            border:  solid 4px transparent;
+            border-top-color:  #1e1928 !important;
+            border-left-color: #1e1928 !important;
+            border-radius: 50%;
+        }
+
+        @keyframes loading-bar-spinner {
+            0%   { transform: rotate(0deg);   transform: rotate(0deg); }
+            100% { transform: rotate(360deg); transform: rotate(360deg); }
+        }
+
+
         @media (max-width: 768px) {
             #chat-container {
                 width: auto;
@@ -207,6 +244,9 @@
     <div id="chat-container">
         <div id="chat-window">
             <!-- Messages will appear here -->
+        </div>
+        <div id="loading-bar-spinner" class="spinner">
+            <div class="spinner-icon"></div>
         </div>
         <div class="input-wrapper">
             <!-- Form for file upload -->
@@ -275,6 +315,10 @@
                 const message = messageInput.value.trim();
                 if (message) {
                     displayMessage(message, 'user');
+
+                    // Show progress indicator
+                    document.getElementById('loading-bar-spinner').style.display = 'block';
+
                     fetch('/chat', {
                         method: 'POST',
                         headers: {
@@ -284,10 +328,16 @@
                     })
                     .then(response => response.text()) // Assuming JSON response
                     .then(data => {
+                        // Hide progress indicator
+                        document.getElementById('loading-bar-spinner').style.display = 'none';
                         displayMessage(data, 'bot'); // Display bot response
                     })
-                    .catch(error => console.error('Error:', error));
-    
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Hide progress indicator in case of error as well
+                        document.getElementById('loading-bar-spinner').style.display = 'none';
+                    });
+
                     // Reset input
                     messageInput.value = '';
                     adjustTextareaHeight();
@@ -336,6 +386,15 @@
             // Adjust textarea height initially and on input
             messageInput.addEventListener('input', adjustTextareaHeight);
             adjustTextareaHeight(); // Initial adjustment if needed
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensures the progress indicator is hidden on page load
+            document.getElementById('progress-indicator').style.display = 'none';
+
+            // Existing event listeners and functionality here
+            // This ensures that any setup code only runs after the document is fully ready
         });
     </script>
     
