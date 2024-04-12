@@ -179,6 +179,8 @@ async def run_thread_message(client, asst_id: str, thread_id: str, message: str)
             ### Additional Instructions ###
             Remember to always go throught the **CHECKLIST BEFORE ANSWERING**.
 
+            !!! IMPORTANT!!! If you can't retrieve the data from your knowledge, **have you called the `webQuery(query: str)` and `dataQuery(query: str)` tools?**
+
             ## Real-time Data Retrieval ##
             URL-based Data Extraction: If a URL is provided by the user, employ web tools (webViewer(url: str))` tool.
             Query-based Data Extraction: For general queries, use the `webQuery(query: str))` and `dataQuery(query: str)` tools to extract relevant information from the web. For specific data types, utilize the appropriate tools such as `dataQuery(query: str))` for structured data, `vision(file_id: str, query: str))` for image analysis, and `findFile(filename: str))` for file-based data analysis tasks.
