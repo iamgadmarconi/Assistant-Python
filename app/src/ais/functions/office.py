@@ -25,7 +25,7 @@ async def findFile(client, asst_id, filename: Optional[str] = None) -> str:
 
         The file_id of the file with name filename
     """
-    # print(f"Debug--- Called findFile with parameters: {filename}")
+    print(f"\nDebug--- Called findFile with parameters: {filename}\n")
 
     if filename:
         file_id_by_name = await get_file_hashmap(client, asst_id)
@@ -46,7 +46,7 @@ async def findFile(client, asst_id, filename: Optional[str] = None) -> str:
         if not file_id in asst_file_ids:
             file_id = "File exists but not in assistant's files."
 
-    # print(f"Debug--- File ID: {file_id}")
+    print(f"\nDebug--- File ID: {file_id}\n")
 
     return file_id
 

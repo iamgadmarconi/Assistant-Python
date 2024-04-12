@@ -28,6 +28,7 @@ def getDate() -> str:
 
         The current date and time in the format dd/mm/yyyy, hh:mm:ss
     """
+    print("\n--debug: called getDate()\n")
     return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
 
@@ -65,6 +66,7 @@ def getWeather(location_message: Optional[str] = None) -> str:
     Returns:
         str: A weather report for the specified or derived location.
     """
+    print("\n--debug: called getWeather()\n")
     geolocator = Nominatim(user_agent=USER_AGENT)
     time, location = get_context_from_message(location_message)
 

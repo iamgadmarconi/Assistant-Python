@@ -1023,6 +1023,7 @@ def writeEmail(
 
         A string containing the email report
     """
+    print(f"\nDebug--- Called writeEmail with parameters: {recipients}, \n{subject}, \n{body}, \n{attachments}\n")
     email_report = (
         f"To: {', '.join([recipient for recipient in recipients])}\n"
         f"Subject: {subject}\n"
@@ -1057,6 +1058,7 @@ def sendEmail(
 
         A string indicating whether the email was sent successfully or not
     """
+    print(f"\nDebug--- Called sendEmail with parameters: \n{recipients}, \n{subject}, \n{body}, \n{attachments}\n")
     try:
         account = O365Auth(SCOPES)
         m = account.new_message()
@@ -1092,6 +1094,7 @@ def readEmail() -> str:
 
         A string of emails
     """
+    print(f"\nDebug--- Called readEmail\n")
     account = O365Auth(SCOPES)
 
     mailbox = account.mailbox()
@@ -1136,7 +1139,7 @@ def getCalendar(upto: Optional[str] = None) -> str:
 
         A string of all the events in your calendar
     """
-    # print(f"Debug--- Called getCalendar with parameters: {upto}")
+    print(f"Debug--- Called getCalendar with parameters: {upto}")
     account = O365Auth(SCOPES)
 
     if upto is None:
@@ -1196,7 +1199,7 @@ def createCalendarEvent(
     body: Optional[str] = None,
     recurrence: bool = False,
 ) -> str:
-    # print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
+    print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     """
     The createCalendarEvent function is used to create a new calendar event.
 
@@ -1275,7 +1278,7 @@ def saveCalendarEvent(
     body: Optional[str] = None,
     recurrence: bool = False,
 ) -> str:
-    # print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
+    print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     """
     The saveCalendarEvent function is used to save a new event in the user's Outlook calendar.
 
@@ -1351,10 +1354,11 @@ def getContacts(name: Optional[str] = None) -> str:
 
         A string containing the contact information
     """
+    print(f"\nDebug--- Called getContacts with parameters: {name}\n")
     threshold = 80
     account = O365Auth(SCOPES)
     contacts = account.address_book().get_contacts()  # type: ignore [attr-defined]
-
+    
     if not name:
         contact_reports = []
 
@@ -1445,6 +1449,7 @@ def getDate() -> str:
 
         The current date and time in the format dd/mm/yyyy, hh:mm:ss
     """
+    print("\n--debug: called getDate()\n")
     return datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
 
@@ -1482,6 +1487,7 @@ def getWeather(location_message: Optional[str] = None) -> str:
     Returns:
         str: A weather report for the specified or derived location.
     """
+    print("\n--debug: called getWeather()\n")
     geolocator = Nominatim(user_agent=USER_AGENT)
     time, location = get_context_from_message(location_message)
 
@@ -1524,7 +1530,7 @@ async def findFile(client, asst_id, filename: Optional[str] = None) -> str:
 
         The file_id of the file with name filename
     """
-    # print(f"Debug--- Called findFile with parameters: {filename}")
+    print(f"\nDebug--- Called findFile with parameters: {filename}\n")
 
     if filename:
         file_id_by_name = await get_file_hashmap(client, asst_id)
@@ -1545,7 +1551,7 @@ async def findFile(client, asst_id, filename: Optional[str] = None) -> str:
         if not file_id in asst_file_ids:
             file_id = "File exists but not in assistant's files."
 
-    # print(f"Debug--- File ID: {file_id}")
+    print(f"\nDebug--- File ID: {file_id}\n")
 
     return file_id
 
@@ -1588,6 +1594,7 @@ def webViewer(url: str) -> str:
     str
         The website content.
     """
+    print("\n--debug: called webViewer()\n")
     text = web_text(url)
     menus = web_menus(url)
     links = web_links(url)
@@ -1614,6 +1621,7 @@ def dataQuery(query: str) -> str:
     str
         The response text from the Wolfram Alpha query.
     """
+    print(f"\n--debug: called dataQuery() with parameter: {query}\n")
     app_id = os.environ.get("WOLFRAM_APP_ID")
 
     try:
@@ -1624,6 +1632,8 @@ def dataQuery(query: str) -> str:
     url = f"https://www.wolframalpha.com/api/v1/llm-api?input={query}&appid={app_id}"
     response = requests.get(url)
 
+    print(f"\n--debug: response: {response}\n")
+
     if response.status_code == 200:
         response_text = response.text
 
@@ -1633,6 +1643,7 @@ def dataQuery(query: str) -> str:
 
 
 def webQuery(query: str) -> str:
+    print(f"\n--debug: called webQuery() with parameter: {query}\n")
     api_key = os.environ.get("You_API_key")
     headers = {"X-API-Key": api_key}
     params = {"query": query}
@@ -1641,6 +1652,8 @@ def webQuery(query: str) -> str:
         params=params,
         headers=headers,
     ).json()["hits"]
+
+    print(f"\n--debug: hits: {hits}\n")
 
     results = "\n\n\n".join(
         [f"{hit['title']}\n{hit['description']}\n{hit['url']}" for hit in hits]
