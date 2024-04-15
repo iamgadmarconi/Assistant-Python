@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/png" href="/static/icon.png">
     <!-- Highlight.js Styles (Choose a theme that suits your needs) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/default.min.css">
 
@@ -12,71 +13,75 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Interface</title>
+    <title>Rory</title>
     <style>
         body, html {
             height: 100%;
-            width: 100%;
             margin: 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             font-family: 'Arial', sans-serif;
             background-color: #1e1928;
         }
+
         #chat-container {
-            width: 100%; /* Adjusted for the overall chat container */
-            max-width: 800px; /* Adjust to suit your needs */
-            margin: auto; /* Center the chat container */
+            flex-grow: 1;
+            position: relative;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        #chat-window {
-            display: block;
+            max-width: 800px;
             width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        #chat-window {
+            flex-grow: 1;
+            overflow-y: auto;
             border: 1px solid #873852;
             background-color: #95274e;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            min-height: 500px;
-            height: auto;
+            min-height: 500px; /* Adjust if needed */
+            max-height: calc(100vh - 80px);
+            min-width: 300px;
             border-radius: 8px;
             padding: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            background-image: url('https://www.transparenttextures.com/patterns/axiom-pattern.png');
+            background-image: url('/static/background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin-bottom: 60px; /* Add space for the input-wrapper */
         }
 
         .input-wrapper {
+            max-width: 800px;
+            width: calc(100% - 20px); /* Account for the padding */
+            margin: 0 auto;
             display: flex;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1928;
             align-items: center;
-            width: 100%;
-            margin: 0 auto 10px;
-            border: 1px solid #873852;
-            border-radius: 4px;
-            padding: 5px;
-            position: relative; /* Needed for absolute positioning of children */
+            padding: 10px;
+            box-sizing: border-box; /* Add this to include padding in the width */
+            border-radius: 8px;
         }
 
         .message {
-            display: block;
-            width: auto; /* Adjusting the width of the message boxes to be wider */
             /* Other properties remain the same */
             max-width: none; /* You can remove the max-width or adjust it as needed */
             margin: 5px auto; /* Centering messages within the chat window */
-            padding: 8px;
             justify-content: center;
-            word-break: break-all;
-            word-wrap: break-word;
+            word-wrap: normal;
             box-sizing: border-box;
-            border-radius: 4px;
         }
 
         .user, .bot {
             border-radius: 4px;
             padding: 5px 10px;
-            word-break: break-all;
+            word-break: normal;
         }
 
         .user {
@@ -85,14 +90,31 @@
             text-align: left;
             width: auto;
             background-color: #dd2a62; /* Different background for differentiation */
+            opacity: 0.7; /* Slightly transparent for better contrast */
             color: #1e1928;
         }
 
         .bot {
             /* align-self: flex-start; /* Aligns bot messages to the left */
+            display: flex;
+            align-items: center;
+            justify-items: flex-end;
             margin-right: auto;
             text-align: left;
             width: auto;
+            color: #95274e;
+            background-color: #1e1928;
+            opacity: 0.7; /* Slightly transparent for better contrast */
+        }
+
+        .bot-span {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+
+        .bot-icon {
+            width: 40px;
+            height: 40px;
         }
         
         #message-input {
@@ -101,18 +123,14 @@
             background-color: #dd2a62;
             color: #1e1928;
             outline: none;
-            padding-right: 5px; /* Adjust based on the send button size */
-            padding-left: 5px; /* Adjust based on the send button size */
-            padding-top: 2px;
-            padding-bottom: 2px;
             border-radius: 4px;
-            margin: 2px 5px; /* Ensure it doesn't touch the wrapper edges */
-            resize: none; /* Optional: prevents resizing */
+            margin-right: 60px; /* space for the send button */
+            margin-left: 73px;
+            resize: none; /* Prevent resizing */
         }
 
         #send-button {
-            padding: 10px 10px; /* Adjusted padding for better touch experience */
-            position: relative;
+            padding: 10px;
             background-color: #95274e;
             color: #1e1928;
             border: none;
@@ -120,6 +138,9 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.2s;
+            position: absolute;
+            right: 10px; /* Adjust as needed */
+            bottom: 10px;
         }
 
         #send-button:hover {
@@ -127,13 +148,10 @@
         }
 
         .file-upload-wrapper {
-            display: flex;
-            align-items: center;
-            width: 8%;
-            padding: 5px;
-            position: relative; /* Needed for absolute positioning of children */
+            position: absolute;
+            left: 10px; /* Adjust as needed */
+            bottom: 19px;
         }
-
         /* Style adjustments for the file input */
         .file-upload-input {
             display: none; /* Hide the default file input */
@@ -141,8 +159,7 @@
 
         /* Custom button to trigger the hidden file input */
         .file-upload-button {
-            padding: 10px 10px; /* Adjusted padding for better touch experience */
-            position: relative;
+            padding: 10px;
             background-color: #95274e;
             color: #1e1928;
             border: none;
@@ -150,6 +167,7 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.2s;
+            padding-top: 11px;
         }
 
         .file-upload-button:hover {
@@ -178,14 +196,69 @@
             color: #dd2a62 !important; /* White text for contrast */
         }
 
+        #loading-bar-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            position: relative;
+            margin: 0 auto;
+            margin-top: 20px;
+        }
+
+        #loading-bar-spinner.spinner {
+            left: 50%;
+            margin-left: -20px;
+            top: 50%;
+            margin-top: -20px;
+            position: absolute;
+            z-index: 19 !important;
+            animation: loading-bar-spinner 400ms linear infinite;
+        }
+
+        #loading-bar-spinner.spinner .spinner-icon {
+            width: 40px;
+            height: 40px;
+            border:  solid 4px transparent;
+            border-top-color:  #1e1928 !important;
+            border-left-color: #1e1928 !important;
+            border-radius: 50%;
+        }
+
+        /* Custom Scrollbar: Container */
+        #chat-window::-webkit-scrollbar {
+            width: 12px; /* Adjust the width of the scrollbar */
+        }
+
+        /* Custom Scrollbar: Track (background) */
+        #chat-window::-webkit-scrollbar-track {
+            background: #2e2d4d; /* The track (background) of the scrollbar */
+        }
+
+        /* Custom Scrollbar: Handle (the movable part) */
+        #chat-window::-webkit-scrollbar-thumb {
+            background: #873852; /* The handle color */
+            border-radius: 6px; /* Rounded corners for the handle */
+        }
+
+        /* Custom Scrollbar: Handle on hover */
+        #chat-window::-webkit-scrollbar-thumb:hover {
+            background: #b3506c; /* Handle color on hover */
+        }
+
+        @keyframes loading-bar-spinner {
+            0%   { transform: rotate(0deg);   transform: rotate(0deg); }
+            100% { transform: rotate(360deg); transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             #chat-container {
-                width: auto;
-                max-width: 5px auto;
+                width: 100%;
+                max-width: none;
             }
 
             #message-input {
                 padding-left: 40px;
+                margin-right: 40px;
             }
 
             #send-button {
@@ -193,12 +266,12 @@
                 height: 35px; /* Smaller height on smaller screens */
                 padding: 5px 10px; /* Adjusted padding */
                 font-size: 14px; /* Slightly smaller font size */
+                right: 5px;
             }
 
             .file-upload-wrapper {
-                width: 8%; /* Adjusted width for smaller screens */
+                left: 5px;
             }
-
         }
 
     </style>
@@ -208,18 +281,21 @@
         <div id="chat-window">
             <!-- Messages will appear here -->
         </div>
-        <div class="input-wrapper">
-            <!-- Form for file upload -->
-            <form id="file-upload-form" action="/upload" method="post" enctype="multipart/form-data">
-                <div class="file-upload-wrapper">
-                    <input type="file" id="file-upload-input" name="the_file" class="file-upload-input">
-                    <label for="file-upload-input" class="file-upload-button">Upload</label>
-                </div>
-            </form>
-            <textarea id="message-input" autocomplete="off"></textarea>
-            <button id="send-button">Send</button>
+        <div id="loading-bar-spinner" class="spinner" style="display:none;">
+            <div class="spinner-icon"></div>
         </div>
-    </div>    
+    </div>
+    <div class="input-wrapper">
+        <!-- Form for file upload -->
+        <form id="file-upload-form" action="/upload" method="post" enctype="multipart/form-data">
+            <div class="file-upload-wrapper">
+                <input type="file" id="file-upload-input" name="the_file" class="file-upload-input">
+                <label for="file-upload-input" class="file-upload-button">Upload</label>
+            </div>
+        </form>
+        <textarea id="message-input" autocomplete="off"></textarea>
+        <button id="send-button">Send</button>
+    </div>     
     <script>
         // Add event listener for the custom upload button to trigger the hidden file input click
         document.addEventListener('DOMContentLoaded', function() {
@@ -275,6 +351,10 @@
                 const message = messageInput.value.trim();
                 if (message) {
                     displayMessage(message, 'user');
+
+                    // Show progress indicator
+                    document.getElementById('loading-bar-spinner').style.display = 'block';
+
                     fetch('/chat', {
                         method: 'POST',
                         headers: {
@@ -284,14 +364,28 @@
                     })
                     .then(response => response.text()) // Assuming JSON response
                     .then(data => {
+                        // Hide progress indicator
+                        document.getElementById('loading-bar-spinner').style.display = 'none';
                         displayMessage(data, 'bot'); // Display bot response
                     })
-                    .catch(error => console.error('Error:', error));
-    
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Hide progress indicator in case of error as well
+                        document.getElementById('loading-bar-spinner').style.display = 'none';
+                    });
+
                     // Reset input
                     messageInput.value = '';
                     adjustTextareaHeight();
                 }
+            }
+
+            function scrollToBottom() {
+                const chatWindow = document.getElementById('chat-window');
+                chatWindow.scrollTo({
+                    top: chatWindow.scrollHeight,
+                    behavior: 'smooth' // This enables smooth scrolling
+                });
             }
 
             function displayMessage(message, sender) {
@@ -299,25 +393,29 @@
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('message', sender);
 
-                // Parse the entire message as Markdown, with code blocks highlighted
-                const finalHTML = marked.parse(message);
+                // Adjusted HTML structure for bot messages
+                if (sender === 'bot') {
+                    messageDiv.innerHTML = `<img src="/static/icon.png" class="bot-icon" alt="Bot"><span>${message}</span>`;
+                } else {
+                    messageDiv.innerHTML = `<span>${message}</span>`;
+                }
 
-                messageDiv.innerHTML = finalHTML;
                 chatWindow.appendChild(messageDiv);
-                
-                // Apply syntax highlighting to all <code> elements inside the newly added message
+                // Scroll to the bottom and other existing logic
+                scrollToBottom();
+
+                // Apply syntax highlighting to code elements if any
                 messageDiv.querySelectorAll('pre code').forEach((block) => {
                     hljs.highlightElement(block);
                 });
 
-                chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the latest message
+                chatWindow.scrollTop = chatWindow.scrollHeight;
             }
 
             function adjustTextareaHeight() {
                 messageInput.style.height = 'auto'; // Reset height to shrink back if needed
                 messageInput.style.height = messageInput.scrollHeight + 'px'; // Adjust height based on content
             }
-    
             // Send message on "Enter" and add new line on "Shift+Enter"
             messageInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -336,6 +434,16 @@
             // Adjust textarea height initially and on input
             messageInput.addEventListener('input', adjustTextareaHeight);
             adjustTextareaHeight(); // Initial adjustment if needed
+        });
+
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensures the progress indicator is hidden on page load
+            document.getElementById('loading-bar-spinner').style.display = 'none';
+
+            // Existing event listeners and functionality here
+            // This ensures that any setup code only runs after the document is fully ready
         });
     </script>
     

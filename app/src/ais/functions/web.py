@@ -25,6 +25,7 @@ def webViewer(url: str) -> str:
     str
         The website content.
     """
+    print("\n--debug: called webViewer()\n")
     text = web_text(url)
     menus = web_menus(url)
     links = web_links(url)
@@ -51,6 +52,7 @@ def dataQuery(query: str) -> str:
     str
         The response text from the Wolfram Alpha query.
     """
+    print(f"\n--debug: called dataQuery() with parameter: {query}\n")
     app_id = os.environ.get("WOLFRAM_APP_ID")
 
     try:
@@ -61,6 +63,8 @@ def dataQuery(query: str) -> str:
     url = f"https://www.wolframalpha.com/api/v1/llm-api?input={query}&appid={app_id}"
     response = requests.get(url)
 
+    print(f"\n--debug: response: {response}\n")
+
     if response.status_code == 200:
         response_text = response.text
 
@@ -70,6 +74,7 @@ def dataQuery(query: str) -> str:
 
 
 def webQuery(query: str) -> str:
+    print(f"\n--debug: called webQuery() with parameter: {query}\n")
     api_key = os.environ.get("You_API_key")
     headers = {"X-API-Key": api_key}
     params = {"query": query}
@@ -78,6 +83,8 @@ def webQuery(query: str) -> str:
         params=params,
         headers=headers,
     ).json()["hits"]
+
+    print(f"\n--debug: hits: {hits}\n")
 
     results = "\n\n\n".join(
         [f"{hit['title']}\n{hit['description']}\n{hit['url']}" for hit in hits]

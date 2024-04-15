@@ -70,6 +70,7 @@ def writeEmail(
 
         A string containing the email report
     """
+    print(f"\nDebug--- Called writeEmail with parameters: {recipients}, \n{subject}, \n{body}, \n{attachments}\n")
     email_report = (
         f"To: {', '.join([recipient for recipient in recipients])}\n"
         f"Subject: {subject}\n"
@@ -104,6 +105,7 @@ def sendEmail(
 
         A string indicating whether the email was sent successfully or not
     """
+    print(f"\nDebug--- Called sendEmail with parameters: \n{recipients}, \n{subject}, \n{body}, \n{attachments}\n")
     try:
         account = O365Auth(SCOPES)
         m = account.new_message()
@@ -139,6 +141,7 @@ def readEmail() -> str:
 
         A string of emails
     """
+    print(f"\nDebug--- Called readEmail\n")
     account = O365Auth(SCOPES)
 
     mailbox = account.mailbox()
@@ -183,7 +186,7 @@ def getCalendar(upto: Optional[str] = None) -> str:
 
         A string of all the events in your calendar
     """
-    # print(f"Debug--- Called getCalendar with parameters: {upto}")
+    print(f"Debug--- Called getCalendar with parameters: {upto}")
     account = O365Auth(SCOPES)
 
     if upto is None:
@@ -243,7 +246,7 @@ def createCalendarEvent(
     body: Optional[str] = None,
     recurrence: bool = False,
 ) -> str:
-    # print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
+    print(f"Debug--- Called writeCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     """
     The createCalendarEvent function is used to create a new calendar event.
 
@@ -322,7 +325,7 @@ def saveCalendarEvent(
     body: Optional[str] = None,
     recurrence: bool = False,
 ) -> str:
-    # print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
+    print(f"Debug--- Called saveCalendarEvent with parameters: {subject}, {start}, {end}, {location}, {body}, {recurrence}")
     """
     The saveCalendarEvent function is used to save a new event in the user's Outlook calendar.
 
@@ -398,10 +401,11 @@ def getContacts(name: Optional[str] = None) -> str:
 
         A string containing the contact information
     """
+    print(f"\nDebug--- Called getContacts with parameters: {name}\n")
     threshold = 80
     account = O365Auth(SCOPES)
     contacts = account.address_book().get_contacts()  # type: ignore [attr-defined]
-
+    
     if not name:
         contact_reports = []
 
