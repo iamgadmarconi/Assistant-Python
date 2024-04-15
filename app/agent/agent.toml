@@ -25,39 +25,7 @@ type = "function"
 [tools.function]
 name = "getWeather"
 description = """
-###Function Purpose###
-This function is designed to provide weather reports tailored to user inquiries. Since users might pose their questions in various indirect forms, it's essential for the system to interpret the underlying intent. For instance, a question about the necessity of carrying an umbrella is indirectly inquiring about precipitation chances or weather conditions.
-
-###Parameters###
-`msg (Optional[str])`: Input the specifics (location and time) related to the weather inquiry here, if mentioned by the user. Absence of this information defaults to the current location and time.
-
-###Returns###
-`weather_report (str)`: A concise and user-friendly weather report including essential information and answering the user query. Ensure temperatures are rounded to the nearest whole number. The depth of detail provided should be tailored to the context of the user's query.
-
-###Usage Examples###
-##Indirect Query##
-1. User Inquiry: "Should I take an umbrella today?"
-2. System Inference: The user is inquiring about rain chances for the current day and location.
-3. Function Call: `getWeather()` (defaulting to the current location and time)
-4. Example Response: "Today, expect some rain showers with a high of 15 degrees. It would be wise to carry an umbrella."
-
-##Direct Query##
-1. User Inquiry: "Will it rain tomorrow in Paris?"
-2. System Inference: Direct inquiry about rain in Paris for the next day.
-3. Function Call: `getWeather(msg='tomorrow Paris')`
-4. Example Response: "Tomorrow in Paris, anticipate rainy conditions with temperatures around 12 degrees. An umbrella is recommended."
-
-###Using the Function###
-1. Infer the Weather Inquiry: Recognize if the user's question pertains to weather conditions, whether directly or indirectly.
-2. Determine the Details: Derive specific details (time and location) from the user's query. Default to the current location and time if unspecified.
-3. Execute the Query: Utilize the determined details to call the function, for example, `getWeather(msg='tomorrow at 12:00 Paris')`, or default to getWeather() if no specifics are provided.
-
-###Presenting Results###
-1. Understand the Report: The returned weather report will include temperature (rounded) and a succinct description of the conditions.
-2. Reply Appropriately: Craft your response to align with the context of the user's inquiry, especially focusing on elements like precipitation if that was the implicit concern.
-
-###Objectives###
-Your primary objective is to deliver weather information that directly addresses the user's needs, adjusting your response to fit the available data and the specific context of their query.
+Gets the weather. If the user asks about the weather without specifying a location or time, the system defaults to the user's current location and time. If the user provides a specific location or time, the system uses that information to fetch the weather details.
 """
 
 [tools.function.parameters]
@@ -65,7 +33,6 @@ type = "object"
 [tools.function.parameters.properties.msg]
 type = "string"
 description = """
-###Parameter###
 `msg (Optional[str])`: Use this parameter to input specific details about the desired weather report's location and time, as mentioned by the user. In the absence of explicit information, the system defaults to the user's current location and time.
 
 ###Parameter Examples###
@@ -84,14 +51,6 @@ description = """
 When a user specifies a time and location in their question, encapsulate these details into a string and pass it as the parameter.
 1. User Inquiry: "I wonder if it's going to be cloudy tomorrow at 12:00 in Amsterdam."
 2. Function Call: `getWeather(msg='tomorrow at 12:00 Amsterdam')`
-
-##For General Inquiries##
-If the user's question does not specify a location or time, the function should utilize the default setting, which is the user's current location and time.
-1. User Inquiry: "How's the weather?"
-2. Function Call: `getWeather()`
-
-###Guidance###
-When utilizing the `msg` parameter, ensure to accurately interpret the user's query, distinguishing between direct and indirect weather-related questions. This nuanced approach allows the function to provide a personalized and contextually relevant weather report, enhancing the user experience.
 """
 
 
@@ -103,50 +62,13 @@ type = "function"
 [tools.function]
 name = "getCalendar"
 description = """
-###Function Overview###
-This tool is crafted to retrieve and present calendar events based on direct and indirect user inquiries about their schedule. Whether the user is contemplating dinner plans without knowing their availability or querying about upcoming weekend plans, this function aims to deliver pertinent schedule information succinctly and contextually.
-
-###Parameters###
-`upto (Optional[str])`: Input here any mentioned time specifics by the user, such as "this evening" or "next week." Absence of a specified time frame will lead the function to consider the forthcoming 7 days as the default period.
-
-###Returns###
-`calendar_reports (list[str])`: A list of natural language statements summarizing calendar events within the specified or default time frame. The delivery of information will tactically omit irrelevant details to maintain clarity and relevance.
-
-###Usage Examples###
-##Vague or nonspecific inquiry##
-1. User Inquiry: "Am I free this weekend?"
-2. System Inference: The user seeks information about their weekend schedule.
-3. Function Call: `getCalendar(upto='this weekend')`
-4. Example Response: "This weekend, your schedule is clear. Enjoy your free time!"
-
-##General Inquiry##
-1. User Inquiry: "What's my schedule looking like?"
-2. System Inference: The user seeks an overview of their upcoming events.
-3. Function Call: `getCalendar()`
-4. Example Response: "You have 3 events lined up this week: an English exam, dinner with Bob, and ticket purchasing for your upcoming trip. It's a week full of varied activities. Do you need help preparing for any of these?"
-
-###Using the Function###
-1. Interpret the Inquiry: Ascertain whether the query is about the user's schedule or specific plans.
-2. Extract Specifics: Determine any specific time frame mentioned. Default to the next 7 days if no timeframe is provided.
-3. Function Call: Utilize the extracted details to perform a query, such as `getCalendar(upto='next weekend')`, or resort to `getCalendar()` for general inquiries.
-
-###Presenting Results###
-1. Understand the Report: The function outputs a list of calendar events for the mentioned or default time period.
-2. Craft Your Response: Adjust your reply to directly address the user's question. Emphasize schedule insights that most closely align with the user's implied or expressed interest.
-
-###Example Responses###
-1. For queries on availability: "This weekend you're all set with no plans. How about exploring something new?"
-2. For schedule overviews: "Next week is quite packed for you, with appointments and social engagements. Would you like help organizing or reminders set for any of these events?"
-
-###Objective###
-The value of your response extends beyond mere information relay. Enhancing user interaction through offers of further assistance, like setting reminders or helping with event preparations, marks a superior service experience.
+Gets the user's calendar events. If the user asks about their schedule without specifying a timeframe, the system defaults to the upcoming 7 days. If the user provides a specific timeframe, the system retrieves events within that period.
 """
 [tools.function.parameters]
 type = "object"
 [tools.function.parameters.properties.upto]
 type = "string"
 description = """
-###Parameter###
 `upto (Optional[str])`: Enter any specific time details mentioned by the user, like "this evening" or "next week". In cases where the user hasn't specified a timeframe, the function automatically assumes the upcoming 7 days as the default period to retrieve calendar events.
 
 ###Parameter Usage Examples###
@@ -179,10 +101,7 @@ If the user's question lacks specific timing details, the function defaults to p
 3. Parameter Input: In such cases, you do not include a timeframe in the `upto` parameter.
 4. Function Call: getCalendar()
 5. Example Response: "You have 3 events lined up this week: an English exam, dinner with Bob, and ticket purchasing for your upcoming trip. It's a week full of varied activities. Do you need help preparing for any of these?"
-
-###Objectives###
-When leveraging the `upto` parameter, it's crucial to interpret the user's input accurately—distinguishing between specific and general schedule inquiries. This approach ensures the calendar event retrieval tool provides meaningful, user-centered information, enhancing the overall user experience."""
-
+"""
 
 ########################################################################################################################################################################################################################
 
@@ -193,41 +112,7 @@ type = "function"
 [tools.function]
 name = "readEmail"
 description = """
-###Function Overview###
-This tool is designed for retrieving the 5 most recent emails in a user's mailbox. It adeptly handles both straightforward inquiries about new emails and subtler expressions of interest in the latest messages, ensuring user-friendly and efficient access to email information.
-
-###Parameters###
-None required. The function is built to streamline the access to recent emails without necessitating any user input parameters, making it straightforward and accessible.
-
-###Returns###
-`email_reports (list[str])`: Provides a concise email report listing the subjects of the 5 latest emails in natural language, thoughtfully omitting excessive details to maintain simplicity and relevance.
-
-###Usage Examples###
-1. User Inquiry: "Do I have any new mail?"
-2. System Inference: The user wants to know about their most recent emails.
-3. Parameter Input: No parameters are needed for this function.
-4. Function Call: `readEmails()`
-5. Example Response: "Here are your 5 most recent emails: [Subjects of the 5 emails]. Would you like more information on any of these?"
-
-*Note: Maintain simplicity in the initial response but offer to provide more details upon request. If a user expresses interest in a specific email, suggest further actions such as replying or offering insights based on the email content.*
-
-###Using the Function###
-1. Detect the Cue: Identify when a user is indicating an interest in their emails, whether through direct queries like "What are my new emails?" or indirectly, e.g., "I wonder if I got the newsletter."
-2. Execute the Command: Recognizing the user's intent to check their recent emails, proceed to call the function with `readEmails()`.
-
-###Presenting Results###
-1. Summarize Concisely: Present a brief overview of the subjects of the 5 newest emails, ensuring clarity and respect for the user's time.
-2. Inquiry about Specifics: Should the user express curiosity about a particular email, be ready to offer more detailed information about it, fostering an engaging and interactive dialogue.
-3. Offer Further Assistance: Based on the contents of the emails, suggest practical follow-up actions. This proactive approach significantly enhances the user experience.
-
-###Example Response###
-"Here are the subjects of your 5 most recent emails: 'Weekly Newsletter', 'Special Offer', 'Meeting Schedule', 'Holiday Plans', 'Invoice Details'. Would you like to delve into any of these further?"
-
-###Objective###
-1. Flexibility: Be adaptable in recognizing both explicit and implicit email-related inquiries.
-2. Clarity and Brevity: Aim for succinct delivery of email subjects to prevent information overload.
-3. Engagement: Invite further interaction by inquiring if the user wishes more detailed insights or assistance with any emails.
-4. Action-Oriented: Suggest proactive steps or assistance aligned with the content of the emails, enhancing user engagement and satisfaction.
+Gets the user's 5 most recent emails. Return the emails in markdown, properly formatted.
 """
 [tools.function.parameters]
 type = "object"
@@ -244,87 +129,11 @@ type = "function"
 [tools.function]
 name = "writeEmail"
 description = """
-###Function Overview###
-This function facilitates the composition of emails, adeptly responding to both direct commands and inferred user needs. It prepares the content of an email for review and approval before it's sent, serving as a crucial precursor to the sendEmail function.
+Drafts an email for the user. This function prepares the email content, ensuring accuracy and user consent before dispatch. It is designed to be utilized before sending an email.
 
 ###!!!IMPORTANT NOTE!!!###:
-This function must be utilized prior to sending an email. It is designed to prepare the email content, ensuring accuracy and user consent before dispatch.
-
-###Parameters###
-`recipients (list[str])`: Specify the email recipient(s). Utilize `getContacts(name: (str))` for converting names to email addresses to ensure correct recipient identification.
-##Example Usage##
-#Email address specified#: 
-1. User Inquiry: "Email <alex@example.com> about the meeting tomorrow."
-2. System Inference: The user intends to contact <alex@example.com> regarding a meeting.
-3. Internal Reasoning: 
-    A. Use the provided email address directly as the recipient.
-    B. Generate a Subject and Body based on the user's request.
-3. Parameter Input:
-    A. `recipients`: In this case the user provided an email address; the recipient is 'alex@example.com'.
-    B. `subject`: You generate a subject based on the user's request; for example, 'Meeting Tomorrow'.
-    C. `body`: You compose the email body based on the user's request; for example, 'Hello Alex, I am writing to confirm the meeting scheduled for tomorrow.'
-4. Function Call: `writeEmail(recipients=['alex@example.com'], subject=f'{Subject}', body=f'{Body}')`
-5. Example Response: "Here is your draft email to Alex: Subject: Meeting Tomorrow. Body: Hello Alex, I am writing to confirm the meeting scheduled for tomorrow. Would you like to send it now?"
-
-#Email address not specified#: 
-If only a name is mentioned, ascertain the email address via contact lookup with `getContacts(name: (str))`.
-1. User Inquiry: "Email Alex about the meeting tomorrow."
-2. System Inference: The user intends to contact Alex regarding a meeting.
-3. Internal Reasoning: 
-    A. The user provided a name but not an email address.
-    B. Use `getContacts(name='Alex')` to fetch the email address for the recipient.
-    B. Generate a Subject and Body based on the user's request.
-3. Parameter Input:
-    A. `recipients: (str)`: In this case the user provided an email address; the recipient is 'alex@example.com', retrieved from `getContacts(name='Alex')`.
-    B. `subject: (str)`: You generate a subject based on the user's request; for example, 'Meeting Tomorrow'.
-    C. `body: (str)`: You compose the email body based on the user's request; for example, 'Hello Alex, I am writing to confirm the meeting scheduled for tomorrow.'
-4. Function Call: `writeEmail(recipients=['alex@example.com'], subject=f'{Subject}', body=f'{Body}')`
-5. Example Response: "Here is your draft email to Alex: Subject: Meeting Tomorrow. Body: Hello Alex, I am writing to confirm the meeting scheduled for tomorrow. Would you like to send it now?"
-`subject (str)`: Define the email's subject line, succinctly reflecting the purpose of the email.
-`body (str)`: Compose the email's main content, ensuring clarity, conciseness, and appropriate politeness. The tone should be adjusted based on context or user preference.
-#Example Tone#
-Formal: "Dear [Name], I hope this message finds you well. Regarding our upcoming project..."
-Informal: "Hi [Name], hope you're doing great! About the project we discussed..."
-`attachments (Optional[list[str]])`: Include any requested files as attachments, specifying paths or descriptions as provided by the user.
-
-###Returns###
-`email_reports (list[str])`: A string detailing the email's recipient, subject, body, and attachment paths, formatted for user confirmation and prepared exactly as it will be passed to the `sendEmail(recipients: (list[str]), subject: (str), body: (str), attachments: (list[str]))` function. The draft email is kept in memory for future actions.
-
-###Example Usage###
-1. User Inquiry: "Write an email to John.Doe@outlook.com about the project, asking if he has any updates, and attach the project plan: project_plan.pdf"
-2. System Inference: The user wants to contact 'John.Doe@outlook.com' regarding the project, inquiring about updates and attaching 'project_plan.pdf'.
-3. Internal Reasoning: 
-    A. The user provided the email address directly.
-    B. Generate a Subject and Body based on the user's request.
-    C. Attach the specified file exactly as provided.
-4. Parameter Input:
-    A. `recipients: (str)`: The recipient is `'John.Doe@outlook.com'`.
-    B. `subject: (str)`: An example generated subject is: `'Action Plan for Project'`.
-    C. `body: (str)`: An example composed body is: `'Hello John, I hope this email finds you well. Do you have any updates on the project?'`.
-    D. `attachments: (list[str])`: The attachment is `['project_plan.pdf']`.
-5. Function Call: `writeEmail(recipients=['John.Doe@outlook.com'], subject='Action Plan for Project', body=f'{Body}', attachments=['project_plan.pdf'])`
-6. Example Response: "Your email to John.Doe@outlook.com has been composed: Subject: Action Plan for Project. Body: Hello John, I hope this message finds you well. I am writing to inquire if you have any updates on the project. I have attached the project plan for your reference. Attachments: project_plan.pdf. Would you like to send it now?"
-7. **Listen for user confirmation before proceeding to send the email.**
-
-###Process Flow###
-1. Understanding the Task: Identify if the user's request involves composing and potentially sending an email.
-2. Gathering Information: Extract details about the recipients, subject, body, and attachments from the user's input, employing `getContacts(name: (str))` as needed.
-3. Composing the Email: Use the gathered details to craft the email, aligning with the user's requirements and intentions. Ask for more information if necessary.
-
-###!!!Feedback and Confirmation!!!###
-1. Provide a preview of the email draft to the user, asking for their review and confirmation.
-2. Inquire if the user wishes to send the email as drafted or requires adjustments, ensuring clear communication and user satisfaction.
-3. If the user requires adjustements, call this function again with the updated details.
-
-###Objectives###
-1. Prioritize accurate understanding of both direct and indirect user intentions.
-2. Ensure the email draft is clear, appropriate, and aligned with the user's preferences.
-3. Facilitate a review and confirmation process with the user, promoting an interactive and error-free emailing experience.
-4. Ask for clarification or additional details as needed to refine the email content before sending.
-5. Call `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` as many times as necessary to finalize the email draft before proceeding to send it.
-6. Always seek explicit user confirmation before sending the email to maintain user trust and control over communication.
-7. If an email is not specified, and retrieval with `getContacts(name: (str))` is required, ensure the email address is accurately obtained before proceeding with the email composition.
-    A. If retrieval is unsuccessful, inform the user and seek alternative contact details.
+1. This function must be utilized prior to sending an email. It is designed to prepare the email content, ensuring accuracy and user consent before dispatch.
+2. Iterate through the email drafting process until the user confirms the email details. This iterative approach allows for adjustments based on user feedback or changes to the email content.
 """
 [tools.function.parameters]
 type = "object"
@@ -364,19 +173,6 @@ description = """
 7. Example Response: Here is your draft email to Jordan: Subject: Project Update. Body: Hello Jordan, I wanted to inform you about the delay in the project timeline. Would you like to send it now?
     A. Display the draft email to the user, seeking confirmation or any necessary modifications before proceeding to send.
     B. If the user requests changes, update the email draft accordingly by calling `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` and repeat the confirmation process.
-
-###Process flow###
-1. Identify Recipient(s): Extract recipient information from the user's request, noting if it is provided as a direct email address or requires lookup.
-2. Convert Names to Emails: For names without email addresses, invoke `getContacts(name: (str))` with the provided name to find the correct email address.
-    A. If the email address is not found, inform the user and request alternative contact details.
-    B. If multiple names are provided, handle each name individually to ensure accurate recipient identification.
-3. Prepare Recipient List: Formulate a list of email addresses, now validated or retrieved, as the input for the recipients parameter.
-4. Compose and Review: Proceed with the email composition, readying it for user review and subsequent actions.
-
-###Objectives###
-1. Prioritize accurate recipient identification to ensure email delivery to the intended party.
-2. Facilitate user involvement in the composition process, confirming recipient details as part of drafting the email.
-3. This refined instruction set emphasizes clarity and precision in handling recipients for email composition, ensuring the process is both user-friendly and secure.
 """
 [tools.function.parameters.properties.recipients.items]
 type = "string"
@@ -449,18 +245,6 @@ The subject of an email is crucial for first impressions and can influence wheth
 10. Example Response: "Here is your draft email to John Doe: Subject: Project Update. Body: Hello John, I hope this message finds you well. Regarding our upcoming project, I wanted to discuss the action plan for the client presentation. Your feedback would be appreciated by Friday. Would you like to send it now?"
     A. Display the draft email to the user, seeking confirmation or any necessary modifications before proceeding to send.
     B. If the user requests changes, update the email draft accordingly by calling `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` and repeat the confirmation process.
-
-###Process flow###
-1. Identify Subject Relevance: Determine if the user has provided a subject line for the email.
-2. Generate Subject: If the subject is not provided, generate a relevant subject based on the context of the email.
-3. Compose the Email: Utilize the subject line and other details to craft the email body, aligning with the user's intentions and tone preferences.
-4. Seek User Confirmation: Present the email draft to the user for review and approval before proceeding to send, ensuring accuracy and user consent.
-
-###Objectives###
-1. Subject Clarity: Ensure the subject line is clear, concise, and relevant to the email's content.
-2. User-Centric: Tailor the subject to the recipient's needs or interests, enhancing engagement.
-3. Action-Oriented: Use actionable language in the subject to prompt the recipient to open and respond to the email.
-4. Contextual Relevance: Align the subject with the email's main purpose, providing immediate context to the recipient.
 """
 [tools.function.parameters.properties.body]
 type = "string"
@@ -524,16 +308,6 @@ For emails to friends or colleagues you have a casual relationship with, a more 
 10. Follow up: 
     A. If the user confirms, proceed to send the email using the `sendEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` function.
     B. Specific plans are provided, suggest to add the event to the Users' calendar with `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
-
-###Process Flow###
-1. Identify the email's purpose and the recipient's relationship to you.
-2. Decide on the appropriate tone (formal or informal) based on the context.
-3. Draft the message, ensuring clarity, conciseness, and politeness, while adjusting the level of detail as needed.
-4. Review the message for tone consistency, grammatical accuracy, and completeness before sending.
-
-###Objectives###
-1. To convey the intended message effectively and appropriately, respecting the recipient's time and potential sensitivities.
-2. To adapt the tone and detail of the email body according to the specific context, ensuring optimal communication and response.
 """
 [tools.function.parameters.properties.attachments]
 type = "array"
@@ -563,19 +337,6 @@ To use the `attachments` parameter, provide a list of strings, each representing
 6. Example Response: "Your email to John Doe has been composed: Subject: Action Plan for Project. Body: Hello John, I am writing to inquire if you have any feedback on the project plan. I have attached the project plan for your reference. Attachments: project_plan.pdf. Would you like to send it now?"
     A. Display the draft email to the user, seeking confirmation or any necessary modifications before proceeding to send.
     B. If the user requests changes, update the email draft accordingly by calling `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` and repeat the confirmation process.
-
-
-###Process Flow###
-1. Determine the files to attach and ensure they're accessible.
-2. Create a list of file paths.
-3. Include this list when calling the function to compose the email, ensuring each path is a string.
-4. Confirm the attachments with the user before sending the email.
-
-###Objectives###
-1. Enhance the email's informational value by enabling the inclusion of relevant files.
-2. Provide a flexible method for attaching various file types to accommodate different user needs.
-3. Simplify the process of attaching multiple files to an email, improving communication efficiency.
-
 """
 [tools.function.parameters.properties.attachments.items]
 type = "string"
@@ -590,48 +351,12 @@ type = "function"
 [tools.function]
 name = "sendEmail"
 description = """
-###Function Overview###
-The `sendEmail` function is designed to send an email after the draft has been reviewed and confirmed by the user. This function plays a pivotal role in the email communication workflow, transforming the approved draft into an actual email that is delivered to the recipient's inbox. It is the conclusive step in the email preparation process, necessitating prior usage of the `writeEmail` function for drafting.
+Send the drafted email to the specified recipients. Ensure that the email draft has been reviewed and approved by the user before executing this function. This confirmation step is crucial to prevent inadvertent or erroneous email dispatches. The `sendEmail` function should only be called after the user has explicitly consented to send the email.
 
 ###!!!Important Note!!!###
 Before executing the `sendEmail` function, ensure that the email draft has been reviewed and approved by the user. This confirmation step is crucial to prevent inadvertent or erroneous email dispatches. The `sendEmail` function should only be called after the user has explicitly consented to send the email.
-
 ##CHECK USER CONFIRMATION BEFORE CALLING `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(str))##
 
-###Parameters###
-- `recipients (list[str])`: The email addresses of the recipients **EXACTLY**, as confirmed in the `writeEmail` step. 
-- `subject (str)`: The subject line of the email, **EXACTLY** as finalized during the `writeEmail` process.
-- `body (str)`: The body of the email, **EXACTLY** as reviewed and approved by the user in the `writeEmail` phase.
-- `attachments (Optional[list[str]])`: Files or documents to be attached with the email, **EXACTLY** as specified by the user during the `writeEmail` process.
-
-###Returns###
-- `email_report (str)`: A confirmation message stating the outcome of the email sending process. This report provides feedback on whether the email was sent successfully or if any issues were encountered.
-
-###Usage Example###
-1. User Inquiry: "Yes, looks good."
-2. System Inference: The user has reviewed the email draft and confirmed it for sending.
-3. Internal Reasoning: 
-    A. The user has approved the email draft.
-    B. Proceed with sending the email to the specified recipient(s).
-4. Parameter Input:
-    A. `recipients: (list[str])`: The recipient(s) of the email, **EXACTLY** as displayed to the user.
-    B. `subject: (str)`: The subject line of the email, **EXACTLY** as displayed to the user.
-    C. `body: (str)`: The email body, **EXACTLY** as displayed to the user.
-    D. `attachments (Optional[list[str]])`: Any attachments **EXACTLY** as displayed to the user.
-5. Function Call: `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(str))`
-6. Example Response: "Your email to [Recipient] about [Subject] has been successfully sent."
-
-
-###Procedure###
-1. **Verify User Confirmation**: Ensure there is explicit approval from the user to send the email. This step is critical and usually follows the user's review of the provided email draft.
-    A. If the user does not confirm, call `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))`.
-2. **Executing the Send Command**: Once user confirmation is obtained, proceed with sending the email, employing the details (recipients, subject, body, attachments) as **EXACTLY** as prepared in the `writeEmail` step.
-3. Upon successful dispatch of the email, communicate this to the user with a clear confirmation message, e.g., "Your email to [Recipient] about [Subject] has been successfully sent."
-
-###Objectives###
-- **Accuracy Is Key**: Double-check that all details—recipients, subject, body, and attachments—correspond with the user's last review and approval to minimize errors.
-- **Clear Confirmation Protocol**: Always obtain and verify user consent before sending an email. This practice reinforces trust and ensures user control over communication.
-- **Prompt and Clear Communication**: Quickly inform the user about the status of their email, providing a succinct and affirmative confirmation message upon successful sending.
 """
 [tools.function.parameters]
 type = "object"
@@ -672,29 +397,7 @@ type = "function"
 [tools.function]
 name = "getLocation"
 description = """
-###Function Overview###
-The `getLocation` function identifies and provides the user's current geographical location. It is specifically designed to address queries about the user's whereabouts, catering to both direct and indirect inquiries about location. This function is instrumental in offering location-based services or information, making it a valuable tool for enhancing user experience in various applications.
-
-###Parameters###
-This function does not require any input parameters. Its operation is straightforward—aimed solely at determining and relaying the user's current location.
-
-###Returns###
-`location (str)`: A string detailing the user's current location. The function is designed to deliver this information in an easily understandable format.
-
-###Example Usage###
-User Inquiry: "Where am I right now?"
-System Inference: The user seeks information about their current location.
-Internal Reasoning: 
-    A. The user's query is location-specific.
-    B. Utilize the `getLocation` function to identify and provide the user's current geographical coordinates.
-Parameter Input: No input parameters are required for this function.
-Function Call: `getLocation()`
-Example Response: "You are currently at [Location]."
-
-###Process Flow###
-1. **User Location Inquiry**: Identify user queries related to their current location, whether direct or indirect.
-2. **Invoke the `getLocation()` Function**: Call the `getLocation()` function to determine and retrieve the user's current geographical coordinates.
-3. **Communicate the Location**: Present the user's location in a clear and user-friendly format, ensuring the information is easily understood and relevant to the user's query.
+Gets the users current location.
 """
 [tools.function.parameters]
 type = "object"
@@ -710,30 +413,7 @@ type = "function"
 [tools.function]
 name = "getDate"
 description = """
-###Function Overview###
-The `getDate` function is designed to retrieve the current date and time, providing users with real-time information about the present moment. This function serves as a foundational tool for various applications, enabling accurate time-based operations and enhancing user interactions with time-sensitive services.
-
-###Parameters###
-This function does not require any input parameters. Its primary objective is to ascertain and relay the current date and time to the user.
-
-###Returns###
-`current_date (str)`: A string representing the current date and time. The function delivers this information in a standardized format for user comprehension and application.
-
-###Example Usage###
-1. User Inquiry: "What is the current date and time?"
-2. System Inference: The user seeks real-time information about the current date and time.
-3. Internal Reasoning: 
-    A. The user's query pertains to the present moment.
-    B. Utilize the `getDate()` function to retrieve and present the current date and time.
-4. Parameter Input: No input parameters are required for this function.
-5. Function Call: `getDate()`
-6. Example Response: "The current date and time is [Date and Time]."
-
-###Process Flow###
-1. **User Time Inquiry**: Identify user queries related to the current date and time.
-    A. Recognize you have access to real-time data.
-2. **Invoke the `getDate()` Function**: Call the `getDate()` function to retrieve the current date and time information.
-3. **Communicate the Date and Time**: Present the current date and time in a clear and user-friendly format, ensuring the information is easily understood and relevant to the user's query.
+Gets the local time for the user.
 """
 [tools.function.parameters]
 type = "object"
@@ -750,80 +430,13 @@ type = "function"
 [tools.function]
 name = "createCalendarEvent"
 description = """
-###Function Overview###
-The `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function enables the composition of calendar events based on user queries. This function is adaptable to both direct and indirect user instructions regarding event creation. It serves as a foundational step before employing the `saveCalendarEvent` function to finalize and save the event. This function is capable of handling date and time inputs as directly provided by the user, including ambiguous terms like "tomorrow" or "next week," without modification.
+Drafts a calendar event based on the user's input. This function prepares the event details, ensuring accuracy and user consent before saving the event. It is designed to be utilized before saving an event to the calendar.
 
 ###!!!Important Note!!!###
 1. **Prerequisite Function**: The `createCalendarEvent` function is a preparatory step for event creation and requires user confirmation before proceeding to save the event.
 2. **Suggest Event Creation**: If the user makes related queries, for example in an email, suggest to create an event using this function.
 3. **Iterative Process**: If the user requests changes to the event details, adjust the parameters accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the user confirms.
 
-###Parameters###
-- `subject: (str)`: The title or subject of the event. This string should succinctly encapsulate the essence of the event.
-- `start: (str)`: The start of the event, provided as a string. If the user specifies a date, use it **EXACTLY** as stated, even if it is ambiguous.
-- `end: Optional(str)`: An optional parameter specifying the end of the event, if provided by the user.
-- `location: Optional[str]`: An optional parameter for specifying the event's location, if mentioned by the user.
-- `recurrence: Optional[boolean]`: An optional boolean indicating whether the event is recurring, as requested by the user.
-
-###Returns###
-- `calendar_report: (str)`: A natural language summary of the event details, including the title, start, end, location, and recurrence status. This report is prepared for user confirmation and is intended to mirror the format in which attributes will be passed to the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(bool))` function.
-
-###Usage Example###
-##Vague Date and Time Provided##
-1. User Inquiry: "Create an event for the English exam next week."
-2. System Inference: The user requests an event creation for the English exam next week without specifying a precise date or time.
-3. Internal Reasoning: 
-    A. The user's query lacks specific date and time details.
-    B. The user's query lacks an end.
-4. Parameter Input: 
-    A. `subject`: 'English exam'`
-    B. `start`: 'next week'
-5. Function Call: `createCalendarEvent(subject='English exam', start='next week')`
-6. Example Response: "Your event for the English exam has been created: 
-    ```Markdown
-    ## Event Details 
-    - Subject: English exam
-    - Start: `output of `createCalendarEvent(subject='English exam', start='next week')`
-    - End: `output of `createCalendarEvent(subject='English exam', start='next week')`
-    - Location: Not specified
-    - Recurrence: Not specified
-
-    Would you like to save it?
-    ```
-7. Listen for User Confirmation: 
-    A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena))` function.
-    B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena)) until the User confirms.
-##Explicit Date and Time Provided##
-1. User Inquiry: "Create an event for the English exam on December 12th 2024 at 12:00 lasting 2 hours."
-2. System Inference: The user requests an event creation for the English exam on December 12th at 12:00 lasting 2 hours.
-3. Internal Reasoning: 
-    A. The user's query includes a specific date and time.
-    B. The user's query includes an end.
-4. Parameter Input:
-    A. `subject`: 'English exam'
-    B. `start`: ' December 12th 2024 at 12:00'
-    C. `end`: 'December 12th at 14:00'
-5. Function Call: `createCalendarEvent(subject='English exam', start='December 12th at 12:00', end='December 12th at 14:00')`
-6. Example Response: "Your event for the English exam has been created: Start: December 12th, 2024 at 12:00. End: December 12th, 2024 at 14:00. Would you like to save it?"
-7. Listen for User Confirmation: 
-    A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena))` function.
-    B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolena))` until the User confirms.
-
-###Process Flow###
-1. **Interpret User Query**: Analyze the user's request to extract details such as the event subject, start, end, location, and recurrence.
-2. **Apply User-Specified Dates**: Incorporate unchanged dates / times into the event details, even if vague.
-3. **Fallback for Missing Dates**: For events without a start, use the `getDate()` function to obtain the current date and time as the default start.
-4. **Construct Event Details**: Assemble the event information based on extracted or default values for submission to the calendar.
-
-###!!!Feedback and Confirmation!!!###
-1. Provide a preview of the event draft to the user, asking for their review and confirmation.
-2. Inquire if the user wishes to save the event as drafted or requires adjustments, ensuring clear communication and user satisfaction.
-3. If the user requires adjustements, call this function again with the updated details.
-
-###Objectives###
-1. **Unaltered User Input**: Preserve the user's specified dates and times, even if ambiguous, to maintain the integrity of the event details.
-2. **Default Date Handling**: Implement fallback mechanisms to address missing or vague date/time inputs, ensuring event creation is not impeded by incomplete information.
-3. **User Confirmation**: Prompt the user to confirm the event details before proceeding to save the event, ensuring accuracy and user consent.
 """
 [tools.function.parameters]
 type = "object"
@@ -870,19 +483,6 @@ The user's request implies the event subject without explicitly stating it.
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-
-
-###Process Flow###
-1. **Identification**: Extract or identify the event's subject from the user's request.
-2. **Verification**: Ensure the subject is adequately descriptive for event creation. If the subject is not provided, engage the user for clarification.
-3. **Implementation**: Pass the identified or clarified subject into the `createCalendarEvent` function as a string.
-4. **Confirmation**: Present the event draft to the user for review and confirmation before proceeding to save the event.
-
-###Objectives###
-1. To clearly define the event's focus, ensuring it is accurately represented in the calendar.
-2. To facilitate the creation of a meaningful and identifiable event, enhancing the user's schedule management.
-3. To adaptively handle instances where the user has not specified a subject, thereby maintaining the effectiveness of the event creation process.
-4. To prompt user confirmation of the event details, ensuring accuracy and user satisfaction.
 """
 [tools.function.parameters.properties.start]
 type = "string"
@@ -943,16 +543,6 @@ The `start` parameter is essential for scheduling the event, representing the ti
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-
-###Process Flow###
-1. **Collect Input**: Extract or deduce the start from the user's request.
-2. **Handle Ambiguity**: If the user specifies an ambiguous start, such as "tomorrow" or "next week," use the term as provided without alteration.
-3. **Fallback Procedure**: In cases where no start is specified, utilize `getDate()` to determine the current date and time, serving as the default start.
-
-###Objectives###
-1. To accurately schedule events according to the user's provided or inferred timing, ensuring the event's start meets their expectations.
-2. To respect the user's language and terms when specifying the event's start, even if vague or ambiguous.
-3. To provide a reliable fallback mechanism for determining the event's start when not explicitly stated by the user, maintaining the functionality of the event creation process.
 """
 [tools.function.parameters.properties.end]
 type = "string"
@@ -1021,17 +611,6 @@ This parameter is employed by passing a string that denotes the end of the event
 10. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-
-###Process Flow###
-1. **Extraction**: Identify the event's end from the user's instructions.
-2. **Inference**: If the end is not specified, either seek additional information from the user or estimate based on the event type and standard durations.
-3. **Application**: Integrate the determined end into the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function as a parameter.
-
-
-###Objectives###
-1. To accurately capture the event's duration by defining a specific end, enhancing the calendar's usefulness and precision.
-2. To maintain flexibility in handling user inputs by allowing for estimation or follow-up questions when end details are lacking.
-3. To ensure the event creation process is as informative and user-centric as possible, resulting in a calendar entry that meets or exceeds the user's expectations.
 """
 [tools.function.parameters.properties.location]
 type = "string"
@@ -1098,16 +677,6 @@ This parameter should be included in the function call if the user has provided 
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-
-###Process Flow###
-1. **Capture Location Detail**: Extract the location information from the user's request.
-2. **Inclusion in Event Details**: Incorporate this detail into the event creation process by including it as a parameter in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
-3. **Adapt to Context**: Adjust the event details based on the presence or absence of location information, ensuring the event is accurately represented in the calendar.
-
-###Objectives###
-1. To provide complete and detailed event information by including the location, thereby enhancing the event's accessibility and clarity for attendees.
-2. To ensure that the calendar entry is as informative and useful as possible, facilitating efficient planning and preparation for the event participants.
-3. To maintain adaptability in the event creation process, accommodating the inclusion of location details when available and proceeding effectively even when such details are absent.
 """
 [tools.function.parameters.properties.recurrence]
 type = "boolean"
@@ -1139,15 +708,6 @@ Incorporate this parameter into the function call if the user specifies or impli
 7. Listen for User Confirmation: 
     A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
     B. If the user requests changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-
-###Process Flow###
-1. **Determine Recurrence**: Ascertain from the user's request whether the event is intended to repeat on a regular schedule.
-2. **Parameter Integration**: Apply the boolean value to the `createCalendarEvent` function, accurately representing the event's recurrence as intended by the user.
-
-###Objectives###
-1. To ensure the calendar reflects the true nature of the event, accurately scheduling recurring events to facilitate regular attendance or participation.
-2. To provide flexibility in event scheduling, allowing users to designate events as recurring or one-time as per their requirements.
-3. To enhance the calendar's utility by automating the scheduling of routine commitments, reducing the need for manual entry of each occurrence.
 """
 parameters.required = ["subject", "start"]
 
@@ -1162,64 +722,11 @@ type = "function"
 name = "saveCalendarEvent"
 description = """
 ###Function Overview###
-The `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function is crucial for integrating and finalizing events within the user's calendar. It serves as the concluding step in the event creation process, activated after the user has confirmed the details prepared by the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function. This function securely stores the event, ensuring it is reflected accurately in the user's calendar.
+Saves the drafted calendar event to the user's calendar. This function is designed to be called after the user has confirmed the event details and is ready to commit the event to their calendar. It serves as the final step in the event creation process, ensuring that the event is accurately recorded and scheduled.
 
 ###!!!IMPORTANT NOTE!!!###
 **This function is intended as a follow-up to `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))`, and should only be invoked after receiving user confirmation of the event details.**
-
 ##CHECK FOR USER CONFIRMATION BEFORE CALLING saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean)).##
-
-###Parameters###
-- `subject (str)`: The event's title, **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
-- `start (str)`: The start **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
-- `end (Optional[str])`: The event's end, **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
-- `location (Optional[str])`: The specified location for the event **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
-- `recurrence (Optional[bool])`: The recurrence status **EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
-
-###Returns###
-- `calendar_reports (str)`: A confirmation message that provides feedback to the user about the successful creation and saving of the event in their calendar.
-
-###Usage Example###
-##User Approval##
-1. User Inquiry: "Looks good! Please save the event."
-2. System Inference: The user confirms the event details and requests to save the event.
-3. Internal Reasoning: 
-    A. The user has reviewed and approved the event information.
-    B. Proceed with saving the event in the user's calendar.
-4. Parameter Input:
-    A. `subject`: 'Team Meeting' (Example **EXACT** subject from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.`)
-    B. `start`: 'Wednesday at 9:00 AM' (Example **EXACT** start from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
-    C. `end`: Not specified (Example **EXACT** end from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
-    D. `location`: Not specified (Example **EXACT** location from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
-    E. `recurrence`: Not specified (Example **EXACT** recurrence from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
-4. Function Call: `saveCalendarEvent(subject='Team Meeting', start='Wednesday at 9:00 AM')`
-5. Example Response: "Your event for the Team Meeting has been successfully saved in your calendar."
-
-##User Request for Modification##
-1. User Inquiry: "Can you change the location to the conference room?"
-2. System Inference: The user requests a modification to the event details.
-3. Internal Reasoning: 
-    A. The user seeks to update the event's location.
-    B. Proceed with the location change.
-    C. Call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` to adjust the event details.
-4. Parameter Input:
-    A. `subject`: 'Team Meeting' (Example **EXACT** subject from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
-    B. `start`: 'Wednesday at 9:00 AM' (Example **EXACT** start from `**EXACTLY** as displayed in the `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.)
-    C. `location`: 'Conference Room' (Updated location as requested by the user.)
-5. Function Call: `createCalendarEvent(subject='Team Meeting', start='Wednesday at 9:00 AM', location='Conference Room')`
-6. Example Response: "The location for your Team Meeting has been updated to the Conference Room. Would you like to save it?"
-7. Listen for User Confirmation: 
-    A. If the user confirms, proceed with the `saveCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` function.
-    B. If the user requests further changes, adjust the event details accordingly and call `createCalendarEvent(subject: (str), start: (str), end: Optional(str), location: Optional(str), recurrence: Optional(boolean))` until the User confirms.
-
-###Process Flow###
-1. **User Confirmation**: Await the user's approval to save the event in their calendar.
-2. **Feedback Delivery**: Provide a confirmation message to the user, acknowledging the successful saving of the event.
-
-###Objectives###
-1. To finalize the event creation process by securely storing the event in the user's calendar upon their confirmation.
-2. To deliver clear and concise feedback to the user, confirming the successful saving of the event.
-3. To ensure the event is accurately reflected in the calendar, maintaining consistency and reliability in scheduling and planning.
 """
 [tools.function.parameters]
 type = "object"
@@ -1311,22 +818,11 @@ The `getContacts(name: (str))` function serves as a comprehensive tool for acces
 5. Function Call: `getContacts(name='John Doe')`
 6. Continue with the email composition process using the obtained contact details.
 
-###Process Flow###
-1. **Contact Retrieval**: Access the user's contact list to provide the requested information.
-2. **Specific Inquiry Handling**: If a name is provided, retrieve the corresponding contact details.
-3. **Email Composition Support**: Assist in email preparation by fetching the necessary contact information.
-4. **User Confirmation**: Seek user validation for the retrieved contact details before proceeding with further actions.
-
 ###Integration with User Actions: Email Composition###
 - For email tasks, follow a structured approach:
     1. Retrieve the desired contact's email by specifying their name.
     2. Use the obtained email address in the email composition step.
     3. Confirm the details with the user before sending the email to ensure accuracy and user satisfaction.
-
-Objectives:
-1. To provide users with a comprehensive view of their contact list, facilitating easy access to contact details.
-2. To support users in email composition by retrieving the necessary contact information based on the recipient's name.
-3. To ensure the accuracy and relevance of contact details, enhancing user experience and task efficiency.
 """
 [tools.function.parameters]
 type = "object"
