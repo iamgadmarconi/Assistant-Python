@@ -1,5 +1,5 @@
 name = "Assistant"
-model = "gpt-4-turbo-2024-04-09"
+model = "gpt-4-turbo"
 instructions_file = "instructions.md"
 
 
@@ -14,7 +14,7 @@ type = "code_interpreter"
 
 
 [[tools]]
-type = "retrieval"
+type = "file_search"
 
 
 ########################################################################################################################################################################################################################
@@ -25,14 +25,7 @@ type = "function"
 [tools.function]
 name = "getWeather"
 description = """
-### Function Purpose ###
-This function is designed to provide weather reports tailored to user inquiries. Since users might pose their questions in various indirect forms, it's essential for the system to interpret the underlying intent. For instance, a question about the necessity of carrying an umbrella is indirectly inquiring about precipitation chances or weather conditions.
-
-### Parameters ###
-`msg (Optional[str])`: Input the specifics (location and time) related to the weather inquiry here, if mentioned by the user. Absence of this information defaults to the current location and time.
-
-### Returns ###
-`weather_report (str)`: A concise and user-friendly weather report including essential information and answering the user query. Ensure temperatures are rounded to the nearest whole number. The depth of detail provided should be tailored to the context of the user's query.
+This function is designed to provide weather reports tailored to user inquiries. Since users might pose their questions in various indirect forms, it's essential for the system to interpret the underlying intent.
 
 ### Usage Examples ###
 ## Indirect Query ##
@@ -46,18 +39,6 @@ This function is designed to provide weather reports tailored to user inquiries.
 2. System Inference: Direct inquiry about rain in Paris for the next day.
 3. Function Call: `getWeather(msg='tomorrow Paris')`
 4. Example Response: "Tomorrow in Paris, anticipate rainy conditions with temperatures around 12 degrees. An umbrella is recommended."
-
-### Using the Function ###
-1. Infer the Weather Inquiry: Recognize if the user's question pertains to weather conditions, whether directly or indirectly.
-2. Determine the Details: Derive specific details (time and location) from the user's query. Default to the current location and time if unspecified.
-3. Execute the Query: Utilize the determined details to call the function, for example, `getWeather(msg='tomorrow at 12:00 Paris')`, or default to getWeather() if no specifics are provided.
-
-### Presenting Results ###
-1. Understand the Report: The returned weather report will include temperature (rounded) and a succinct description of the conditions.
-2. Reply Appropriately: Craft your response to align with the context of the user's inquiry, especially focusing on elements like precipitation if that was the implicit concern.
-
-### Objectives ###
-Your primary objective is to deliver weather information that directly addresses the user's needs, adjusting your response to fit the available data and the specific context of their query.
 """
 
 [tools.function.parameters]
@@ -74,11 +55,6 @@ description = """
 2. System Inference: The question suggests a need to know about precipitation chances for the current day and location.
 3. Usage: In such cases, details about the current day and location are inferred and used by default since none are explicitly provided.
 
-## Direct Inquiry ##
-1. User Inquiry: "Will it rain tomorrow in Paris?"
-2. System Inference: This is a straightforward request for precipitation chances in Paris for the following day.
-3. Usage: For such direct inquiries, use specific details like "tomorrow in Paris" as the parameter.
-
 ### Using the `msg` Parameter ###
 ## For Specified Inquiries ##
 When a user specifies a time and location in their question, encapsulate these details into a string and pass it as the parameter.
@@ -89,9 +65,6 @@ When a user specifies a time and location in their question, encapsulate these d
 If the user's question does not specify a location or time, the function should utilize the default setting, which is the user's current location and time.
 1. User Inquiry: "How's the weather?"
 2. Function Call: `getWeather()`
-
-### Guidance ###
-When utilizing the `msg` parameter, ensure to accurately interpret the user's query, distinguishing between direct and indirect weather-related questions. This nuanced approach allows the function to provide a personalized and contextually relevant weather report, enhancing the user experience.
 """
 
 
@@ -103,14 +76,7 @@ type = "function"
 [tools.function]
 name = "getCalendar"
 description = """
-### Function Overview ###
-This tool is crafted to retrieve and present calendar events based on direct and indirect user inquiries about their schedule. Whether the user is contemplating dinner plans without knowing their availability or querying about upcoming weekend plans, this function aims to deliver pertinent schedule information succinctly and contextually.
-
-### Parameters ###
-`upto (Optional[str])`: Input here any mentioned time specifics by the user, such as "this evening" or "next week." Absence of a specified time frame will lead the function to consider the forthcoming 7 days as the default period.
-
-### Returns ###
-`calendar_reports (list[str])`: A list of natural language statements summarizing calendar events within the specified or default time frame. The delivery of information will tactically omit irrelevant details to maintain clarity and relevance.
+This tool is crafted to retrieve and present calendar events based on direct and indirect user inquiries about their schedule. 
 
 ### Usage Examples ###
 ## Vague or nonspecific inquiry ##
@@ -124,22 +90,6 @@ This tool is crafted to retrieve and present calendar events based on direct and
 2. System Inference: The user seeks an overview of their upcoming events.
 3. Function Call: `getCalendar()`
 4. Example Response: "You have 3 events lined up this week: an English exam, dinner with Bob, and ticket purchasing for your upcoming trip. It's a week full of varied activities. Do you need help preparing for any of these?"
-
-### Using the Function ###
-1. Interpret the Inquiry: Ascertain whether the query is about the user's schedule or specific plans.
-2. Extract Specifics: Determine any specific time frame mentioned. Default to the next 7 days if no timeframe is provided.
-3. Function Call: Utilize the extracted details to perform a query, such as `getCalendar(upto='next weekend')`, or resort to `getCalendar()` for general inquiries.
-
-### Presenting Results ###
-1. Understand the Report: The function outputs a list of calendar events for the mentioned or default time period.
-2. Craft Your Response: Adjust your reply to directly address the user's question. Emphasize schedule insights that most closely align with the user's implied or expressed interest.
-
-### Example Responses ###
-1. For queries on availability: "This weekend you're all set with no plans. How about exploring something new?"
-2. For schedule overviews: "Next week is quite packed for you, with appointments and social engagements. Would you like help organizing or reminders set for any of these events?"
-
-### Objective ###
-The value of your response extends beyond mere information relay. Enhancing user interaction through offers of further assistance, like setting reminders or helping with event preparations, marks a superior service experience.
 """
 [tools.function.parameters]
 type = "object"
@@ -179,9 +129,7 @@ If the user's question lacks specific timing details, the function defaults to p
 3. Parameter Input: In such cases, you do not include a timeframe in the `upto` parameter.
 4. Function Call: getCalendar()
 5. Example Response: "You have 3 events lined up this week: an English exam, dinner with Bob, and ticket purchasing for your upcoming trip. It's a week full of varied activities. Do you need help preparing for any of these?"
-
-### Objectives ###
-When leveraging the `upto` parameter, it's crucial to interpret the user's input accurately—distinguishing between specific and general schedule inquiries. This approach ensures the calendar event retrieval tool provides meaningful, user-centered information, enhancing the overall user experience."""
+"""
 
 
 ########################################################################################################################################################################################################################
@@ -193,14 +141,7 @@ type = "function"
 [tools.function]
 name = "readEmail"
 description = """
-### Function Overview ###
 This tool is designed for retrieving the 5 most recent emails in a user's mailbox. It adeptly handles both straightforward inquiries about new emails and subtler expressions of interest in the latest messages, ensuring user-friendly and efficient access to email information.
-
-### Parameters ###
-None required. The function is built to streamline the access to recent emails without necessitating any user input parameters, making it straightforward and accessible.
-
-### Returns ###
-`email_reports (list[str])`: Provides a concise email report listing the subjects of the 5 latest emails in natural language, thoughtfully omitting excessive details to maintain simplicity and relevance.
 
 ### Usage Examples ###
 1. User Inquiry: "Do I have any new mail?"
@@ -210,24 +151,6 @@ None required. The function is built to streamline the access to recent emails w
 5. Example Response: "Here are your 5 most recent emails: [Subjects of the 5 emails]. Would you like more information on any of these?"
 
 *Note: Maintain simplicity in the initial response but offer to provide more details upon request. If a user expresses interest in a specific email, suggest further actions such as replying or offering insights based on the email content.*
-
-### Using the Function ###
-1. Detect the Cue: Identify when a user is indicating an interest in their emails, whether through direct queries like "What are my new emails?" or indirectly, e.g., "I wonder if I got the newsletter."
-2. Execute the Command: Recognizing the user's intent to check their recent emails, proceed to call the function with `readEmails()`.
-
-### Presenting Results ###
-1. Summarize Concisely: Present a brief overview of the subjects of the 5 newest emails, ensuring clarity and respect for the user's time.
-2. Inquiry about Specifics: Should the user express curiosity about a particular email, be ready to offer more detailed information about it, fostering an engaging and interactive dialogue.
-3. Offer Further Assistance: Based on the contents of the emails, suggest practical follow-up actions. This proactive approach significantly enhances the user experience.
-
-### Example Response ###
-"Here are the subjects of your 5 most recent emails: 'Weekly Newsletter', 'Special Offer', 'Meeting Schedule', 'Holiday Plans', 'Invoice Details'. Would you like to delve into any of these further?"
-
-### Objective ###
-1. Flexibility: Be adaptable in recognizing both explicit and implicit email-related inquiries.
-2. Clarity and Brevity: Aim for succinct delivery of email subjects to prevent information overload.
-3. Engagement: Invite further interaction by inquiring if the user wishes more detailed insights or assistance with any emails.
-4. Action-Oriented: Suggest proactive steps or assistance aligned with the content of the emails, enhancing user engagement and satisfaction.
 """
 [tools.function.parameters]
 type = "object"
@@ -244,87 +167,21 @@ type = "function"
 [tools.function]
 name = "writeEmail"
 description = """
-### Function Overview ###
-This function facilitates the composition of emails, adeptly responding to both direct commands and inferred user needs. It prepares the content of an email for review and approval before it's sent, serving as a crucial precursor to the sendEmail function.
+Facilitates the composition of emails. It prepares the content of an email for review and approval before it's sent.
 
-### !!!IMPORTANT NOTE!!! ###:
-This function must be utilized prior to sending an email. It is designed to prepare the email content, ensuring accuracy and user consent before dispatch.
+!!!IMPORTANT NOTE!!!
+- This tool MUST be called prior to sending an email. It prepares the email content.
+- If only a name is mentioned, lookup the contact with `getContacts(name: (str))`.
 
-### Parameters ###
-`recipients (list[str])`: Specify the email recipient(s). Utilize `getContacts(name: (str))` for converting names to email addresses to ensure correct recipient identification.
-## Example Usage ##
-# Email address specified #: 
-1. User Inquiry: "Email <alex@example.com> about the meeting tomorrow."
-2. System Inference: The user intends to contact <alex@example.com> regarding a meeting.
-3. Internal Reasoning: 
-    A. Use the provided email address directly as the recipient.
-    B. Generate a Subject and Body based on the user's request.
-3. Parameter Input:
-    A. `recipients`: In this case the user provided an email address; the recipient is 'alex@example.com'.
-    B. `subject`: You generate a subject based on the user's request; for example, 'Meeting Tomorrow'.
-    C. `body`: You compose the email body based on the user's request; for example, 'Hello Alex, I am writing to confirm the meeting scheduled for tomorrow.'
-4. Function Call: `writeEmail(recipients=['alex@example.com'], subject=f'{Subject}', body=f'{Body}')`
-5. Example Response: "Here is your draft email to Alex: Subject: Meeting Tomorrow. Body: Hello Alex, I am writing to confirm the meeting scheduled for tomorrow. Would you like to send it now?"
-
-# Email address not specified #: 
-If only a name is mentioned, ascertain the email address via contact lookup with `getContacts(name: (str))`.
-1. User Inquiry: "Email Alex about the meeting tomorrow."
-2. System Inference: The user intends to contact Alex regarding a meeting.
-3. Internal Reasoning: 
-    A. The user provided a name but not an email address.
-    B. Use `getContacts(name='Alex')` to fetch the email address for the recipient.
-    B. Generate a Subject and Body based on the user's request.
-3. Parameter Input:
-    A. `recipients: (str)`: In this case the user provided an email address; the recipient is 'alex@example.com', retrieved from `getContacts(name='Alex')`.
-    B. `subject: (str)`: You generate a subject based on the user's request; for example, 'Meeting Tomorrow'.
-    C. `body: (str)`: You compose the email body based on the user's request; for example, 'Hello Alex, I am writing to confirm the meeting scheduled for tomorrow.'
-4. Function Call: `writeEmail(recipients=['alex@example.com'], subject=f'{Subject}', body=f'{Body}')`
-5. Example Response: "Here is your draft email to Alex: Subject: Meeting Tomorrow. Body: Hello Alex, I am writing to confirm the meeting scheduled for tomorrow. Would you like to send it now?"
-`subject (str)`: Define the email's subject line, succinctly reflecting the purpose of the email.
-`body (str)`: Compose the email's main content, ensuring clarity, conciseness, and appropriate politeness. The tone should be adjusted based on context or user preference.
-# Example Tone #
-Formal: "Dear [Name], I hope this message finds you well. Regarding our upcoming project..."
-Informal: "Hi [Name], hope you're doing great! About the project we discussed..."
-`attachments (Optional[list[str]])`: Include any requested files as attachments, specifying paths or descriptions as provided by the user.
-
-### Returns ###
-`email_reports (list[str])`: A string detailing the email's recipient, subject, body, and attachment paths, formatted for user confirmation and prepared exactly as it will be passed to the `sendEmail(recipients: (list[str]), subject: (str), body: (str), attachments: (list[str]))` function. The draft email is kept in memory for future actions.
-
-### Example Usage ###
-1. User Inquiry: "Write an email to John.Doe@outlook.com about the project, asking if he has any updates, and attach the project plan: project_plan.pdf"
-2. System Inference: The user wants to contact 'John.Doe@outlook.com' regarding the project, inquiring about updates and attaching 'project_plan.pdf'.
-3. Internal Reasoning: 
-    A. The user provided the email address directly.
-    B. Generate a Subject and Body based on the user's request.
-    C. Attach the specified file exactly as provided.
-4. Parameter Input:
-    A. `recipients: (str)`: The recipient is `'John.Doe@outlook.com'`.
-    B. `subject: (str)`: An example generated subject is: `'Action Plan for Project'`.
-    C. `body: (str)`: An example composed body is: `'Hello John, I hope this email finds you well. Do you have any updates on the project?'`.
-    D. `attachments: (list[str])`: The attachment is `['project_plan.pdf']`.
-5. Function Call: `writeEmail(recipients=['John.Doe@outlook.com'], subject='Action Plan for Project', body=f'{Body}', attachments=['project_plan.pdf'])`
-6. Example Response: "Your email to John.Doe@outlook.com has been composed: Subject: Action Plan for Project. Body: Hello John, I hope this message finds you well. I am writing to inquire if you have any updates on the project. I have attached the project plan for your reference. Attachments: project_plan.pdf. Would you like to send it now?"
-7. **Listen for user confirmation before proceeding to send the email.**
-
-### Process Flow ###
-1. Understanding the Task: Identify if the user's request involves composing and potentially sending an email.
-2. Gathering Information: Extract details about the recipients, subject, body, and attachments from the user's input, employing `getContacts(name: (str))` as needed.
+### Process ###
+1. Understanding the Task: Identify if the user's request involves writing an email.
+2. Gathering Info: Extract details about the recipients, subject, body, and attachments from the user's input, call `getContacts(name: (str))` as needed.
 3. Composing the Email: Use the gathered details to craft the email, aligning with the user's requirements and intentions. Ask for more information if necessary.
 
-### !!!Feedback and Confirmation!!! ###
+!!!Feedback and Confirmation!!!
 1. Provide a preview of the email draft to the user, asking for their review and confirmation.
-2. Inquire if the user wishes to send the email as drafted or requires adjustments, ensuring clear communication and user satisfaction.
-3. If the user requires adjustements, call this function again with the updated details.
-
-### Objectives ###
-1. Prioritize accurate understanding of both direct and indirect user intentions.
-2. Ensure the email draft is clear, appropriate, and aligned with the user's preferences.
-3. Facilitate a review and confirmation process with the user, promoting an interactive and error-free emailing experience.
-4. Ask for clarification or additional details as needed to refine the email content before sending.
-5. Call `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))` as many times as necessary to finalize the email draft before proceeding to send it.
-6. Always seek explicit user confirmation before sending the email to maintain user trust and control over communication.
-7. If an email is not specified, and retrieval with `getContacts(name: (str))` is required, ensure the email address is accurately obtained before proceeding with the email composition.
-    A. If retrieval is unsuccessful, inform the user and seek alternative contact details.
+2. Inquire if the user wishes to send the email as drafted or requires adjustments.
+3. If the user requires adjustements, call this function again with updated details.
 """
 [tools.function.parameters]
 type = "object"
@@ -590,48 +447,18 @@ type = "function"
 [tools.function]
 name = "sendEmail"
 description = """
-### Function Overview ###
-The `sendEmail` function is designed to send an email after the draft has been reviewed and confirmed by the user. This function plays a pivotal role in the email communication workflow, transforming the approved draft into an actual email that is delivered to the recipient's inbox. It is the conclusive step in the email preparation process, necessitating prior usage of the `writeEmail` function for drafting.
+Sends an email after the draft has been reviewed and confirmed by the user.
 
-### !!!Important Note!!! ###
+!!!Important!!!
 Before executing the `sendEmail` function, ensure that the email draft has been reviewed and approved by the user. This confirmation step is crucial to prevent inadvertent or erroneous email dispatches. The `sendEmail` function should only be called after the user has explicitly consented to send the email.
 
 ## CHECK USER CONFIRMATION BEFORE CALLING `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(str)) ##
 
-### Parameters ###
-- `recipients (list[str])`: The email addresses of the recipients **EXACTLY**, as confirmed in the `writeEmail` step. 
-- `subject (str)`: The subject line of the email, **EXACTLY** as finalized during the `writeEmail` process.
-- `body (str)`: The body of the email, **EXACTLY** as reviewed and approved by the user in the `writeEmail` phase.
-- `attachments (Optional[list[str]])`: Files or documents to be attached with the email, **EXACTLY** as specified by the user during the `writeEmail` process.
-
-### Returns ###
-- `email_report (str)`: A confirmation message stating the outcome of the email sending process. This report provides feedback on whether the email was sent successfully or if any issues were encountered.
-
-### Usage Example ###
-1. User Inquiry: "Yes, looks good."
-2. System Inference: The user has reviewed the email draft and confirmed it for sending.
-3. Internal Reasoning: 
-    A. The user has approved the email draft.
-    B. Proceed with sending the email to the specified recipient(s).
-4. Parameter Input:
-    A. `recipients: (list[str])`: The recipient(s) of the email, **EXACTLY** as displayed to the user.
-    B. `subject: (str)`: The subject line of the email, **EXACTLY** as displayed to the user.
-    C. `body: (str)`: The email body, **EXACTLY** as displayed to the user.
-    D. `attachments (Optional[list[str]])`: Any attachments **EXACTLY** as displayed to the user.
-5. Function Call: `sendEmail(recipients: list(str), subject: str, body: str, attachments: Optional(str))`
-6. Example Response: "Your email to [Recipient] about [Subject] has been successfully sent."
-
-
 ### Procedure ###
-1. **Verify User Confirmation**: Ensure there is explicit approval from the user to send the email. This step is critical and usually follows the user's review of the provided email draft.
+1. Verify User Confirmation: Ensure there is explicit approval from the user to send the email. This step is critical.
     A. If the user does not confirm, call `writeEmail(recipients: (list[str]), subject: (str), body: (str), attachments: Optional(list[str]))`.
-2. **Executing the Send Command**: Once user confirmation is obtained, proceed with sending the email, employing the details (recipients, subject, body, attachments) as **EXACTLY** as prepared in the `writeEmail` step.
-3. Upon successful dispatch of the email, communicate this to the user with a clear confirmation message, e.g., "Your email to [Recipient] about [Subject] has been successfully sent."
-
-### Objectives ###
-- **Accuracy Is Key**: Double-check that all details—recipients, subject, body, and attachments—correspond with the user's last review and approval to minimize errors.
-- **Clear Confirmation Protocol**: Always obtain and verify user consent before sending an email. This practice reinforces trust and ensures user control over communication.
-- **Prompt and Clear Communication**: Quickly inform the user about the status of their email, providing a succinct and affirmative confirmation message upon successful sending.
+2. Executing the Send Command: Once user confirmation is obtained, proceed with sending the email, employing the details (recipients, subject, body, attachments) as EXACTLY as prepared in `writeEmail`.
+3. Upon sending: communicate to the user with a clear confirmation message
 """
 [tools.function.parameters]
 type = "object"
